@@ -82,22 +82,17 @@ def parse_edits(master_dataset):
     return parsed_edits, failed_edits
 
 def top_pages(rdd):
-    return rdd.filter(lambda edit: edit.server.endswith("wikipedia.org"))\
-        .filter(lambda edit: not (edit.edited_page.startswith(WIKIPEDIA_SPECIAL_PAGES)))\
-        .map(lambda edit: (edit.edited_page, 1))\
+    return rdd.map(lambda edit: (edit.edited_page, 1))\
         .reduceByKey(lambda a,b: a+b)\
         .takeOrdered(20, lambda x: -x[1])
 
 def top_servers(rdd):
-    return rdd.filter(lambda edit: edit.server.endswith("wikipedia.org"))\
-        .map(lambda edit: (edit.server,1))\
+    return rdd.map(lambda edit: (edit.server,1))\
         .reduceByKey(lambda a,b: a+b)\
         .takeOrdered(20, lambda x: -x[1])
 
 def top_editors(rdd):
-    return rdd.filter(lambda edit: edit.server.endswith("wikipedia.org"))\
-        .filter(lambda edit: not edit.bot)\
-        .map(lambda edit: (edit.editor,1))\
+    return rdd.map(lambda edit: (edit.editor,1))\
         .reduceByKey(lambda a,b: a+b)\
         .takeOrdered(20, lambda x: -x[1])
 
@@ -133,8 +128,13 @@ def absolute_data(rdd):
 
     return absolute_data
 
+def clean_rdd(rdd):
+    return rdd.filter(lambda edit: edit.server.endswith("wikipedia.org"))\
+              .filter(lambda edit: not (edit.edited_page.startswith(WIKIPEDIA_SPECIAL_PAGES)))\
+              .filter(lambda edit: not edit.bot)\
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="A dummy program")
+    parser = argparse.ArgumentParser(description="WikiTrends processing")
     parser.add_argument('hdfs_file', help="The master dataset file")
     parser.add_argument('hdfs_address', help="The HDFS namenode address")
     parser.add_argument('hdfs_user', help="The HDFS user")
@@ -142,9 +142,11 @@ if __name__ == "__main__":
 
     sc = SparkContext()
 
-    parsedEdits, failedEdits = parse_edits(args.hdfs_file)
+    parsed_edits, failed_edits = parse_edits(args.hdfs_file)
 
-    write_output_to_file(PAGES_OUTPUT, PAGES_HEADER, top_pages(parsedEdits), args.hdfs_address, args.hdfs_user)
-    write_output_to_file(USERS_OUTPUT, USERS_HEADER, top_editors(parsedEdits), args.hdfs_address, args.hdfs_user)
-    write_output_to_file(SERVER_OUTPUT, SERVER_HEADER, top_servers(parsedEdits), args.hdfs_address, args.hdfs_user)    
-    write_output_to_file(ABSOLUTE_OUTPUT, ABSOLUTE_HEADER, absolute_data(parsedEdits), args.hdfs_address, args.hdfs_user)
+    parsed_edits = clean_rdd(parsed_edits)
+
+    write_output_to_file(PAGES_OUTPUT, PAGES_HEADER, top_pages(parsed_edits), args.hdfs_address, args.hdfs_user)
+    write_output_to_file(USERS_OUTPUT, USERS_HEADER, top_editors(parsed_edits), args.hdfs_address, args.hdfs_user)
+    write_output_to_file(SERVER_OUTPUT, SERVER_HEADER, top_servers(parsed_edits), args.hdfs_address, args.hdfs_user)    
+    write_output_to_file(ABSOLUTE_OUTPUT, ABSOLUTE_HEADER, absolute_data(parsed_edits), args.hdfs_address, args.hdfs_user)
