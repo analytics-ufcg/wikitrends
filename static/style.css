@@ -1,0 +1,43 @@
+body            { font-family: sans-serif; background: #eee; }
+a, h1, h2       { color: #377ba8; }
+h1, h2          { font-family: 'Georgia', serif; margin: 0; }
+h1              { border-bottom: 2px solid #eee; }
+
+.metanav        { text-align: center; font-size: 0.8em; padding: 0.3em;
+                  margin-bottom: 1em; background: #fafafa;}
+
+.bar {
+  fill: steelblue;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+.axis {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.button-right 	{ 	width: 200px;
+					height: 100px;
+					margin-left: auto; 
+				}
+.button-left 	{ 	width: 200px;
+					height: 100px;
+					margin-left: auto; 
+				}
+.button-center 	{ 	width: 200px;
+					height: 100px;
+					margin-left: auto; 
+				}
