@@ -3,16 +3,16 @@
 from hdfs import InsecureClient as HDFSClient
 import os
 
-HDFS_HOST="localhost"
+HDFS_HOST="hdfs-namenode"
 HDFS_PORT=50070
 HDFS_URL="http://{0}:{1}".format(HDFS_HOST,HDFS_PORT)
-USERNAME = 'guilhermemg'
+USERNAME = 'ubuntu'
 
 hdfs_client = HDFSClient(url=HDFS_URL, user=USERNAME)
 
 def read_file_from_hdfs(fileName):
 	path = "/data/serving/%s.tsv" % fileName
-	outFilePath = "/home/guilhermemg/app/api2/tmp"
+	outFilePath = "/home/ubuntu/gabdi/wikitrends/tmp"
 	with hdfs_client.read(path) as reader:
 		content = reader.read()
 		print "File read from HDFS with success"

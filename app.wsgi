@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, "/home/guilhermemg/app/api2")
+sys.path.insert(0, "/home/ubuntu/gabdi/wikitrends")
 
 import logging
 logging.basicConfig(stream=sys.stderr)
