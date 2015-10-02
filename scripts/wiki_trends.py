@@ -78,7 +78,7 @@ def parse_edits(master_dataset):
     return parsed_edits, failed_edits
 
 def top_pages(rdd):
-    return rdd.filter(lambda edit: not (edit.edited_page.startswith("File:") or edit.edited_page.startswith("User:")))\
+    return rdd.filter(lambda edit: not (edit.edited_page.startswith("File:") or edit.edited_page.startswith("User:") or edit.edited_page.startswith("Wikipedia:")))\
         .map(lambda edit: (edit.edited_page, 1))\
         .reduceByKey(lambda a,b: a+b)\
         .takeOrdered(20, lambda x: -x[1])
