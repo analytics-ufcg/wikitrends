@@ -5,7 +5,7 @@ from backend import read_file_from_hdfs, read_absolute_values
 
 # configuration
 DEBUG = True
-USERNAME = 'guilhermemg'
+USERNAME = 'ubuntu'
 WEB_PORT=80
 WEB_HOST="localhost"
 
