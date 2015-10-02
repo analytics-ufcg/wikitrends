@@ -5,6 +5,7 @@ import os
 import sys
 import logging
 import math
+import argparse
 
 from hdfs import InsecureClient as HDFSClient
 
@@ -48,9 +49,15 @@ class WikiNamespace(socketIO_client.BaseNamespace):
         self.emit('subscribe', '*')
 
 if __name__ == "__main__":
-    namenode_address = sys.argv[1]
-    buffer_size = int(sys.argv[2])
-    hdfs_user = sys.argv[3]
+    parser = argparse.ArgumentParser(description="WikiTrends Streaming")
+    parser.add_argument('namenode_address', help="The HDFS namenode address")
+    parser.add_argument('buffer_size', help="The buffer size that has to be reached in the filesystem to start the HDFS copy")
+    parser.add_argument('hdfs_user', help="The HDFS user")
+    args = parser.parse_args()
+
+    namenode_address = args.namenode_address
+    buffer_size = args.buffer_size
+    hdfs_user = args.hdfs_user
 
     socketIO = socketIO_client.SocketIO('stream.wikimedia.org', 80)
     socketIO.define(WikiNamespace, '/rc')
