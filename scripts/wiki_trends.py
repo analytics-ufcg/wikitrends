@@ -28,6 +28,8 @@ USERS_HEADER = ["user", "count"]
 ABSOLUTE_OUTPUT = os.path.join(OUTPUT_PATH, 'absolute.tsv')
 ABSOLUTE_HEADER = ["field", "count"]
 
+WIKIPEDIA_SPECIAL_PAGES = ("Wikipedia:", "User:", "File:", ":Commons", ":Wikipédia")
+
 def _get_edit_length(length_value):
     if not length_value:
         return 0
@@ -78,7 +80,8 @@ def parse_edits(master_dataset):
     return parsed_edits, failed_edits
 
 def top_pages(rdd):
-    return rdd.filter(lambda edit: not (edit.edited_page.startswith("File:") or edit.edited_page.startswith("User:") or edit.edited_page.startswith("Wikipedia:")))\
+    return rdd.filter(lambda edit: edit.server.endswith("wikipedia.org"))\
+        .filter(lambda edit: not (edit.edited_page.startswith(WIKIPEDIA_SPECIAL_PAGES)))\
         .map(lambda edit: (edit.edited_page, 1))\
         .reduceByKey(lambda a,b: a+b)\
         .takeOrdered(20, lambda x: -x[1])
@@ -90,7 +93,8 @@ def top_servers(rdd):
         .takeOrdered(20, lambda x: -x[1])
 
 def top_editors(rdd):
-    return rdd.filter(lambda edit: not edit.bot)\
+    return rdd.filter(lambda edit: edit.server.endswith("wikipedia.org"))\
+        .filter(lambda edit: not edit.bot)\
         .map(lambda edit: (edit.editor,1))\
         .reduceByKey(lambda a,b: a+b)\
         .takeOrdered(20, lambda x: -x[1])
