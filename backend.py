@@ -26,7 +26,7 @@ def __parse_content(content):
 	print "lines"
 	print lines
 	m = {}
-	for i in range(1,len(lines)-1):
+	for i in range(1,len(lines)):
 		newL = lines[i].split("\t")
 		print "newL"
 		print newL

@@ -18,23 +18,25 @@ app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 
 @app.route('/')
 def show_options():
-	entries = read_absolute_values()
-	return render_template('index.html', entries=entries)
+	return render_template('index.html')
 
 @app.route('/idioms', methods=['GET'])
 def show_idioms():
+	entries = read_absolute_values()
 	read_file_from_hdfs('idioms')
-	return render_template('idioms.html')
+	return render_template('idioms.html', entries=entries)
 		
 @app.route('/pages', methods=['GET'])
 def show_pages():
+	entries = read_absolute_values()
 	read_file_from_hdfs('pages')
-	return render_template('pages.html')
+	return render_template('pages.html', entries=entries)
 
 @app.route('/editors', methods=['GET'])
 def show_editors():
+	entries = read_absolute_values()
 	read_file_from_hdfs('editors')
-	return render_template('editors.html')
+	return render_template('editors.html', entries=entries)
 
 
 if __name__ == '__main__':
