@@ -16,6 +16,8 @@ app.config.from_object(__name__)
 
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 
+entries = read_absolute_values()
+
 @app.route('/')
 def show_options():
 	return render_template('index.html')
