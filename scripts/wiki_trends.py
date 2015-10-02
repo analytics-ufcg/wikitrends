@@ -28,7 +28,9 @@ USERS_HEADER = ["user", "count"]
 ABSOLUTE_OUTPUT = os.path.join(OUTPUT_PATH, 'absolute.tsv')
 ABSOLUTE_HEADER = ["field", "count"]
 
-WIKIPEDIA_SPECIAL_PAGES = ("Wikipedia:", "User:", "File:", "Commons:", ":Wikipédia:", "Special:", "Draft:", "Wikipedysta:")
+WIKIPEDIA_SPECIAL_PAGES = ("Wikipedia:", "User:", "File:", "Commons:", 
+    "Wikipédia:", "Special:", "Draft:", "Wikipedysta:", "Συζήτηση χρήστη:", "Vorlage:",
+    "Talk:", "کاربر:")
 
 def _get_edit_length(length_value):
     if not length_value:
