@@ -9,15 +9,10 @@ import argparse
 
 from hdfs import InsecureClient as HDFSClient
 
-BASE_DIR = os.path.join('/', 'data')
+BASE_DIR = os.path.join('/', 'user', "ubuntu")
 
 INPUT_PATH = os.path.join('dataset', 'data.json')
 DATASET_PATH = os.path.join(BASE_DIR, INPUT_PATH)
-
-# Buffer size = 1MB
-buffer_size = 1000000
-namenode_address = "http://localhost:50070"
-hdfs_user = "root"
 
 logger = logging.getLogger('streaming_application')
 logger.setLevel(logging.DEBUG)
@@ -57,9 +52,7 @@ class WikiNamespace(socketIO_client.BaseNamespace):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="WikiTrends Streaming")
     parser.add_argument('namenode_address', help="The HDFS namenode address")
-    parser.add_argument(
-                        'buffer_size',
-                        help="The buffer size that has to be \
+    parser.add_argument('buffer_size', help="The buffer size that has to be \
                         reached in the filesystem to start the HDFS copy")
     parser.add_argument('hdfs_user', help="The HDFS user")
     args = parser.parse_args()

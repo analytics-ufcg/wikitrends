@@ -31,13 +31,13 @@ WIKIPEDIA_SPECIAL_PAGES = ("Wikipedia:", "User:", "File:", "Commons:",
                            "Portal:", "Wikipedia Diskussion:")
 
 
-def _get_edit_length(length_value):
+def __get_edit_length(length_value):
     if not length_value:
         return 0
     return length_value
 
 
-def parse_wiki_edit(edit_entry):
+def __parse_wiki_edit(edit_entry):
     try:
         parsed_data = ast.literal_eval(edit_entry)
         return (Row(
@@ -46,10 +46,10 @@ def parse_wiki_edit(edit_entry):
             bot=parsed_data["bot"],
             minor=parsed_data.get("minor", False),
             server=parsed_data["server_name"].encode("utf-8"),
-            old_length=_get_edit_length(ast.literal_eval(
+            old_length=__get_edit_length(ast.literal_eval(
                 str(parsed_data["length"]))["old"])
             if parsed_data.get("length") else -1,
-            new_length=_get_edit_length(ast.literal_eval(
+            new_length=__get_edit_length(ast.literal_eval(
                 str(parsed_data["length"]))["new"])
             if parsed_data.get("length") else -1
         ), 1)
@@ -74,7 +74,7 @@ def write_output_to_file(output_file, output_headers,
 def parse_edits(master_dataset):
     all_edits = (sc
                  .textFile(master_dataset)
-                 .map(parse_wiki_edit)
+                 .map(__parse_wiki_edit)
                  .cache())
 
     parsed_edits = (all_edits
