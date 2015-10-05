@@ -11,7 +11,7 @@ USERNAME = 'ubuntu'
 hdfs_client = HDFSClient(url=HDFS_URL, user=USERNAME)
 
 def read_file_from_hdfs(fileName):
-	path = "/data/serving/%s.tsv" % fileName
+	path = "/user/ubuntu/serving/%s.tsv" % fileName
 	outFilePath = "/home/ubuntu/gabdi/wikitrends/tmp/tmp"
 	with hdfs_client.read(path) as reader:
 		content = reader.read()
@@ -36,7 +36,7 @@ def __parse_content(content):
 	return m
 
 def read_absolute_values():
-	path = "/data/serving/absolute.tsv"
+	path = "/user/ubuntu/serving/absolute.tsv"
 	with hdfs_client.read(path) as reader:
 		content = reader.read()
 		entries = __parse_content(content)
