@@ -65,7 +65,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     namenode_address = args.namenode_address
-    buffer_size = args.buffer_size
+    buffer_size = int(args.buffer_size)
     hdfs_user = args.hdfs_user
 
     socketIO = socketIO_client.SocketIO('stream.wikimedia.org', 80)
