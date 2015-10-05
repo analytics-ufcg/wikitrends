@@ -2,25 +2,14 @@
 {% block body %}
 
 <div class=metanav>
-          <h1>GADBI</h1>
-          <button class="button-left">
-                <a href="{{ url_for('show_idioms') }}" method=get>Top Idioms</a>
-          </button>
-          <button class="button-center">
-                <a href="{{ url_for('show_editors') }}" method=get>Top Editors</a>
-          </button>
-          <button class="button-right">
-                <a href="{{ url_for('show_pages') }}" method=get>Top Pages</a>
-          </button>
+<p><h1>Total pages: {{ entries['distinct_pages'] }} </h1></p>
+<p><h1>Total Editors: {{ entries['distinct_users'] }} </h1></p>
+<p><h1>Total Pages: {{ entries['distinct_pages'] }} </h1></p>
+<p><h1>All Edits: {{ entries['all_edits'] }} </h1></p>
+<p><h1>Minor Edits: {{ entries['minor_edits'] }} </h1></p>
+<p><h1>Average Edit Size: {{ entries['average_size'] }} </h1></p>
+</div>
 
-          <p><h1>Total Idioms: {{ entries['distinct_servers'] }} </h1></p>
-          <p><h1>Total Editors: {{ entries['distinct_editors'] }} </h1></p>
-          <p><h1>Total Pages: {{ entries['distinct_pages'] }} </h1></p>
-          <p><h1>All Edits: {{ entries['all_edits'] }} </h1></p>
-          <p><h1>Minor Edits: {{ entries['minor_edits'] }} </h1></p>
-          <p><h1>Average Edit Size: {{ entries['average_size'] }} </h1></p>
-
-  </div>
 
 <script>
 
@@ -29,10 +18,10 @@ var margin = {top: 20, right: 20, bottom: 30, left: 40},
     height = 500 - margin.top - margin.bottom;
 
 var x = d3.scale.ordinal()
-    .rangePoints([0, width], 10);
+    .rangePoints([0, width], 100);
 
 var y = d3.scale.linear()
-    .range([height, 0], 50);
+    .range([height, 0], 10000);
 
 var xAxis = d3.svg.axis()
     .scale(x)
@@ -48,10 +37,10 @@ var svg = d3.select("body").append("svg")
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-d3.tsv("/tmp/idioms.tsv", type, function(error, data) {
+d3.tsv("/tmp/pages.tsv", type, function(error, data) {
   if (error) throw error;
 
-  x.domain(data.map(function(d) { return d.idioms; }));
+  x.domain(data.map(function(d) { return d.pages; }));
   y.domain([0, d3.max(data, function(d) { return d.count; })]);
 
   svg.append("g")
@@ -73,7 +62,7 @@ d3.tsv("/tmp/idioms.tsv", type, function(error, data) {
       .data(data)
     .enter().append("rect")
       .attr("class", "bar")
-      .attr("x", function(d) { return x(d.idioms); })
+      .attr("x", function(d) { return x(d.pages); })
       .attr("width", 40)
       .attr("y", function(d) { return y(d.count); })
       .attr("height", function(d) { return height - y(d.count); });
@@ -83,7 +72,6 @@ function type(d) {
   d.count = +d.count;
   return d;
 }
-
 </script>
 
 {% endblock %}

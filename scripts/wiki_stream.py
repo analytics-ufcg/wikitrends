@@ -5,6 +5,7 @@ import os
 import sys
 import logging
 import math
+import argparse
 
 from hdfs import InsecureClient as HDFSClient
 
@@ -35,7 +36,9 @@ class WikiNamespace(socketIO_client.BaseNamespace):
         self.hdfs_client = HDFSClient(url=namenode_address, user=hdfs_user)
 
     def on_change(self, change):
-        if sys.getsizeof(self.buffer.strip()) > buffer_size:            
+	print sys.getsizeof(self.buffer.strip())
+        if sys.getsizeof(self.buffer.strip()) > buffer_size:
+	    print "entrou no write"         
             logger.info('Copying %fMB (%i Bytes) to HDFS...' % (sys.getsizeof(self.buffer.strip())*math.pow(10,-6), sys.getsizeof(self.buffer.strip())))      
             self.hdfs_client.write(hdfs_path=DATASET_PATH, data=self.buffer.strip(), append=True)      
             logger.info('Copy complete!')
@@ -48,9 +51,15 @@ class WikiNamespace(socketIO_client.BaseNamespace):
         self.emit('subscribe', '*')
 
 if __name__ == "__main__":
-    namenode_address = sys.argv[1]
-    buffer_size = int(sys.argv[2])
-    hdfs_user = sys.argv[3]
+    parser = argparse.ArgumentParser(description="WikiTrends Streaming")
+    parser.add_argument('namenode_address', help="The HDFS namenode address")
+    parser.add_argument('buffer_size', help="The buffer size that has to be reached in the filesystem to start the HDFS copy")
+    parser.add_argument('hdfs_user', help="The HDFS user")
+    args = parser.parse_args()
+
+    namenode_address = args.namenode_address
+    buffer_size = int(args.buffer_size)
+    hdfs_user = args.hdfs_user
 
     socketIO = socketIO_client.SocketIO('stream.wikimedia.org', 80)
     socketIO.define(WikiNamespace, '/rc')
