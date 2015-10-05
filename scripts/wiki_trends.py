@@ -9,7 +9,7 @@ from pyspark.sql import Row
 from pyspark import SparkContext
 from hdfs import InsecureClient as HDFSClient
 
-BASE_DIR = os.path.join('/', 'data')
+BASE_DIR = os.path.join('/', 'user', 'ubuntu')
 
 OUTPUT_PATH = os.path.join(BASE_DIR, 'serving')
 
