@@ -1,6 +1,15 @@
 {% extends "index.html" %}
 {% block body %}
 
+<div class=metanav>
+<p><h1>Total Idioms: {{ entries['distinct_idioms'] }} </h1></p>
+<p><h1>Total Editors: {{ entries['distinct_users'] }} </h1></p>
+<p><h1>Total Pages: {{ entries['distinct_pages'] }} </h1></p>
+<p><h1>All Edits: {{ entries['all_edits'] }} </h1></p>
+<p><h1>Minor Edits: {{ entries['minor_edits'] }} </h1></p>
+<p><h1>Average Edit Size: {{ entries['average_size'] }} </h1></p>
+</div>
+
 <script>
 
 var margin = {top: 20, right: 20, bottom: 30, left: 40},

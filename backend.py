@@ -2,17 +2,24 @@
 
 from hdfs import InsecureClient as HDFSClient
 import os
+#import settings_local as env
 
-HDFS_HOST="hdfs-namenode"
-HDFS_PORT=50070
-HDFS_URL="http://{0}:{1}".format(HDFS_HOST,HDFS_PORT)
-USERNAME = 'ubuntu'
+HDFS_HOST = "localhost"
+HDFS_PORT = 50070
+HDFS_URL = "http://{0}:{1}".format(HDFS_HOST,HDFS_PORT)
+HDFS_USERNAME = "guilhermemg"
 
-hdfs_client = HDFSClient(url=HDFS_URL, user=USERNAME)
+print "HDFS_HOST: " + HDFS_HOST
+print "HDFS_PORT: " + str(HDFS_PORT)
+print "HDFS_URL: " + HDFS_URL
+print "HDFS_USERNAME: " + HDFS_USERNAME
+
+hdfs_client = HDFSClient(url=HDFS_URL, user=HDFS_USERNAME)
 
 def read_file_from_hdfs(fileName):
 	path = "/data/serving/%s.tsv" % fileName
-	outFilePath = "/home/ubuntu/gabdi/wikitrends/tmp/tmp"
+	outFilePath = "/home/{0}/gadbi/wikitrends/tmp/".format(HDFS_USERNAME)
+	print "outFilePath: " + outFilePath
 	with hdfs_client.read(path) as reader:
 		content = reader.read()
 		print "File read from HDFS with success"

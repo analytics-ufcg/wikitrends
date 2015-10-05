@@ -1,6 +1,15 @@
 {% extends "index.html" %}
 {% block body %}
 
+<div class=metanav>
+<p><h1>Total editors: {{ entries['distinct_editors'] }} </h1></p>
+<p><h1>Total Editors: {{ entries['distinct_users'] }} </h1></p>
+<p><h1>Total Pages: {{ entries['distinct_pages'] }} </h1></p>
+<p><h1>All Edits: {{ entries['all_edits'] }} </h1></p>
+<p><h1>Minor Edits: {{ entries['minor_edits'] }} </h1></p>
+<p><h1>Average Edit Size: {{ entries['average_size'] }} </h1></p>
+</div>
+
 <script>
 
 var margin = {top: 20, right: 20, bottom: 30, left: 40},
@@ -8,10 +17,10 @@ var margin = {top: 20, right: 20, bottom: 30, left: 40},
     height = 500 - margin.top - margin.bottom;
 
 var x = d3.scale.ordinal()
-    .rangeRoundBands([0, width], 1);
+    .rangePoints([0, width], 10);
 
 var y = d3.scale.linear()
-    .range([height, 0]);
+    .range([height, 0], 100);
 
 var xAxis = d3.svg.axis()
     .scale(x)
@@ -19,8 +28,7 @@ var xAxis = d3.svg.axis()
 
 var yAxis = d3.svg.axis()
     .scale(y)
-    .orient("left")
-    .ticks(10, "%");
+    .orient("left");
 
 var svg = d3.select("body").append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -54,7 +62,7 @@ d3.tsv("/tmp/editors.tsv", type, function(error, data) {
     .enter().append("rect")
       .attr("class", "bar")
       .attr("x", function(d) { return x(d.editors); })
-      .attr("width", x.rangeBand())
+      .attr("width", 40)
       .attr("y", function(d) { return y(d.count); })
       .attr("height", function(d) { return height - y(d.count); });
 });
@@ -63,7 +71,6 @@ function type(d) {
   d.count = +d.count;
   return d;
 }
-
 </script>
 
 {% endblock %}

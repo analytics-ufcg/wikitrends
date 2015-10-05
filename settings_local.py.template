@@ -1,0 +1,11 @@
+
+# hdfs service settings
+DEBUG = False # Set true only for debugging in localhost
+HDFS_HOST=<HADOOP_NAMENODE>
+HDFS_PORT=50070
+HDFS_URL="http://{0}:{1}".format(HDFS_HOST,HDFS_PORT)
+USERNAME = <HDFS_USERNAME>
+
+# apache/flask virtual host settings
+WEB_PORT=80
+WEB_HOST=<WEB_HOST>

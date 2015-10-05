@@ -1,20 +1,23 @@
 # all the imports
 
+import os
 from flask import Flask, render_template
 from backend import read_file_from_hdfs, read_absolute_values
 
-# configuration
-DEBUG = True
-USERNAME = 'ubuntu'
-WEB_PORT=80
-WEB_HOST="localhost"
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(__name__)
+    app.config.from_envvar('FLASKR_SETTINGS', silent=True)
+    app.config.from_pyfile("settings_local.py")
+    return app
 
+app = create_app()
 
-# create our little application :)
-app = Flask(__name__)
-app.config.from_object(__name__)
+print "DEBUG: " + str(app.config['DEBUG'])
+print "AP_USERNAME: " + app.config['AP_USERNAME']
+print "WEB_PORT: " + str(app.config['WEB_PORT'])
+print "WEB_HOST: " + app.config['WEB_HOST']
 
-app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 
 entries = read_absolute_values()
 
@@ -39,4 +42,4 @@ def show_editors():
 
 
 if __name__ == '__main__':
-	app.run(host=WEB_HOST, port=WEB_PORT, debug=app.config.get('DEBUG', DEBUG))
+	app.run(debug=app.config['DEBUG'], host=app.config['WEB_HOST'], port=app.config['WEB_PORT'])
