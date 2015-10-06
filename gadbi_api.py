@@ -22,21 +22,24 @@ print "WEB_HOST: " + app.config['WEB_HOST']
 entries = read_absolute_values()
 
 @app.route('/')
-def show_options():	
-    return render_template('index.html', entries=entries)
+def show_options():
+	return render_template('index.html')
 
 @app.route('/idioms', methods=['GET'])
 def show_idioms():
-    read_file_from_hdfs('idioms')
-    return render_template('idioms.html', entries=entries)
+	entries = read_absolute_values()
+	read_file_from_hdfs('idioms')
+	return render_template('idioms.html', entries=entries)
 		
 @app.route('/pages', methods=['GET'])
 def show_pages():
+	entries = read_absolute_values()
 	read_file_from_hdfs('pages')
 	return render_template('pages.html', entries=entries)
 
 @app.route('/editors', methods=['GET'])
 def show_editors():
+	entries = read_absolute_values()
 	read_file_from_hdfs('editors')
 	return render_template('editors.html', entries=entries)
 
