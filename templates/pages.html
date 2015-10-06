@@ -3,11 +3,6 @@
 
 <div class=metanav>
 <p><h1>Total pages: {{ entries['distinct_pages'] }} </h1></p>
-<p><h1>Total Editors: {{ entries['distinct_users'] }} </h1></p>
-<p><h1>Total Pages: {{ entries['distinct_pages'] }} </h1></p>
-<p><h1>All Edits: {{ entries['all_edits'] }} </h1></p>
-<p><h1>Minor Edits: {{ entries['minor_edits'] }} </h1></p>
-<p><h1>Average Edit Size: {{ entries['average_size'] }} </h1></p>
 </div>
 
 
@@ -18,10 +13,10 @@ var margin = {top: 20, right: 20, bottom: 30, left: 40},
     height = 500 - margin.top - margin.bottom;
 
 var x = d3.scale.ordinal()
-    .rangePoints([0, width], 100);
+    .rangePoints([0, width], 10);
 
 var y = d3.scale.linear()
-    .range([height, 0], 10000);
+    .range([height, 0], 50);
 
 var xAxis = d3.svg.axis()
     .scale(x)
