@@ -7,7 +7,6 @@ import argparse
 
 from pyspark.sql import Row
 from pyspark import SparkContext
-from hdfs import InsecureClient as HDFSClient
 
 BASE_DIR = os.path.join('/', 'user', 'ubuntu')
 
@@ -28,13 +27,26 @@ ABSOLUTE_HEADER = ["field", "count"]
 WIKIPEDIA_SPECIAL_PAGES = ("Wikipedia:", "User:", "File:", "Commons:",
                            "Wikipédia:", "Special:", "Draft:", "Wikipedysta:",
                            "Συζήτηση χρήστη:", "Vorlage:", "Talk:", "کاربر:",
-                           "Portal:", "Wikipedia Diskussion:")
+                           "Portal:", "Wikipedia Diskussion:", "Usuario:",
+                           "User talk:", "Template:", "Wikiprojekt:")
+
+
+class OutputRow(Row):
+
+    def __str__(self):
+        return u'%s\t%i' % (self.key.decode("utf-8"), self.value)
 
 
 def __get_edit_length(length_value):
     if not length_value:
         return 0
     return length_value
+
+
+def __parse_output_entry(entry):
+    return (OutputRow(
+        key=entry[0],
+        value=entry[1]))
 
 
 def __parse_wiki_edit(edit_entry):
@@ -57,23 +69,9 @@ def __parse_wiki_edit(edit_entry):
         return (edit_entry, 0)
 
 
-def write_output_to_file(output_file, output_headers,
-                         items, hdfs_address, hdfs_user):
-    hdfs_client = HDFSClient(url=hdfs_address, user=hdfs_user)
-
-    buffer = "%s\t%s\n" % (output_headers[0], output_headers[1])
-    for item in items:
-        buffer += "%s\t%i\n" % (item[0], item[1])
-
-    hdfs_client.write(
-        hdfs_path=output_file, data=buffer.strip(), overwrite=True)
-
-# Spark Jobs
-
-
-def parse_edits(master_dataset):
+def parse_edits(hdfs_user_folder):
     all_edits = (sc
-                 .textFile(master_dataset)
+                 .textFile("%s/dataset/data.json" % hdfs_user_folder)
                  .map(__parse_wiki_edit)
                  .cache())
 
@@ -89,22 +87,46 @@ def parse_edits(master_dataset):
     return parsed_edits, failed_edits
 
 
-def top_pages(rdd):
-    return rdd.map(lambda edit: (edit.edited_page, 1))\
-        .reduceByKey(lambda a, b: a + b)\
-        .takeOrdered(20, lambda x: -x[1])
+def process_top_pages(rdd, hdfs_user_folder):
+    sc.parallelize(
+        rdd.map(lambda edit: (edit.edited_page, 1))
+        .reduceByKey(lambda a, b: a + b)
+        .takeOrdered(20, lambda edit: -edit[1])
+    ).coalesce(1).map(__parse_output_entry)\
+     .saveAsTextFile("%s/serving/pages" % hdfs_user_folder)
 
 
-def top_servers(rdd):
-    return rdd.map(lambda edit: (edit.server, 1))\
-        .reduceByKey(lambda a, b: a + b)\
-        .takeOrdered(20, lambda x: -x[1])
+def process_top_servers(rdd, hdfs_user_folder):
+    sc.parallelize(
+        rdd.map(lambda edit: (edit.server, 1))
+        .reduceByKey(lambda a, b: a + b)
+        .takeOrdered(20, lambda edit: -edit[1])
+    ).coalesce(1).map(__parse_output_entry)\
+     .saveAsTextFile("%s/serving/idioms" % hdfs_user_folder)
 
 
-def top_editors(rdd):
-    return rdd.map(lambda edit: (edit.editor, 1))\
-        .reduceByKey(lambda a, b: a + b)\
-        .takeOrdered(20, lambda x: -x[1])
+def process_top_editors(rdd, hdfs_user_folder):
+    sc.parallelize(
+        rdd.map(lambda edit: (edit.editor, 1))
+        .reduceByKey(lambda a, b: a + b)
+        .takeOrdered(20, lambda edit: -edit[1])
+    ).coalesce(1).map(__parse_output_entry)\
+     .saveAsTextFile("%s/serving/editors" % hdfs_user_folder)
+
+
+def process_absolute_data(rdd, hdfs_user_folder):
+    absolute_data = []
+    absolute_data.append(("all_edits", all_edits_count(rdd)))
+    absolute_data.append(("minor_edits", minor_edits_count(rdd)))
+    absolute_data.append(("average_size", average_change_length(rdd)))
+    absolute_data.append(("distinct_pages", distinct_pages(rdd)))
+    absolute_data.append(("distinct_editors", distinct_editors(rdd)))
+    absolute_data.append(("distinct_servers", distinct_servers(rdd)))
+
+    sc.parallelize(absolute_data).coalesce(1).map(__parse_output_entry)\
+      .saveAsTextFile("%s/serving/absolute" % hdfs_user_folder)
+
+    return absolute_data
 
 
 def all_edits_count(rdd):
@@ -117,7 +139,8 @@ def minor_edits_count(rdd):
 
 def average_change_length(rdd):
     editLength = rdd.filter(lambda edit: edit.new_length != -1)\
-        .map(lambda edit: (int(edit.new_length)-int(edit.old_length))).cache()
+        .map(lambda edit: (int(edit.new_length) - int(edit.old_length)))\
+        .cache()
     totalEditLength = editLength.reduce(lambda a, b: a + b)
     return totalEditLength / editLength.count()
 
@@ -128,24 +151,12 @@ def distinct_pages(rdd):
 
 def distinct_servers(rdd):
     return rdd.filter(lambda edit: edit.server.endswith("wikipedia.org"))\
-            .map(lambda edit: edit.server).distinct().count()
+        .map(lambda edit: edit.server).distinct().count()
 
 
 def distinct_editors(rdd):
     return rdd.filter(lambda edit: not edit.bot)\
-            .map(lambda edit: edit.editor).distinct().count()
-
-
-def absolute_data(rdd):
-    absolute_data = []
-    absolute_data.append(("all_edits", all_edits_count(rdd)))
-    absolute_data.append(("minor_edits", minor_edits_count(rdd)))
-    absolute_data.append(("average_size", average_change_length(rdd)))
-    absolute_data.append(("distinct_pages", distinct_pages(rdd)))
-    absolute_data.append(("distinct_editors", distinct_editors(rdd)))
-    absolute_data.append(("distinct_servers", distinct_servers(rdd)))
-
-    return absolute_data
+        .map(lambda edit: edit.editor).distinct().count()
 
 
 def clean_rdd(rdd):
@@ -156,22 +167,15 @@ def clean_rdd(rdd):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="WikiTrends processing")
-    parser.add_argument('hdfs_file', help="The master dataset file")
-    parser.add_argument('hdfs_address', help="The HDFS namenode address")
-    parser.add_argument('hdfs_user', help="The HDFS user")
+    parser.add_argument('hdfs_user_folder', help="The user folder on HDFS")
     args = parser.parse_args()
 
     sc = SparkContext()
 
-    parsed_edits, failed_edits = parse_edits(args.hdfs_file)
-
+    parsed_edits, failed_edits = parse_edits(args.hdfs_user_folder)
     parsed_edits = clean_rdd(parsed_edits)
 
-    write_output_to_file(PAGES_OUTPUT, PAGES_HEADER, top_pages(
-        parsed_edits), args.hdfs_address, args.hdfs_user)
-    write_output_to_file(USERS_OUTPUT, USERS_HEADER, top_editors(
-        parsed_edits), args.hdfs_address, args.hdfs_user)
-    write_output_to_file(SERVER_OUTPUT, SERVER_HEADER, top_servers(
-        parsed_edits), args.hdfs_address, args.hdfs_user)
-    write_output_to_file(ABSOLUTE_OUTPUT, ABSOLUTE_HEADER, absolute_data(
-        parsed_edits), args.hdfs_address, args.hdfs_user)
+    process_top_pages(parsed_edits, args.hdfs_user_folder)
+    process_top_editors(parsed_edits, args.hdfs_user_folder)
+    process_top_servers(parsed_edits, args.hdfs_user_folder)
+    process_absolute_data(parsed_edits, args.hdfs_user_folder)

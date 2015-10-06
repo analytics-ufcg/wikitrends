@@ -14,6 +14,11 @@ BASE_DIR = os.path.join('/', 'user', "ubuntu")
 INPUT_PATH = os.path.join('dataset', 'data.json')
 DATASET_PATH = os.path.join(BASE_DIR, INPUT_PATH)
 
+# Buffer size = 1MB
+buffer_size = 1000000
+namenode_address = "http://localhost:50070"
+hdfs_user = "root"
+
 logger = logging.getLogger('streaming_application')
 logger.setLevel(logging.DEBUG)
 fh = logging.FileHandler('streaming.log')
@@ -39,7 +44,7 @@ class WikiNamespace(socketIO_client.BaseNamespace):
                 self.buffer.strip()) * math.pow(10, -6),
                 sys.getsizeof(self.buffer.strip())))
             self.hdfs_client.write(
-                hdfs_path=DATASET_PATH, data=self.buffer.strip(), append=True)
+                hdfs_path=DATASET_PATH, data=self.buffer, append=True)
             logger.info('Copy complete!')
 
             self.buffer = ""
@@ -52,7 +57,8 @@ class WikiNamespace(socketIO_client.BaseNamespace):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="WikiTrends Streaming")
     parser.add_argument('namenode_address', help="The HDFS namenode address")
-    parser.add_argument('buffer_size', help="The buffer size that has to be \
+    parser.add_argument('buffer_size',
+                        help="The buffer size that has to be \
                         reached in the filesystem to start the HDFS copy")
     parser.add_argument('hdfs_user', help="The HDFS user")
     args = parser.parse_args()
