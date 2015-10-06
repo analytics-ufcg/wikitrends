@@ -1,0 +1,25 @@
+<p>
+    <h1>Total Idioms: {{ distinct_servers }} </h1>
+</p>
+<p>
+    <h1>Total Editors: {{ distinct_editors }} </h1>
+</p>
+<p>
+    <h1>Total Pages: {{ distinct_pages }} </h1>
+</p>
+<p>
+    <h1>All Edits: {{ all_edits }} </h1>
+</p>
+<p>
+    <h1>Minor Edits: {{ minor_edits }} </h1>
+</p>
+<p>
+    <h1>Average Edit Size: {{ average_size }} </h1>
+</p>
+
+
+<ranking ranking-data="idioms" ranking-metric="count"  ranking-label="server" ranking-title="Ranking de Idiomas"></ranking>
+
+<ranking ranking-data="pages" ranking-metric="count"  ranking-label="page" ranking-title="Ranking de Páginas"></ranking>
+
+<ranking ranking-data="editors" ranking-metric="count"  ranking-label="user" ranking-title="Ranking de Editores"></ranking>
