@@ -39,12 +39,15 @@ class WikiNamespace(socketIO_client.BaseNamespace):
         self.hdfs_client = HDFSClient(url=namenode_address, user=hdfs_user)
 
     def on_change(self, change):
+        print sys.getsizeof(self.buffer.strip())
+        print buffer_size
         if sys.getsizeof(self.buffer.strip()) > buffer_size:
             logger.info('Copying %fMB (%i Bytes) to HDFS...' % (sys.getsizeof(
                 self.buffer.strip()) * math.pow(10, -6),
                 sys.getsizeof(self.buffer.strip())))
-            self.hdfs_client.write(
-                hdfs_path=DATASET_PATH, data=self.buffer, append=True)
+            with self.hdfs_client.write(DATASET_PATH, append=True) as writer:
+                writer.write(self.buffer)
+                writer.flush()
             logger.info('Copy complete!')
 
             self.buffer = ""
