@@ -12,17 +12,10 @@ BASE_DIR = os.path.join('/', 'user', 'ubuntu')
 
 OUTPUT_PATH = os.path.join(BASE_DIR, 'serving')
 
-SERVER_OUTPUT = os.path.join(OUTPUT_PATH, 'idioms.tsv')
-SERVER_HEADER = ["server", "count"]
-
-PAGES_OUTPUT = os.path.join(OUTPUT_PATH, 'pages.tsv')
-PAGES_HEADER = ["page", "count"]
-
-USERS_OUTPUT = os.path.join(OUTPUT_PATH, 'editors.tsv')
-USERS_HEADER = ["user", "count"]
-
-ABSOLUTE_OUTPUT = os.path.join(OUTPUT_PATH, 'absolute.tsv')
-ABSOLUTE_HEADER = ["field", "count"]
+SERVER_HEADER = [("server", "count")]
+PAGES_HEADER = [("page", "count")]
+USERS_HEADER = [("user", "count")]
+ABSOLUTE_HEADER = [("field", "count")]
 
 WIKIPEDIA_SPECIAL_PAGES = ("Wikipedia:", "User:", "File:", "Commons:",
                            "Wikipédia:", "Special:", "Draft:", "Wikipedysta:",
@@ -34,7 +27,7 @@ WIKIPEDIA_SPECIAL_PAGES = ("Wikipedia:", "User:", "File:", "Commons:",
 class OutputRow(Row):
 
     def __str__(self):
-        return u'%s\t%i' % (self.key.decode("utf-8"), self.value)
+        return u'%s\t%s' % (self.key.decode("utf-8"), self.value)
 
 
 def __get_edit_length(length_value):
@@ -88,30 +81,30 @@ def parse_edits(hdfs_user_folder):
 
 
 def process_top_pages(rdd, hdfs_user_folder):
-    sc.parallelize(
-        rdd.map(lambda edit: (edit.edited_page, 1))
-        .reduceByKey(lambda a, b: a + b)
-        .takeOrdered(20, lambda edit: -edit[1])
-    ).coalesce(1).map(__parse_output_entry)\
-     .saveAsTextFile("%s/serving/pages" % hdfs_user_folder)
+    sc.parallelize(PAGES_HEADER +
+                   rdd.map(lambda edit: (edit.edited_page, 1))
+                   .reduceByKey(lambda a, b: a + b)
+                   .takeOrdered(20, lambda edit: -edit[1])
+                   ).coalesce(1).map(__parse_output_entry)\
+        .saveAsTextFile("%s/serving/pages" % hdfs_user_folder)
 
 
 def process_top_servers(rdd, hdfs_user_folder):
-    sc.parallelize(
-        rdd.map(lambda edit: (edit.server, 1))
-        .reduceByKey(lambda a, b: a + b)
-        .takeOrdered(20, lambda edit: -edit[1])
-    ).coalesce(1).map(__parse_output_entry)\
-     .saveAsTextFile("%s/serving/idioms" % hdfs_user_folder)
+    sc.parallelize(SERVER_HEADER +
+                   rdd.map(lambda edit: (edit.server, 1))
+                   .reduceByKey(lambda a, b: a + b)
+                   .takeOrdered(20, lambda edit: -edit[1])
+                   ).coalesce(1).map(__parse_output_entry)\
+        .saveAsTextFile("%s/serving/idioms" % hdfs_user_folder)
 
 
 def process_top_editors(rdd, hdfs_user_folder):
-    sc.parallelize(
-        rdd.map(lambda edit: (edit.editor, 1))
-        .reduceByKey(lambda a, b: a + b)
-        .takeOrdered(20, lambda edit: -edit[1])
-    ).coalesce(1).map(__parse_output_entry)\
-     .saveAsTextFile("%s/serving/editors" % hdfs_user_folder)
+    sc.parallelize(USERS_HEADER +
+                   rdd.map(lambda edit: (edit.editor, 1))
+                   .reduceByKey(lambda a, b: a + b)
+                   .takeOrdered(20, lambda edit: -edit[1])
+                   ).coalesce(1).map(__parse_output_entry)\
+        .saveAsTextFile("%s/serving/editors" % hdfs_user_folder)
 
 
 def process_absolute_data(rdd, hdfs_user_folder):
@@ -123,7 +116,7 @@ def process_absolute_data(rdd, hdfs_user_folder):
     absolute_data.append(("distinct_editors", distinct_editors(rdd)))
     absolute_data.append(("distinct_servers", distinct_servers(rdd)))
 
-    sc.parallelize(absolute_data).coalesce(1).map(__parse_output_entry)\
+    sc.parallelize(ABSOLUTE_HEADER + absolute_data).coalesce(1).map(__parse_output_entry)\
       .saveAsTextFile("%s/serving/absolute" % hdfs_user_folder)
 
     return absolute_data
