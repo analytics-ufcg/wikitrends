@@ -25,8 +25,6 @@ angular.module('wikitrends').directive('ranking', function ($parse) {
 
                 nv.addGraph(function () {
                     var chart = nv.models.multiBarHorizontalChart()
-                        .width(800)
-                        .height(500)
                         .x(function (d) {
                             return d[attrs.rankingLabel]
                         })
@@ -39,7 +37,9 @@ angular.module('wikitrends').directive('ranking', function ($parse) {
                             bottom: 50,
                             left: 275
                         })
-                        .showControls(false);
+                        .showControls(false)
+                        .showLegend(false)
+                        .noData("Oops! Something is missing...");
 
                     chart.yAxis
                         .tickFormat(d3.format('d'));
