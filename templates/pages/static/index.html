@@ -1,30 +1,30 @@
+<h1>Hello, visitor!<br><br>These are some numbers regarding Wikipedia editions:</h1>
+<p>
+    <h2>Our database is comprised of <font size="7" color="red">{{ all_edits }}</font> different editions provided by Wikipedia (and this number is getting bigger and bigger as you read this text!)</h1>
+</p>
+<p>
+    <h2>A subset of <font size="7" color="red">{{ minor_edits }}</font> editions were marked as minor editions</h1>
+</p>
+<p>
+    <h2> Taking into consideration our database, we have a average size of <font size="7" color="red">{{ average_size }}</font> characters per edition</h1>
+</p>
+<p>
+    <h2>Until now Wikipedia was edited in <font size="7" color="red">{{ distinct_servers }}</font> different languages/dialects</h1>
+</p>
+<p>
+    <h2>All those editions were performed by <font size="7" color="red">{{ distinct_editors }}</font> different editors (excluding bots)</h1>
+</p>
+<p>
+    <h2>In total, <font size="7" color="red">{{ distinct_pages }}</font> different pages were edited </h1>
+</p>
 
-
-
-<p>
-    <h1>Total Idioms: {{ distinct_servers }} </h1>
-</p>
-<p>
-    <h1>Total Editors: {{ distinct_editors }} </h1>
-</p>
-<p>
-    <h1>Total Pages: {{ distinct_pages }} </h1>
-</p>
-<p>
-    <h1>All Edits: {{ all_edits }} </h1>
-</p>
-<p>
-    <h1>Minor Edits: {{ minor_edits }} </h1>
-</p>
-<p>
-    <h1>Average Edit Size: {{ average_size }} </h1>
-</p>
+<h1><br><br>Now, let's see some cool statistics about those editions</h1>
 
 <div id="idioms"></div>
 
 <hr class="featurette-divider">
 
-<h1 >Idioms</h1>
+<h1>Most Frequent Languages</h1>
 
 <ranking ranking-data="idioms" ranking-metric="count"  ranking-label="server" ranking-title="Ranking de Idiomas"></ranking>
 
@@ -32,7 +32,7 @@
 
 <hr class="featurette-divider">
 
-<h1>Pages</h1>
+<h1>Most Edited Pages</h1>
 
 <ranking ranking-data="pages" ranking-metric="count"  ranking-label="page" ranking-title="Ranking de Páginas"></ranking>
 
@@ -40,6 +40,6 @@
 
 <div id="editors"></div>
 
-<h1>Editors</h1>
+<h1>Most Active Editors</h1>
 
 <ranking ranking-data="editors" ranking-metric="count"  ranking-label="user" ranking-title="Ranking de Editores"></ranking>
