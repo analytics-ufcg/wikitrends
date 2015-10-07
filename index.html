@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="wikitrends">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>WikiTrends</title>
+
+    <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="bower_components/nvd3/build/nv.d3.min.css" rel='stylesheet'>
+    <link href="css/wikitrends.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>
+
+    <!-- Huge Header -->
+    <div class="jumbotron header-image">
+        <div class="headline">
+            <div class="container">
+                <h1>WikiTrends</h1>
+                <h2>cool graphs about how we use Wikipedia</h2>
+            </div>
+        </div>
+    </div>
+
+    <hr class="featurette-divider">
+
+    <!-- Page Content -->
+    <div class="container">
+
+        <div ng-view></div>
+
+        <hr class="featurette-divider">
+        <!-- Footer -->
+        <footer>
+            <div class="row" id="sobre">
+                <div class="col-lg-12">
+                    <p>Site criado como parte do Projeto GABDI do
+                        <a href="https://www.facebook.com/analytics.ufcg">Laboratório Analytics</a></p>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <a href="#0" class="cd-top">Top</a>
+
+    <script src="bower_components/angularjs/angular.min.js"></script>
+    <script src="bower_components/angular-route/angular-route.min.js"></script>
+    <script src="bower_components/d3/d3.min.js"></script>
+    <script src="bower_components/nvd3/build/nv.d3.min.js"></script>
+    <script src="bower_components/d3-plugins/fisheye/fisheye.js"></script>
+    <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="js/wikitrends.js"></script>
+    <script src="js/wikitrends-jquery.js"></script>
+    <script src="js/wikitrends-analytics.js"></script>
+    <script src="js/directives/ranking.js"></script>
+
+</body>
+
+</html>
