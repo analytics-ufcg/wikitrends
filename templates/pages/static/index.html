@@ -1,3 +1,6 @@
+
+
+
 <p>
     <h1>Total Idioms: {{ distinct_servers }} </h1>
 </p>
@@ -17,9 +20,26 @@
     <h1>Average Edit Size: {{ average_size }} </h1>
 </p>
 
+<div id="idioms"></div>
+
+<hr class="featurette-divider">
+
+<h1 >Idioms</h1>
 
 <ranking ranking-data="idioms" ranking-metric="count"  ranking-label="server" ranking-title="Ranking de Idiomas"></ranking>
 
+<div id="pages"></div>
+
+<hr class="featurette-divider">
+
+<h1>Pages</h1>
+
 <ranking ranking-data="pages" ranking-metric="count"  ranking-label="page" ranking-title="Ranking de Páginas"></ranking>
+
+<hr class="featurette-divider">
+
+<div id="editors"></div>
+
+<h1>Editors</h1>
 
 <ranking ranking-data="editors" ranking-metric="count"  ranking-label="user" ranking-title="Ranking de Editores"></ranking>
