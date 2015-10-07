@@ -3,7 +3,7 @@ angular.module('wikitrends', ['ngRoute']);
 angular.module('wikitrends').config(function ($routeProvider) {
     $routeProvider
         .when('/', {
-            templateUrl: '/templates/pages/static/index.html',
+            templateUrl: 'templates/pages/static/index.html',
             controller: 'StaticController',
             controllerAs: 'staticController'
 
