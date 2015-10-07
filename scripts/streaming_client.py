@@ -2,10 +2,13 @@ from __future__ import print_function
 from pyspark.streaming import StreamingContext
 from pyspark import SparkContext
 
-sc = SparkContext()
-scc = StreamingContext(sc, 30)
+import config
 
-lines = scc.socketTextStream("localhost", 9999)
+sc = SparkContext()
+scc = StreamingContext(sc, config.STREAMING_CLIENT_CONFIG['WINDOW_SIZE'])
+
+lines = scc.socketTextStream(config.STREAMING_CLIENT_CONFIG['HOST'], \
+			     config.STREAMING_CLIENT_CONFIG['PORT'])
 
 lines.count().pprint()
 

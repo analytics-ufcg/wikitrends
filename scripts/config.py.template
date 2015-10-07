@@ -1,0 +1,25 @@
+#!/bin/python
+
+HDFS_CONFIG = dict(
+    	USERNAME = 'ubuntu',
+	PORT = 9000,
+	WEB_PORT = 50070,
+	HOST = 'localhost'#,
+	#NAMENODE_ADDRESS = 'http://localhost:50070'
+)
+
+WIKI_CONN_CONFIG = dict(
+	BUFFER_SIZE = 100000,
+	DATASET_PATH = "/user/ubuntu/dataset/data.json"
+)
+
+WIKI_TRENDS_CONFIG = dict(
+	#OUTPUT_PATH = "/user/ubuntu/serving",
+	HDFS_USER_FOLDER = "hdfs://localhost:9000/user/ubuntu/"
+)
+
+STREAMING_CLIENT_CONFIG = dict(
+	HOST = "localhost",
+	PORT = 9999,
+	WINDOW_SIZE = 30 # in seconds
+)

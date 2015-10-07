@@ -8,8 +8,9 @@ import argparse
 from pyspark.sql import Row
 from pyspark import SparkContext
 
-BASE_DIR = os.path.join('/', 'user', 'ubuntu')
+import config
 
+BASE_DIR = os.path.join('/', 'user', config.HDFS_CONFIG['USERNAME'])
 OUTPUT_PATH = os.path.join(BASE_DIR, 'serving')
 
 SERVER_HEADER = [("server", "count")]
@@ -160,16 +161,17 @@ def clean_rdd(rdd):
               .filter(lambda edit: not edit.bot)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="WikiTrends processing")
-    parser.add_argument('hdfs_user_folder', help="The user folder on HDFS")
-    args = parser.parse_args()
+    #parser = argparse.ArgumentParser(description="WikiTrends processing")
+    #parser.add_argument('hdfs_user_folder', help="The user folder on HDFS")
+    #args = parser.parse_args()
 
     sc = SparkContext()
 
-    parsed_edits, failed_edits = parse_edits(args.hdfs_user_folder)
+    #parsed_edits, failed_edits = parse_edits(args.hdfs_user_folder)
+    parsed_edits, failed_edits = parse_edits(config.WIKI_TRENDS_CONFIG['HDFS_USER_FOLDER'])
     parsed_edits = clean_rdd(parsed_edits)
 
-    process_top_pages(parsed_edits, args.hdfs_user_folder)
-    process_top_editors(parsed_edits, args.hdfs_user_folder)
-    process_top_servers(parsed_edits, args.hdfs_user_folder)
-    process_absolute_data(parsed_edits, args.hdfs_user_folder)
+    process_top_pages(parsed_edits, config.WIKI_TRENDS_CONFIG['HDFS_USER_FOLDER'])
+    process_top_editors(parsed_edits, config.WIKI_TRENDS_CONFIG['HDFS_USER_FOLDER'])
+    process_top_servers(parsed_edits, config.WIKI_TRENDS_CONFIG['HDFS_USER_FOLDER'])
+    process_absolute_data(parsed_edits, config.WIKI_TRENDS_CONFIG['HDFS_USER_FOLDER'])
