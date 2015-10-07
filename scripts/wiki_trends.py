@@ -116,7 +116,8 @@ def process_absolute_data(rdd, hdfs_user_folder):
     absolute_data.append(("distinct_editors", distinct_editors(rdd)))
     absolute_data.append(("distinct_servers", distinct_servers(rdd)))
 
-    sc.parallelize(ABSOLUTE_HEADER + absolute_data).coalesce(1).map(__parse_output_entry)\
+    sc.parallelize(ABSOLUTE_HEADER + absolute_data).coalesce(1)\
+      .map(__parse_output_entry)\
       .saveAsTextFile("%s/serving/absolute" % hdfs_user_folder)
 
     return absolute_data
