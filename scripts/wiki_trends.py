@@ -18,11 +18,12 @@ PAGES_HEADER = [("page", "count")]
 USERS_HEADER = [("user", "count")]
 ABSOLUTE_HEADER = [("field", "count")]
 
-WIKIPEDIA_SPECIAL_PAGES = ("Wikipedia:", "User:", "File:", "Commons:",
-                           "Wikipédia:", "Special:", "Draft:", "Wikipedysta:",
-                           "Συζήτηση χρήστη:", "Vorlage:", "Talk:", "کاربر:",
-                           "Portal:", "Wikipedia Diskussion:", "Usuario:",
-                           "User talk:", "Template:", "Wikiprojekt:")
+WIKIPEDIA_SPECIAL_PAGES = []
+#WIKIPEDIA_SPECIAL_PAGES = ("Wikipedia:", "User:", "File:", "Commons:",
+#                           "Wikipédia:", "Special:", "Draft:", "Wikipedysta:",
+#                           "Συζήτηση χρήστη:", "Vorlage:", "Talk:", "کاربر:",
+#                           "Portal:", "Wikipedia Diskussion:", "Usuario:",
+#                           "User talk:", "Template:", "Wikiprojekt:")
 
 
 class OutputRow(Row):
@@ -161,10 +162,6 @@ def clean_rdd(rdd):
               .filter(lambda edit: not edit.bot)
 
 if __name__ == "__main__":
-    #parser = argparse.ArgumentParser(description="WikiTrends processing")
-    #parser.add_argument('hdfs_user_folder', help="The user folder on HDFS")
-    #args = parser.parse_args()
-
     sc = SparkContext()
 
     #parsed_edits, failed_edits = parse_edits(args.hdfs_user_folder)

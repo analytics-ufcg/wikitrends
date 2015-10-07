@@ -14,17 +14,7 @@ from threading import Lock, Thread
 
 import config
 
-#BASE_DIR = os.path.join('/', 'user', "ubuntu")
-
-#INPUT_PATH = os.path.join('dataset', 'data.json')
-#DATASET_PATH = os.path.join(BASE_DIR, INPUT_PATH)
 DATASET_PATH = config.WIKI_CONN_CONFIG['DATASET_PATH']
-
-# Buffer size = 1MB
-#batch_buffer_size = 1000000
-#streaming_buffer_size = 5000
-#namenode_address = config.HDFS_CONFIG['NAMENODE_ADDRESS'] #"http://localhost:50070"
-#hdfs_user = config.HDFS_CONFIG['USERNAME'] # "root"
 
 batch_logger = logging.getLogger('batch_storage')
 batch_logger.setLevel(logging.DEBUG)
@@ -99,14 +89,6 @@ class WikiNamespace(socketIO_client.BaseNamespace):
 
 
 if __name__ == "__main__":
-    #parser = argparse.ArgumentParser(description="WikiTrends Streaming")
-    #parser.add_argument('namenode_address', help="The HDFS namenode address")
-    #parser.add_argument('buffer_size',
-    #                    help="The buffer size that has to be \
-    #                    reached in the filesystem to start the HDFS copy")
-    #parser.add_argument('hdfs_user', help="The HDFS user")
-    #args = parser.parse_args()
-
     host = config.HDFS_CONFIG['HOST']
     port = config.HDFS_CONFIG['WEB_PORT']
     namenode_address = "http://{0}:{1}".format(host, port)  #args.namenode_address
