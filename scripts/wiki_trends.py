@@ -18,7 +18,7 @@ PAGES_HEADER = [("page", "count")]
 USERS_HEADER = [("user", "count")]
 ABSOLUTE_HEADER = [("field", "count")]
 
-WIKIPEDIA_SPECIAL_PAGES = []
+WIKIPEDIA_SPECIAL_PAGES = ()
 #WIKIPEDIA_SPECIAL_PAGES = ("Wikipedia:", "User:", "File:", "Commons:",
 #                           "Wikipédia:", "Special:", "Draft:", "Wikipedysta:",
 #                           "Συζήτηση χρήστη:", "Vorlage:", "Talk:", "کاربر:",
