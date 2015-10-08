@@ -1,25 +1,19 @@
 #!/bin/python
 
 HDFS_CONFIG = dict(
-    	USERNAME = 'ubuntu',
-	PORT = 9000,
-	WEB_PORT = 50070,
-	HOST = 'localhost'#,
-	#NAMENODE_ADDRESS = 'http://localhost:50070'
+    	USERNAME = <user with access to hdfs>,
+	PORT = <port to hadoop service>,
+	WEB_PORT = <web port of hadoop services>,
+	HOST = <namenode host>
 )
 
 WIKI_CONN_CONFIG = dict(
-	BUFFER_SIZE = 100000,
-	DATASET_PATH = "/user/ubuntu/dataset/data.json"
-)
-
-WIKI_TRENDS_CONFIG = dict(
-	#OUTPUT_PATH = "/user/ubuntu/serving",
-	HDFS_USER_FOLDER = "hdfs://localhost:9000/user/ubuntu/"
+	BUFFER_SIZE = <buffer size of wiki connection>,  # in bytes(B)
+	DATASET_PATH = <file`s path to save data coming from wikipedia streaming>
 )
 
 STREAMING_CLIENT_CONFIG = dict(
-	HOST = "localhost",
-	PORT = 9999,
-	WINDOW_SIZE = 30 # in seconds
+	HOST = <host to open socket to forward streaming flow from wikipedia>,
+	PORT = <socket´s port>,
+	WINDOW_SIZE = <window`s size in seconds to process real-time flow> # in seconds
 )

@@ -164,11 +164,15 @@ def clean_rdd(rdd):
 if __name__ == "__main__":
     sc = SparkContext()
 
-    #parsed_edits, failed_edits = parse_edits(args.hdfs_user_folder)
-    parsed_edits, failed_edits = parse_edits(config.WIKI_TRENDS_CONFIG['HDFS_USER_FOLDER'])
+    host = config.HDFS_CONFIG['HOST']
+    port = config.HDFS_CONFIG['PORT']
+    user = config.HDFS_CONFIG['USERNAME']
+    hdfs_user_folder = "hdfs://{0}:{1}/user/{2}".format(host, port, user)
+
+    parsed_edits, failed_edits = parse_edits(hdfs_user_folder)
     parsed_edits = clean_rdd(parsed_edits)
 
-    process_top_pages(parsed_edits, config.WIKI_TRENDS_CONFIG['HDFS_USER_FOLDER'])
-    process_top_editors(parsed_edits, config.WIKI_TRENDS_CONFIG['HDFS_USER_FOLDER'])
-    process_top_servers(parsed_edits, config.WIKI_TRENDS_CONFIG['HDFS_USER_FOLDER'])
-    process_absolute_data(parsed_edits, config.WIKI_TRENDS_CONFIG['HDFS_USER_FOLDER'])
+    process_top_pages(parsed_edits, hdfs_user_folder)
+    process_top_editors(parsed_edits, hdfs_user_folder)
+    process_top_servers(parsed_edits, hdfs_user_folder)
+    process_absolute_data(parsed_edits, hdfs_user_folder)
