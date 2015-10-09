@@ -1,21 +1,24 @@
 
 <h2 id="sec1">Hello, visitor!</h2>
 <p>
+    We've been watching how people all over the world interact with Wikipedia since {{}} and we've got some cool statistics to show you! 
+    We account every time an edit is made at any page under wikipedia.org domain, which is "somebody changed something". 
+    
     These are some numbers regarding Wikipedia editions: <br/>
 
-    Our database is comprised of <span class="highlighted">910632</span> different editions
+    Our database is comprised of <span class="highlighted">{{ all_edits }}</span> different editions
     provided by Wikipedia
     (and this number is getting bigger and bigger as you read this text!)
     <br/>
-    A subset of <span class="highlighted">149439</span> editions were marked as minor editions
+    A subset of <span class="highlighted">{{ minor_edits }}</span> editions were marked as minor editions
 
-    Taking our database into consideration, Wikipedia has an average size of <span class="highlighted">196</span> characters per edition
+    Taking our database into consideration, Wikipedia has an average size of <span class="highlighted">{{ average_size }}</span> characters per edition
     <br/>
-    Until now Wikipedia was edited in <span class="highlighted">233</span> different languages/dialects
+    Until now Wikipedia was edited in <span class="highlighted">{{ distinct_servers }}</span> different languages/dialects
 
-    All those editions were performed by <span class="highlighted">137933</span> different editors (excluding bots)
+    All those editions were performed by <span class="highlighted">{{ distinct_editors }}</span> different editors (excluding bots)
 
-    Overall, a total of <span class="highlighted">441131</span> different pages were edited!
+    Overall, a total of <span class="highlighted">{{ distinct_pages }}</span> different pages were edited!
 </p>
 <br/>
 
