@@ -1,3 +1,12 @@
+body {
+    margin-top: 2rem;
+}
+
+p{
+    font-size: 2rem;
+}
+
+
 .header-image {
     display: block;
     width: 100%;
@@ -268,4 +277,17 @@ footer {
         right: 30px;
         bottom: 30px;
     }
+}
+
+.highlighted {
+    font-size: 3rem;
+    color: red;
+    font-weight: bold;
+}
+
+h3 {
+    text-align: center;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    color: #265a88;
 }

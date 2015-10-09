@@ -1,24 +1,30 @@
-<h1>Hello, visitor!<br><br>These are some numbers regarding Wikipedia editions:</h1>
-<p>
-    <h2>Our database is comprised of <font size="7" color="red">{{ all_edits }}</font> different editions provided by Wikipedia (and this number is getting bigger and bigger as you read this text!)</h1>
-</p>
-<p>
-    <h2>A subset of <font size="7" color="red">{{ minor_edits }}</font> editions were marked as minor editions</h1>
-</p>
-<p>
-    <h2> Taking our database into consideration, Wikipedia has an average size of <font size="7" color="red">{{ average_size }}</font> characters per edition</h1>
-</p>
-<p>
-    <h2>Until now Wikipedia was edited in <font size="7" color="red">{{ distinct_servers }}</font> different languages/dialects</h1>
-</p>
-<p>
-    <h2>All those editions were performed by <font size="7" color="red">{{ distinct_editors }}</font> different editors (excluding bots)</h1>
-</p>
-<p>
-    <h2>Overall, a total of <font size="7" color="red">{{ distinct_pages }}</font> different pages were edited </h1>
-</p>
 
-<h1><br><br>Now, let's see some cool statistics about those editions</h1>
+<h2 id="sec1">Hello, visitor!</h2>
+<p>
+    We've been watching how people all over the world interact with Wikipedia since {{}} and we've got some cool statistics to show you! 
+    We account every time an edit is made at any page under wikipedia.org domain, which is "somebody changed something". 
+    
+    These are some numbers regarding Wikipedia editions: <br/>
+
+    Our database is comprised of <span class="highlighted">{{ all_edits }}</span> different editions
+    provided by Wikipedia
+    (and this number is getting bigger and bigger as you read this text!)
+    <br/>
+    A subset of <span class="highlighted">{{ minor_edits }}</span> editions were marked as minor editions
+
+    Taking our database into consideration, Wikipedia has an average size of <span class="highlighted">{{ average_size }}</span> characters per edition
+    <br/>
+    Until now Wikipedia was edited in <span class="highlighted">{{ distinct_servers }}</span> different languages/dialects
+
+    All those editions were performed by <span class="highlighted">{{ distinct_editors }}</span> different editors (excluding bots)
+
+    Overall, a total of <span class="highlighted">{{ distinct_pages }}</span> different pages were edited!
+</p>
+<br/>
+
+<div class="panel panel-default">
+    <h3>Now, let's see some cool pictures?</h3>
+</div>
 
 <div id="idioms"></div>
 
@@ -26,7 +32,7 @@
 
 <h1>Most Frequent Languages</h1>
 
-<ranking ranking-data="idioms" ranking-metric="count"  ranking-label="server" ranking-title="Ranking de Idiomas"></ranking>
+<ranking ranking-data="idioms" ranking-metric="count"  ranking-label="server" ranking-title="Number of edits: "></ranking>
 
 <div id="pages"></div>
 
@@ -34,7 +40,7 @@
 
 <h1>Most Edited Pages</h1>
 
-<ranking ranking-data="pages" ranking-metric="count"  ranking-label="page" ranking-title="Ranking de Páginas"></ranking>
+<ranking ranking-data="pages" ranking-metric="count"  ranking-label="page" ranking-title="Number of edits: "></ranking>
 
 <hr class="featurette-divider">
 
@@ -42,4 +48,4 @@
 
 <h1>Most Active Editors</h1>
 
-<ranking ranking-data="editors" ranking-metric="count"  ranking-label="user" ranking-title="Ranking de Editores"></ranking>
+<ranking ranking-data="editors" ranking-metric="count"  ranking-label="user" ranking-title="Number of edits: "></ranking>
