@@ -8,9 +8,9 @@ while [ -f /tmp/.gabdi.lock ]; do
 done
 echo "done"
 touch /tmp/.gabdi.lock
-hdfs dfs -cat /user/ubuntu/serving/absolute/part-00000 > /tmp/absolute.tsv
-hdfs dfs -cat /user/ubuntu/serving/editors/part-00000 > /tmp/editors.tsv
-hdfs dfs -cat /user/ubuntu/serving/idioms/part-00000 > /tmp/idioms.tsv
-hdfs dfs -cat /user/ubuntu/serving/pages/part-00000 > /tmp/pages.tsv
-hdfs dfs -cat /user/ubuntu/serving/absolute-realtime/template.tsv > /tmp/absolute-realtime.tsv
+hdfs dfs -getmerge /user/ubuntu/serving/absolute > /tmp/absolute.tsv
+hdfs dfs -getmerge /user/ubuntu/serving/editors > /tmp/editors.tsv
+hdfs dfs -getmerge /user/ubuntu/serving/idioms > /tmp/idioms.tsv
+hdfs dfs -getmerge /user/ubuntu/serving/pages > /tmp/pages.tsv
+rm /tmp/absolute-realtime.tsv
 rm /tmp/.gabdi.lock
