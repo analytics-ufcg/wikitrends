@@ -52,6 +52,7 @@ class WikiNamespace(socketIO_client.BaseNamespace):
         self.streaming_connection, address = s.accept()
         while(True):
             try:
+                print "BUFFER CONTENT: " + str(self.streaming_buffer)
                 self.streaming_connection.send(str(self.streaming_buffer))
             except:
                 self.__forward_buffered_streaming()
