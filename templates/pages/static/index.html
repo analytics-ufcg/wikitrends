@@ -1,26 +1,55 @@
 
-<h2 id="sec1">Hello, visitor!</h2>
-<p>
-    We've been watching how people all over the world interact with Wikipedia since {{}} and we've got some cool statistics to show you! 
-    We account every time an edit is made at any page under wikipedia.org domain, which is "somebody changed something". 
-    
-    These are some numbers regarding Wikipedia editions: <br/>
+<div class="row row-eq-height">
+    <div class="col-md-6">
+        <!--<span class="glyphicon glyphicon-question-sign"></span>-->
+        <h2 class="featurette-heading">Hello, visitor!
+            <span class="text-muted">We've been watching how people all over the world interact with Wikipedia since {{ start_date }} and we've got some cool statistics to show you...</span>
+        </h2>
+        <p class="lead">
+            So far, we've seen a total of <span class="highlighted">{{ all_edits | number}}</span> edits (and this number is getting bigger and bigger as you read this text!). An edit means someone changed some page, but as some of these pages are for control purposes and are quite uninteresting now, we removed these "minor edits" from our analysis leaving a total of <span class="highlighted">{{all_edits - minor_edits| number}}</span> major edits, accounting for <span class="highlighted">{{100*(all_edits - minor_edits)/all_edits | number :1}}%</span> of all edits we've seen!
+        </p>
+        
+        <p class="lead">
+            All those edits were performed by <span class="highlighted">{{ distinct_editors | number }}</span> different editors (excluding bots) on a total of <span class="highlighted">{{ distinct_pages | number}}</span> different pages! This gives us  <span class="highlighted">{{(all_edits - minor_edits)/distinct_editors | number :2  }}</span> edits per user.
+        </p>
+    </div>
+    <div class="col-md-6">
+        <wiki-pie pie-data="edits"></wiki-pie>
+    </div>
+</div>
 
-    Our database is comprised of <span class="highlighted">{{ all_edits }}</span> different editions
-    provided by Wikipedia
-    (and this number is getting bigger and bigger as you read this text!)
-    <br/>
-    A subset of <span class="highlighted">{{ minor_edits }}</span> editions were marked as minor editions
 
-    Taking our database into consideration, Wikipedia has an average size of <span class="highlighted">{{ average_size }}</span> characters per edition
-    <br/>
-    Until now Wikipedia was edited in <span class="highlighted">{{ distinct_servers }}</span> different languages/dialects
+<hr class="featurette-divider">
 
-    All those editions were performed by <span class="highlighted">{{ distinct_editors }}</span> different editors (excluding bots)
+<div class="row">
+    <div class="col-md-4">
+        <a href="images/Twitter_logo_blue.png">
+            <img class="img-responsive pull-left" src="images/Twitter_logo_blue.png">
+        </a>
+    </div>
+    <div class="col-md-8">
+        <!--<span class="glyphicon glyphicon-question-sign"></span>-->
+        <h2 class="featurette-heading">How big are the edits?</h2>
+        <p class="lead">Wikipedia edits have <span class="highlighted">{{ average_size }}</span> characters in average. That's a tiny little bit bigger than a tweet!</p>
+    </div>
+</div>
 
-    Overall, a total of <span class="highlighted">{{ distinct_pages }}</span> different pages were edited!
-</p>
-<br/>
+<hr class="featurette-divider">
+
+<div class="row">
+    <div class="col-md-8">
+        <!--<span class="glyphicon glyphicon-question-sign"></span>-->
+        <h2 class="featurette-heading">What about different languages?</h2>
+        <p class="lead">There is reportedly <span class="highlighted">280</span> active different languages Wikipedias. Despite that, we've seen edits in <span class="highlighted">{{ distinct_servers }}</span> different languages since the start of our inspection, accounting for <span class="highlighted">{{100*distinct_servers/280 | number :1}}%</span> of the active languages</p>
+    </div>
+    <div class="col-md-4">
+        <a href="images/Twitter_logo_blue.png">
+            <img class="img-responsive pull-left" src="images/wikipedia-languages.png">
+        </a>
+    </div>
+</div>
+
+<hr class="featurette-divider">
 
 <div class="panel panel-default">
     <h3>Now, let's see some cool pictures?</h3>

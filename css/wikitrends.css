@@ -1,5 +1,4 @@
 body {
-    margin-top: 2rem;
 }
 
 p{
@@ -10,11 +9,12 @@ p{
 .header-image {
     display: block;
     width: 100%;
+    height: 740px;
     background: url('../images/Wikipedia-logo-v2.svg.png') no-repeat center center scroll;
-    background-size: contain;
-    -webkit-background-size: contain;
-    -moz-background-size: contain;
-    -o-background-size: contain;
+    background-size: cover;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
     box-shadow: inset 0 0 0 1000px rgba(255,255,255,.8);
 }
 
@@ -150,8 +150,11 @@ footer {
     display: block;
     margin-left: auto;
     margin-right: auto;
+/*
     width: 800px;
-    height: 500px;
+*/
+    width: 100%;
+    height: 400px;
     font: 10px sans-serif;
 }
 
@@ -290,4 +293,15 @@ h3 {
     padding: 1rem;
     margin-bottom: 1.5rem;
     color: #265a88;
+}
+
+/*
+* Row with equal height columns
+* --------------------------------------------------
+*/
+.row-eq-height {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display:         flex;
 }

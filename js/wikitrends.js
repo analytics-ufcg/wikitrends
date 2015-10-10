@@ -20,6 +20,14 @@ angular.module('wikitrends').controller('StaticController', function ($scope, $h
         d3.tsv.parse(response.data).forEach(function (d) {
             $scope[d.field] = d.count
         })
+        $scope.edits = [{
+            label: "Major Edits",
+            value: $scope['all_edits'] - $scope['minor_edits']
+        }, {
+            label: "Minor Edits",
+            value: parseInt($scope['minor_edits'], 10)
+        }]
+        console.log($scope.edits)
     }, function (response) {
         console.log(response.data);
     });
@@ -43,4 +51,11 @@ angular.module('wikitrends').controller('StaticController', function ($scope, $h
         console.log(response.data);
     });
 
+});
+
+angular.module('wikitrends').filter('round', function(){
+
+    return function(n){
+        return Math.round(n);
+    };
 });
