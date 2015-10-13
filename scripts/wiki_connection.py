@@ -59,7 +59,6 @@ class WikiNamespace(socketIO_client.BaseNamespace):
         try:
             self.streaming_connection.send("%s\n" % change)
         except:
-            streaming_logger.info('Error on streaming... Waiting Spark consumer')
             self.streaming_connection = None
             self.__wait_for_consumer()
         self.buffer += "%s\n" % change
