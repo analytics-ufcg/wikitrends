@@ -3,7 +3,6 @@
 
 import ast
 import os
-import argparse
 
 from pyspark.sql import Row
 from pyspark import SparkContext
@@ -20,7 +19,9 @@ ABSOLUTE_HEADER = [("field", "count")]
 
 WIKIPEDIA_SPECIAL_PAGES = ()
 
+
 class OutputRow(Row):
+
     def __str__(self):
         return u'%s\t%s' % (self.key.decode("utf-8"), self.value)
 
@@ -46,6 +47,7 @@ def parse_wiki_edit(edit_entry):
             bot=parsed_data["bot"],
             minor=parsed_data.get("minor", False),
             server=parsed_data["server_name"].encode("utf-8"),
+            timestamp=parsed_data["timestamp"],
             old_length=get_edit_length(ast.literal_eval(
                 str(parsed_data["length"]))["old"])
             if parsed_data.get("length") else -1,
@@ -73,6 +75,7 @@ def parse_edits(hdfs_user_folder):
                     .map(lambda entry: entry[0]))
 
     return parsed_edits, failed_edits
+
 
 def process_top_pages(rdd, hdfs_user_folder, proc_type):
     sc.parallelize(PAGES_HEADER +
@@ -109,11 +112,12 @@ def process_absolute_data(rdd, hdfs_user_folder, proc_type):
     absolute_data.append(("distinct_pages", distinct_pages(rdd)))
     absolute_data.append(("distinct_editors", distinct_editors(rdd)))
     absolute_data.append(("distinct_servers", distinct_servers(rdd)))
+    absolute_data.append(("origin", get_origin(rdd)))
 
     sc.parallelize(ABSOLUTE_HEADER + absolute_data).coalesce(1)\
-       .map(parse_output_entry)\
-       .saveAsTextFiles("{0}/{1}/absolute".format(hdfs_user_folder, proc_type))
-    
+        .map(parse_output_entry)\
+        .saveAsTextFile("{0}/{1}/absolute".format(hdfs_user_folder, proc_type))
+
     return absolute_data
 
 
@@ -146,6 +150,8 @@ def distinct_editors(rdd):
     return rdd.filter(lambda edit: not edit.bot)\
         .map(lambda edit: edit.editor).distinct().count()
 
+def get_origin(rdd):
+    return rdd.first().timestamp
 
 def clean_rdd(rdd):
     return rdd.filter(lambda edit: edit.server.endswith("wikipedia.org"))\
