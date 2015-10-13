@@ -46,25 +46,23 @@ class WikiNamespace(socketIO_client.BaseNamespace):
         self.buffer = ""
         self.streaming_buffer = ""
         self.streaming_connection = None
+        self.streaming_thread = None
         self.hdfs_client = HDFSClient(url=namenode_address, user=hdfs_user)
 
     def __forward_buffered_streaming(self):
+        streaming_logger.info('Waiting Spark consumer to connect')
         self.streaming_connection, address = s.accept()
-        while(True):
-            try:
-                print "BUFFER CONTENT: " + str(self.streaming_buffer)
-                self.streaming_connection.send(str(self.streaming_buffer))
-            except:
-                self.__forward_buffered_streaming()
-            streaming_logger.info("%iKB Stream sent to %s:%i!" % (
-                sys.getsizeof(self.streaming_buffer.strip()) / 1000,
-                address[0], address[1]))
-            lock.acquire()
-            self.streaming_buffer = ""
-            lock.release()
-            time.sleep(15)
+        self.streaming_thread = None
+        streaming_logger.info('Spark consumer connected')
 
     def on_change(self, change):
+        try:
+            self.streaming_connection.send("%s\n" % change)
+        except:
+            streaming_logger.info('Error on streaming... Waiting Spark consumer')
+            self.streaming_connection = None
+            self.__wait_for_consumer()
+        self.buffer += "%s\n" % change
         if sys.getsizeof(self.buffer.strip()) > buffer_size:
             batch_logger.info('Copying %fMB (%i Bytes) to HDFS...' %
                               (sys.getsizeof(self.buffer.strip()) *
@@ -76,17 +74,18 @@ class WikiNamespace(socketIO_client.BaseNamespace):
             batch_logger.info('Copy complete!')
 
             self.buffer = ""
-        else:
-            self.buffer += "%s\n" % change
-            lock.acquire()
-            self.streaming_buffer += "%s\n" % change
-            lock.release()
 
     def on_connect(self):
+        streaming_logger.info('Connected to Wikipedia')
         self.emit('subscribe', '*')
-        streaming_thread = Thread(target=self.__forward_buffered_streaming)
-        streaming_thread.daemon = True
-        streaming_thread.start()
+        self.__wait_for_consumer()
+        
+    def __wait_for_consumer(self):
+        if not self.streaming_thread:
+            self.streaming_thread = Thread(target=self.__forward_buffered_streaming)
+            self.streaming_thread.daemon = True
+            self.streaming_thread.start()
+
 
 
 if __name__ == "__main__":
@@ -99,7 +98,7 @@ if __name__ == "__main__":
     # Streaming Socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((config.STREAMING_CLIENT_CONFIG['HOST'], config.STREAMING_CLIENT_CONFIG['PORT']))
-    s.listen(10)
+    s.listen(1)
 
     # Wikipedia Socket
     socketIO = socketIO_client.SocketIO('stream.wikimedia.org', 80)
