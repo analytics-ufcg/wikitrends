@@ -98,7 +98,7 @@ if __name__ == "__main__":
 
     # Streaming Socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(("localhost", 9999))
+    s.bind((config.STREAMING_CLIENT_CONFIG['HOST'], config.STREAMING_CLIENT_CONFIG['PORT']))
     s.listen(10)
 
     # Wikipedia Socket

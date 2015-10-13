@@ -19,12 +19,6 @@ USERS_HEADER = [("user", "count")]
 ABSOLUTE_HEADER = [("field", "count")]
 
 WIKIPEDIA_SPECIAL_PAGES = ()
-#WIKIPEDIA_SPECIAL_PAGES = ("Wikipedia:", "User:", "File:", "Commons:",
-#                           "Wikipédia:", "Special:", "Draft:", "Wikipedysta:",
-#                           "Συζήτηση χρήστη:", "Vorlage:", "Talk:", "کاربر:",
-#                           "Portal:", "Wikipedia Diskussion:", "Usuario:",
-#                           "User talk:", "Template:", "Wikiprojekt:")
-
 
 class OutputRow(Row):
 
@@ -32,7 +26,7 @@ class OutputRow(Row):
         return u'%s\t%s' % (self.key.decode("utf-8"), self.value)
 
 
-def __get_edit_length(length_value):
+def get_edit_length(length_value):
     if not length_value:
         return 0
     return length_value
@@ -53,10 +47,10 @@ def parse_wiki_edit(edit_entry):
             bot=parsed_data["bot"],
             minor=parsed_data.get("minor", False),
             server=parsed_data["server_name"].encode("utf-8"),
-            old_length=__get_edit_length(ast.literal_eval(
+            old_length=get_edit_length(ast.literal_eval(
                 str(parsed_data["length"]))["old"])
             if parsed_data.get("length") else -1,
-            new_length=__get_edit_length(ast.literal_eval(
+            new_length=get_edit_length(ast.literal_eval(
                 str(parsed_data["length"]))["new"])
             if parsed_data.get("length") else -1
         ), 1)
@@ -86,7 +80,7 @@ def process_top_pages(rdd, hdfs_user_folder, proc_type):
                    rdd.map(lambda edit: (edit.edited_page, 1))
                    .reduceByKey(lambda a, b: a + b)
                    .takeOrdered(20, lambda edit: -edit[1])
-                   ).coalesce(1).map(__parse_output_entry)\
+                   ).coalesce(1).map(parse_output_entry)\
         .saveAsTextFile("{0}/{1}/pages".format(hdfs_user_folder, proc_type))
 
 
@@ -95,7 +89,7 @@ def process_top_servers(rdd, hdfs_user_folder, proc_type):
                    rdd.map(lambda edit: (edit.server, 1))
                    .reduceByKey(lambda a, b: a + b)
                    .takeOrdered(20, lambda edit: -edit[1])
-                   ).coalesce(1).map(__parse_output_entry)\
+                   ).coalesce(1).map(parse_output_entry)\
         .saveAsTextFile("{0}/{1}/idioms".format(hdfs_user_folder, proc_type))
 
 
@@ -104,7 +98,7 @@ def process_top_editors(rdd, hdfs_user_folder, proc_type):
                    rdd.map(lambda edit: (edit.editor, 1))
                    .reduceByKey(lambda a, b: a + b)
                    .takeOrdered(20, lambda edit: -edit[1])
-                   ).coalesce(1).map(__parse_output_entry)\
+                   ).coalesce(1).map(parse_output_entry)\
         .saveAsTextFile("{0}/{1}/editors".format(hdfs_user_folder, proc_type))
 
 
@@ -118,7 +112,7 @@ def process_absolute_data(rdd, hdfs_user_folder, proc_type):
     absolute_data.append(("distinct_servers", distinct_servers(rdd)))
 
     sc.parallelize(ABSOLUTE_HEADER + absolute_data).coalesce(1)\
-       .map(__parse_output_entry)\
+       .map(parse_output_entry)\
        .saveAsTextFile("{0}/{1}/absolute".format(hdfs_user_folder, proc_type))
     
     return absolute_data
