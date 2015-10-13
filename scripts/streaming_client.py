@@ -1,4 +1,3 @@
-from __future__ import print_function
 from pyspark.streaming import StreamingContext
 from pyspark import SparkContext
 
@@ -12,9 +11,6 @@ import argparse
 ABSOLUTE_HEADER = [("field", "count")]
 
 WIKIPEDIA_SPECIAL_PAGES = ()
-
-BASE_DIR = os.path.join('/', 'user', config.HDFS_CONFIG['USERNAME'])
-OUTPUT_PATH_SPEED = os.path.join(BASE_DIR, 'speed')
 
 host = config.HDFS_CONFIG['HOST']
 port = config.HDFS_CONFIG['PORT']
@@ -36,25 +32,38 @@ def parse_edits_rt(dstream):
 
     return parsed_edits, failed_edits
 
-def process_absolute_data_rt(parsed_edits, hdfs_user_folder, proc_type):
-	absolute_data = []
-	absolute_data.append(("all_edits", wiki_trends.all_edits_count(parsed_edits)))
-	absolute_data.append(("minor_edits", wiki_trends.minor_edits_count(parsed_edits)))
-	sc.parallelize(ABSOLUTE_HEADER + absolute_data).coalesce(1)\
-	.map(wiki_trends.parse_output_entry)\
-	.saveAsTextFiles("{0}/{1}/absolute".format(hdfs_user_folder, proc_type))
+
+def process_absolute_data_rt(parsed_edits, hdfs_user_folder):
+	proc_type = 'speed_tmp'
+	
+	ae = wiki_trends.all_edits_count(parsed_edits)
+	me = wiki_trends.minor_edits_count(parsed_edits)
+	
+	ae.pprint()
+	me.pprint()
+	
+	ae.saveAsTextFiles("{0}/{1}/{2}/".format(hdfs_user_folder, proc_type, 'all_edits'))
+	me.saveAsTextFiles("{0}/{1}/{2}/".format(hdfs_user_folder, proc_type, 'minor_edits'))
+
 
 if __name__ == "__main__":
 	sc = SparkContext()
 	scc = StreamingContext(sc, config.STREAMING_CLIENT_CONFIG['WINDOW_SIZE'])
 
 	lines_dstream = scc.socketTextStream(config.STREAMING_CLIENT_CONFIG['HOST'],\
-    	config.STREAMING_CLIENT_CONFIG['PORT'])
+		config.STREAMING_CLIENT_CONFIG['PORT'])
+
+	lines_dstream.count().pprint()
 
 	parsed_edits, failed_edits = parse_edits_rt(lines_dstream)
-	parsed_edits = wiki_trends.clean_rdd(parsed_edits)
+	parsed_edits.count().pprint()
 
-	process_absolute_data_rt(parsed_edits, hdfs_user_folder, 'speed_tmp')
+	parsed_edits = wiki_trends.clean_rdd(parsed_edits)
+	parsed_edits.count().pprint()
+
+	process_absolute_data_rt(parsed_edits, hdfs_user_folder)
 
 	scc.start()
 	scc.awaitTermination()
+
+	

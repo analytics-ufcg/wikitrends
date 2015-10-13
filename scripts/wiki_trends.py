@@ -21,7 +21,6 @@ ABSOLUTE_HEADER = [("field", "count")]
 WIKIPEDIA_SPECIAL_PAGES = ()
 
 class OutputRow(Row):
-
     def __str__(self):
         return u'%s\t%s' % (self.key.decode("utf-8"), self.value)
 
@@ -113,7 +112,7 @@ def process_absolute_data(rdd, hdfs_user_folder, proc_type):
 
     sc.parallelize(ABSOLUTE_HEADER + absolute_data).coalesce(1)\
        .map(parse_output_entry)\
-       .saveAsTextFile("{0}/{1}/absolute".format(hdfs_user_folder, proc_type))
+       .saveAsTextFiles("{0}/{1}/absolute".format(hdfs_user_folder, proc_type))
     
     return absolute_data
 
