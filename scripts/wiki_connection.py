@@ -22,10 +22,10 @@ batch_logger.setLevel(logging.DEBUG)
 streaming_logger = logging.getLogger('streaming')
 streaming_logger.setLevel(logging.DEBUG)
 
-fh = logging.FileHandler('batch.log')
+fh = logging.FileHandler('/var/log/gabdi/batch.log')
 fh.setLevel(logging.DEBUG)
 
-fh_streaming = logging.FileHandler('streaming.log')
+fh_streaming = logging.FileHandler('/var/log/gabdi/streaming.log')
 fh_streaming.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter(
