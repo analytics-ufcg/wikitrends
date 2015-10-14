@@ -6,7 +6,7 @@
             <span class="text-muted">We've been watching how people all over the world interact with Wikipedia since <span class="highlighted"> {{ origin*1000 | date: 'longDate' }}</span> and we've got some cool statistics to show you...</span>
         </h2>
         <p class="lead">
-            So far, we've seen a total of <span class="highlighted">{{ all_edits | number}}</span> edits (and this number is getting bigger and bigger as you read this text!). An edit means someone changed some page, but as some of these pages are for control purposes and are quite uninteresting now, we removed these "minor edits" from our analysis leaving a total of <span class="highlighted">{{all_edits - minor_edits| number}}</span> major edits, accounting for <span class="highlighted">{{100*(all_edits - minor_edits)/all_edits | number :1}}%</span> of all edits we've seen!
+            So far, we've seen a total of <span class="highlighted">{{ all_edits | number}}</span> edits (and this number is getting bigger and bigger as you read this text! Only in the last 30 seconds, for example, <span class="highlighted-streaming">{{ stream_all_edits | number}}</span> new edits were performed - <span class="highlighted-streaming">{{ stream_minor_edits | number}}</span> of them marked as minor). An edit means someone changed some page, but as some of these pages are for control purposes and are quite uninteresting now, we removed these "minor edits" from our analysis leaving a total of <span class="highlighted">{{all_edits - minor_edits| number}}</span> major edits, accounting for <span class="highlighted">{{100*(all_edits - minor_edits)/all_edits | number :1}}%</span> of all edits we've seen!
         </p>
 
         <p class="lead">

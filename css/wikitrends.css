@@ -288,6 +288,12 @@ footer {
     font-weight: bold;
 }
 
+.highlighted-streaming {
+    font-size: 3rem;
+    color: blue;
+    font-weight: bold;
+}
+
 h3 {
     text-align: center;
     padding: 1rem;
