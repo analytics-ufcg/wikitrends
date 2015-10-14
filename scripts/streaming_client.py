@@ -3,6 +3,7 @@ from pyspark import SparkContext
 
 import config
 import wiki_trends
+from wiki_trends import OutputRow
 
 ABSOLUTE_HEADER = [("field", "count")]
 
@@ -37,11 +38,19 @@ def process_absolute_data_rt(parsed_edits, hdfs_user_folder):
 
     ae.pprint()
     me.pprint()
+    
+    ae_rdd = parsed_edits.map(lambda edit: ("stream_all_edits", 1)).reduceByKey(lambda a, b: a+b)
+    me_rdd = parsed_edits.filter(lambda edit: edit.minor).map(lambda edit: ("stream_minor_edits", 1)).reduceByKey(lambda a, b: a+b)
+    speed_rdd = ae_rdd.union(me_rdd)
+    
+    
+    speed_rdd.saveAsTextFiles(
+        "{0}/{1}/{2}".format(hdfs_user_folder, proc_type, 'absolute'), "tsv")
 
-    ae.saveAsTextFiles(
-        "{0}/{1}/{2}/".format(hdfs_user_folder, proc_type, 'all_edits'))
-    me.saveAsTextFiles(
-        "{0}/{1}/{2}/".format(hdfs_user_folder, proc_type, 'minor_edits'))
+#    ae.saveAsTextFiles(
+#        "{0}/{1}/{2}".format(hdfs_user_folder, proc_type, 'all_edits'))
+#    me.saveAsTextFiles(
+#        "{0}/{1}/{2}".format(hdfs_user_folder, proc_type, 'minor_edits'))
 
 
 if __name__ == "__main__":

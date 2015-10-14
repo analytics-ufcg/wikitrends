@@ -24,6 +24,7 @@ class OutputRow(Row):
 
     def __str__(self):
         return u'%s\t%s' % (self.key.decode("utf-8"), self.value)
+    __repr__ = __str__
 
 
 def get_edit_length(length_value):
