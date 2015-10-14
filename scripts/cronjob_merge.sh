@@ -1,5 +1,5 @@
 #!/bin/bash
-
+source /home/ubuntu/.profile;
 while [ -f /tmp/.gabdi.lock ]; do
 echo "waiting"
 sleep 1
