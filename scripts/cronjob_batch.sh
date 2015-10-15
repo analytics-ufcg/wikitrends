@@ -16,5 +16,4 @@ echo -e "input_size\t${size}" >> /tmp/absolute.tsv
 hdfs dfs -getmerge /user/ubuntu/serving/editors /tmp/editors.tsv
 hdfs dfs -getmerge /user/ubuntu/serving/idioms /tmp/idioms.tsv
 hdfs dfs -getmerge /user/ubuntu/serving/pages /tmp/pages.tsv
-rm /tmp/absolute-realtime.tsv
 rm /tmp/.gabdi.lock
