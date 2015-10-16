@@ -22,7 +22,8 @@ WIKIPEDIA_SPECIAL_PAGES = ("Wikipedia:", "User:", "File:", "Commons:",
                            "Συζήτηση χρήστη:", "Vorlage:", "Talk:", "کاربر:",
                            "Portal:", "Wikipedia Diskussion:", "Usuario:",
                            "User talk:", "Template:", "Wikiprojekt:", "Benutzer:",
-                           "Benutzer Diskussion:", "초안:", "Користувач:")
+                           "Benutzer Diskussion:", "초안:", "Користувач:", "Utente:",
+                           "Wikipedia talk:")
 
 
 class OutputRow(Row):
