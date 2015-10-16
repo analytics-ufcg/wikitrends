@@ -6,7 +6,7 @@
             <span class="text-muted">We've been watching how people all over the world interact with Wikipedia since <span class="highlighted"> {{ origin*1000 | date: 'longDate' }}</span> and we've got some cool statistics to show you...</span>
         </h2>
         <p class="lead">
-            So far, we've seen a total of <span class="highlighted">{{ all_edits | number}}</span> edits (and this number is getting bigger and bigger as you read this text! Only in the last 30 seconds, for example, <span class="highlighted-streaming">{{ stream_all_edits | number}}</span> new edits were performed - <span class="highlighted-streaming">{{ stream_minor_edits | number}}</span> of them marked as minor). An edit means someone changed some page, but as some of these pages are for control purposes and might be quite uninteresting now, we can also ignore these "minor edits" from our total count leaving a rest of <span class="highlighted">{{all_edits - minor_edits| number}}</span> major edits, accounting for <span class="highlighted">{{100*(all_edits - minor_edits)/all_edits | number :1}}%</span> of all edits we've seen!
+            So far, we've seen a total of <span class="highlighted">{{ all_edits | number}}</span> edits (and this number is getting bigger and bigger as you read this text! Only in the last 30 seconds, for example, <span class="highlighted-streaming">{{ stream_all_edits | number}}</span> new edits were performed - <span class="highlighted-streaming">{{ stream_minor_edits | number}}</span> of them marked as minor). An edit means someone changed some page. Some of these edits are minor edits, used for control and admin tasks only. In our data, there are <span class="highlighted">{{all_edits - minor_edits| number}}</span> major edits, accounting for <span class="highlighted">{{100*(all_edits - minor_edits)/all_edits | number :1}}%</span> of all edits.
         </p>
 
         <p class="lead">
@@ -40,7 +40,7 @@
     <div class="col-md-8">
         <!--<span class="glyphicon glyphicon-question-sign"></span>-->
         <h2 class="featurette-heading">What about different languages?</h2>
-        <p class="lead">There is reportedly <span class="highlighted">280</span> active different languages Wikipedias. Despite that, we've seen edits in <span class="highlighted">{{ distinct_servers }}</span> different languages since the start of our inspection, accounting for <span class="highlighted">{{100*distinct_servers/280 | number :1}}%</span> of the active languages</p>
+        <p class="lead">There are reportedly <span class="highlighted">280</span> active different languages Wikipedias. Despite that, we've seen edits in <span class="highlighted">{{ distinct_servers }}</span> different languages since the start of our inspection, accounting for <span class="highlighted">{{100*distinct_servers/280 | number :1}}%</span> of the active languages</p>
     </div>
     <div class="col-md-4">
         <a href="images/Twitter_logo_blue.png">
