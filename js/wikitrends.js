@@ -1,6 +1,6 @@
-angular.module('wikitrends', ['ngRoute']);
+var app = angular.module('wikitrends', ['ngRoute', 'pascalprecht.translate']);
 
-angular.module('wikitrends').config(function ($routeProvider) {
+app.config(function ($routeProvider) {
     $routeProvider
         .when('/', {
             templateUrl: 'templates/pages/static/index.html',
@@ -13,7 +13,7 @@ angular.module('wikitrends').config(function ($routeProvider) {
         });
 });
 
-angular.module('wikitrends').controller('StaticController', function ($scope, $http) {
+app.controller('StaticController', function ($scope, $http) {
     $scope.deputados = [];
 
     $http.get('data/absolute.tsv').then(function (response) {
@@ -53,14 +53,14 @@ angular.module('wikitrends').controller('StaticController', function ($scope, $h
 
 });
 
-angular.module('wikitrends').filter('round', function(){
+app.filter('round', function(){
 
     return function(n){
         return Math.round(n);
     };
 });
 
-angular.module('wikitrends').filter('bytes', function() {
+app.filter('bytes', function() {
     return function(bytes, precision) {
         if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
         if (typeof precision === 'undefined') precision = 1;
@@ -69,3 +69,4 @@ angular.module('wikitrends').filter('bytes', function() {
         return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
     }
 });
+
