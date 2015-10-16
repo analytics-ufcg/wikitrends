@@ -17,7 +17,13 @@ PAGES_HEADER = [("page", "count")]
 USERS_HEADER = [("user", "count")]
 ABSOLUTE_HEADER = [("field", "count")]
 
-WIKIPEDIA_SPECIAL_PAGES = ()
+WIKIPEDIA_SPECIAL_PAGES = ("Wikipedia:", "User:", "File:", "Commons:",
+                           "Wikipédia:", "Special:", "Draft:", "Wikipedysta:",
+                           "Συζήτηση χρήστη:", "Vorlage:", "Talk:", "کاربر:",
+                           "Portal:", "Wikipedia Diskussion:", "Usuario:",
+                           "User talk:", "Template:", "Wikiprojekt:", "Benutzer:",
+                           "Benutzer Diskussion:", "초안:", "Користувач:", "Utente:",
+                           "Wikipedia talk:")
 
 
 class OutputRow(Row):
@@ -78,13 +84,16 @@ def parse_edits(hdfs_user_folder):
     return parsed_edits, failed_edits
 
 
-def process_top_pages(rdd, hdfs_user_folder, proc_type):
+def process_top_pages(rdd, hdfs_user_folder, proc_type, content=False):
+    if content:
+        rdd = rdd.filter(lambda edit: not (edit.edited_page
+                                         .startswith(WIKIPEDIA_SPECIAL_PAGES)))
     sc.parallelize(PAGES_HEADER +
                    rdd.map(lambda edit: (edit.edited_page, 1))
                    .reduceByKey(lambda a, b: a + b)
                    .takeOrdered(20, lambda edit: -edit[1])
                    ).coalesce(1).map(parse_output_entry)\
-        .saveAsTextFile("{0}/{1}/pages".format(hdfs_user_folder, proc_type))
+        .saveAsTextFile("{0}/{1}/pages{2}".format(hdfs_user_folder, proc_type, "_content" if content else ""))
 
 
 def process_top_servers(rdd, hdfs_user_folder, proc_type):
@@ -156,8 +165,6 @@ def get_origin(rdd):
 
 def clean_rdd(rdd):
     return rdd.filter(lambda edit: edit.server.endswith("wikipedia.org"))\
-              .filter(lambda edit: not (edit.edited_page
-                                        .startswith(WIKIPEDIA_SPECIAL_PAGES)))\
               .filter(lambda edit: not edit.bot)
 
 if __name__ == "__main__":
@@ -172,6 +179,7 @@ if __name__ == "__main__":
     parsed_edits = clean_rdd(parsed_edits)
 
     process_top_pages(parsed_edits, hdfs_user_folder, 'serving')
+    process_top_pages(parsed_edits, hdfs_user_folder, 'serving', content=True)
     process_top_editors(parsed_edits, hdfs_user_folder, 'serving')
     process_top_servers(parsed_edits, hdfs_user_folder, 'serving')
 
