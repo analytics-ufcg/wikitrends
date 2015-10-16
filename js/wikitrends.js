@@ -51,6 +51,12 @@ angular.module('wikitrends').controller('StaticController', function ($scope, $h
         console.log(response.data);
     });
 
+    $http.get('data/pages_content.tsv').then(function (response) {
+        $scope.pages_content = d3.tsv.parse(response.data)
+    }, function (response) {
+        console.log(response.data);
+    });
+
 });
 
 angular.module('wikitrends').filter('round', function(){

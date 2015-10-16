@@ -1,6 +1,6 @@
 #!/bin/bash
 source /home/ubuntu/.profile;
-hadoop fs -rm -r /user/ubuntu/serving/idioms /user/ubuntu/serving/pages /user/ubuntu/serving/editors /user/ubuntu/serving/absolute
+hadoop fs -rm -r /user/ubuntu/serving/idioms /user/ubuntu/serving/pages /user/ubuntu/serving/pages_content /user/ubuntu/serving/editors /user/ubuntu/serving/absolute
 batch_elapsed_time=`(time spark-submit --master spark://hdfs-namenode:7077 --total-executor-cores 4 /home/ubuntu/gabdi/wikitrends/scripts/wiki_trends.py hdfs://hdfs-namenode:9000/user/ubuntu >> /var/log/gabdi/gabdi.log 2>&1) 2>&1 | grep real | cut -f2`
 while [ -f /tmp/.gabdi.lock ]; do
 	echo "waiting"
@@ -16,5 +16,6 @@ echo -e "input_size\t${size}" >> /tmp/absolute.tsv
 hdfs dfs -getmerge /user/ubuntu/serving/editors /tmp/editors.tsv
 hdfs dfs -getmerge /user/ubuntu/serving/idioms /tmp/idioms.tsv
 hdfs dfs -getmerge /user/ubuntu/serving/pages /tmp/pages.tsv
+hdfs dfs -getmerge /user/ubuntu/serving/pages_content /tmp/pages_content.tsv
 rm /tmp/absolute-realtime.tsv
 rm /tmp/.gabdi.lock
