@@ -45,13 +45,89 @@
         <hr class="featurette-divider">
         <!-- Footer -->
         <footer>
-            <div class="row" id="sobre">
-                <div class="col-lg-12">
-                    <p>Site criado como parte do Projeto GABDI do
-                        <a href="https://www.facebook.com/analytics.ufcg">Laboratório Analytics</a></p>
-                </div>
-            </div>
-        </footer>
+			<div class="container">
+				<br>
+				<div class="row">
+					 <p align="center"> {{ 'FOOTER_P_1' | translate }} <a href="/team_temp/team.html"> {{ 'FOOTER_P_2' | translate }} </a>
+					 {{ 'FOOTER_P_3' | translate }} <a href="https://www.facebook.com/analytics.ufcg"> {{ 'FOOTER_P_4' | translate }} </a></p>
+				</div>
+                
+				<div class="row">
+					  <div class="col-xs-4 col-sm-3 text-center" style="padding-top: 35px">
+						<a href="http://www.computacao.ufcg.edu.br/"><img src="/images/logocomp.png"></a>
+					  </div>
+					  <div class="col-xs-4 col-sm-3 text-center" style="padding-top: 55px">
+						<a href="https://www.facebook.com/analytics.ufcg"><img src="/images/analyticsLogo.png"></a>
+					  </div>
+					  <div class="col-xs-4 col-sm-3 text-left" style="padding-top: 15px">
+						<a href="https://hadoop.apache.org/"><img src="/images/hadoop_logo.png"></a>
+					  </div>
+					  <div class="col-xs-4 col-sm-3 text-left">
+						<a href="https://spark.apache.org/"><img src="/images/spark_logo.png"></a>
+					  </div>
+					  <br>  
+				</div>
+				<br>
+			</div>
+			<br>
+			
+<!--
+			<div class="container-fluid">
+
+			<div class="row">
+				<div class="col-md-4">
+					<div class="align-center" >
+						<img src="images/nazareno.jpg" class="img-circle" width="70px" height="70px">
+						<br />
+						<br />
+						<dl><dt>Nazareno Andrade</dt></dl>
+						<dd>Coordenador</dd>
+					</div>
+				</div>
+
+				<div class="col-md-4">
+					<div class="align-center">
+						<img src="images/leandro.jpg" class="img-circle" width="70px" height="70px">
+						<br />
+						<br />
+						<dl><dt>Leandro Balby</dt></dl>
+						<dd>Coordenador</dd>
+					</div>
+				</div>
+				
+				<div class="col-md-4">
+					<div class="align-center">
+						<img src="images/felipe.jpg" class="img-circle" width="70px" height="70px">
+						<br />
+						<br />
+						<dl><dt>Felipe Vieira</dt></dl>
+						<dd>Big Data Developer</dd>
+					</div>
+				</div>
+				
+				<div class="col-md-4">
+					<div class="align-center">
+						<img src="images/guilherme.jpg" class="img-circle" width="70px" height="70px">
+						<br />
+						<br />
+						<dl><dt>Guilherme Gadelha</dt></dl>
+						<dd>Big Data Developer</dd>
+					</div>
+				</div>
+
+				<div class="col-md-4">
+					<div class="align-center">
+						<img src="images/ricardo.jpg" class="img-circle" width="70px" height="70px">
+						<br />
+						<br />
+						<dl><dt>Ricardo Araújo</dt></dl>
+						<dd>Big Data Developer</dd>
+					</div>
+				</div>
+			</div>
+        </div>
+-->
+    </footer>
 
     </div>
 
@@ -63,6 +139,8 @@
     <script src="bower_components/nvd3/build/nv.d3.min.js"></script>
     <script src="bower_components/d3-plugins/fisheye/fisheye.js"></script>
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
+	<script src="bower_components/bootstrap-3.3.5/js/bootstrap.js"></script>
+	<script src="bower_components/bootstrap-3.3.5/js/bootstrap.min.js"></script>
     <script src="js/wikitrends.js"></script>
     <script src="js/wikitrends-jquery.js"></script>
     <script src="js/wikitrends-analytics.js"></script>

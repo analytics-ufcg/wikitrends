@@ -14,8 +14,6 @@ app.config(function ($routeProvider) {
 });
 
 app.controller('StaticController', function ($scope, $http) {
-    $scope.deputados = [];
-
     $http.get('data/absolute.tsv').then(function (response) {
         d3.tsv.parse(response.data).forEach(function (d) {
             $scope[d.field] = d.count
