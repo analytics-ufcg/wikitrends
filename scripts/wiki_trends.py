@@ -23,7 +23,7 @@ WIKIPEDIA_SPECIAL_PAGES = ("Wikipedia:", "User:", "File:", "Commons:",
                            "Portal:", "Wikipedia Diskussion:", "Usuario:",
                            "User talk:", "Template:", "Wikiprojekt:", "Benutzer:",
                            "Benutzer Diskussion:", "초안:", "Користувач:", "Utente:",
-                           "Wikipedia talk:")
+                           "Wikipedia talk:", "Обсуждение:", "Anexo:", "Википедия:")
 
 
 class OutputRow(Row):
