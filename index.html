@@ -14,6 +14,7 @@
     <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="bower_components/nvd3/build/nv.d3.min.css" rel='stylesheet'>
     <link href="css/wikitrends.css" rel="stylesheet">
+    <link href="bower_components/lang_trans/languages.min.css" rel="stylesheet">
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -25,51 +26,80 @@
 </head>
 
 <body>
+	<!--  HEADER  -->
+		<div class="container">
 
-    <!-- Huge Header -->
-    <div class="jumbotron header-image">
-        <div class="headline">
-            <div class="container">
-                <h1>WikiTrends</h1>
-            </div>
-        </div>
-    </div>
+			  <!-- Static navbar -->
+			  <nav class="navbar navbar-default navbar-fixed-top">
+				<div class="container-fluid">
+				  <div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					  <span class="sr-only">Toggle navigation</span>
+					  <span class="icon-bar"></span>
+					  <span class="icon-bar"></span>
+					  <span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="#">WikiTrends</a>
+				  </div>
+				  <div id="navbar" class="navbar-collapse collapse">
+					<ul class="nav navbar-nav">
+					  <li class="active"><a href="#">Home</a></li>
+					  <li><a href="#">About</a></li>
+					  <li><a href="#">Contact</a></li>
+					</ul>
+					
+					<ul class="nav navbar-nav navbar-right" ng-controller="Ctrl" class="ng-scope">
+					  <li id="eng-button" class="btn ng-scope" ng-click="changeLanguage('en')" translate="BUTTON_LANG_EN"><img src="images/usa.jpg"> 
+					  </li>
+					  <li id="pt-button" class="active btn ng-scope" ng-click="changeLanguage('pt')" translate="BUTTON_LANG_PT"><img src="images/br.jpg"> 
+					  </li>
+					</ul>
+				  </div><!--/.nav-collapse -->
+				</div><!--/.container-fluid -->
+			  </nav>
 
-    <hr class="featurette-divider">
-
-    <!-- Page Content -->
-    <div class="container">
-
-        <div ng-view></div>
-
-        <hr class="featurette-divider">
-        <!-- Footer -->
-        <footer>
-			<div class="container">
-				<br>
-				<div class="row">
-					 <p align="center"> {{ 'FOOTER_P_1' | translate }} <a href="/team_temp/team.html"> {{ 'FOOTER_P_2' | translate }} </a>
-					 {{ 'FOOTER_P_3' | translate }} <a href="https://www.facebook.com/analytics.ufcg"> {{ 'FOOTER_P_4' | translate }} </a></p>
+			  <!-- Main component for a primary marketing message or call to action -->
+			  <!-- Huge Header -->
+				<div class="jumbotron header-image">
+					<div class="headline">
+						<div class="container">
+							<h1>WikiTrends</h1>
+						</div>
+					</div>
 				</div>
-                
-				<div class="row">
-					  <div class="col-xs-4 col-sm-3 text-center" style="padding-top: 35px">
-						<a href="http://www.computacao.ufcg.edu.br/"><img src="/images/logocomp.png"></a>
-					  </div>
-					  <div class="col-xs-4 col-sm-3 text-center" style="padding-top: 55px">
-						<a href="https://www.facebook.com/analytics.ufcg"><img src="/images/analyticsLogo.png"></a>
-					  </div>
-					  <div class="col-xs-4 col-sm-3 text-left" style="padding-top: 15px">
-						<a href="https://hadoop.apache.org/"><img src="/images/hadoop_logo.png"></a>
-					  </div>
-					  <div class="col-xs-4 col-sm-3 text-left">
-						<a href="https://spark.apache.org/"><img src="/images/spark_logo.png"></a>
-					  </div>
-					  <br>  
+				
+				<hr class="featurette-divider">
+
+				<!-- Home Page Content -->
+				<div id="home" class="container">
+					<div ng-view></div>
 				</div>
-				<br>
-			</div>
-			<br>
+							
+		</div> <!-- nav bar container -->
+	
+	<hr class="featurette-divider">
+	
+	<!-- Footer -->
+	<footer>
+		<div class="row">
+			 <p align="center"> {{ 'FOOTER_P_1' | translate }} <a href="/team_temp/team.html"> {{ 'FOOTER_P_2' | translate }} </a>
+			 {{ 'FOOTER_P_3' | translate }} <a href="https://www.facebook.com/analytics.ufcg"> {{ 'FOOTER_P_4' | translate }} </a></p>
+		</div>
+		
+		<div class="row">
+			  <div class="col-xs-4 col-sm-3 text-center" style="padding-top: 35px">
+				<a href="http://www.computacao.ufcg.edu.br/"><img src="/images/logocomp.png"></a>
+			  </div>
+			  <div class="col-xs-4 col-sm-3 text-center" style="padding-top: 55px">
+				<a href="https://www.facebook.com/analytics.ufcg"><img src="/images/analyticsLogo.png"></a>
+			  </div>
+			  <div class="col-xs-4 col-sm-3 text-left" style="padding-top: 15px">
+				<a href="https://hadoop.apache.org/"><img src="/images/hadoop_logo.png"></a>
+			  </div>
+			  <div class="col-xs-4 col-sm-3 text-left">
+				<a href="https://spark.apache.org/"><img src="/images/spark_logo.png"></a>
+			  </div> 
+		</div>
 			
 <!--
 			<div class="container-fluid">
@@ -128,9 +158,7 @@
         </div>
 -->
     </footer>
-
-    </div>
-
+	
     <a href="#0" class="cd-top">Top</a>
 
     <script src="bower_components/angularjs/angular.min.js"></script>
@@ -139,8 +167,8 @@
     <script src="bower_components/nvd3/build/nv.d3.min.js"></script>
     <script src="bower_components/d3-plugins/fisheye/fisheye.js"></script>
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
-	<script src="bower_components/bootstrap-3.3.5/js/bootstrap.js"></script>
-	<script src="bower_components/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+	<script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+	<script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
     <script src="js/wikitrends.js"></script>
     <script src="js/wikitrends-jquery.js"></script>
     <script src="js/wikitrends-analytics.js"></script>

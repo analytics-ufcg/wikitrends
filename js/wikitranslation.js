@@ -2,8 +2,8 @@ app.config(function ($translateProvider) {
   $translateProvider.translations('en', {
 	TITLE: 'Hello',
 	FOO: 'This is a paragraph.',
-	BUTTON_LANG_EN: 'english',
-	BUTTON_LANG_PT: 'portuguese',
+	BUTTON_LANG_EN: 'English',
+	BUTTON_LANG_PT: 'Portuguese',
 	INIT_HELLO: 'Hello, visitor! ',
 	PAR_1_1: "We've been watching how people all over the world interact with Wikipedia since ",
 	PAR_1_2: "and we've got some cool statistics to show you...",
@@ -42,8 +42,8 @@ app.config(function ($translateProvider) {
   $translateProvider.translations('pt', {
 	TITLE: 'Olá',
 	FOO: 'Isto é um parágrafo.',
-	BUTTON_LANG_EN: 'inglês',
-	BUTTON_LANG_PT: 'português',
+	BUTTON_LANG_EN: 'Inglês',
+	BUTTON_LANG_PT: 'Português',
 	INIT_HELLO: 'Olá, Visitante! ',
 	PAR_1_1: "Nós temos observado como as pessoas ao redor de todo o mundo interagem com a Wikipedia desde ",
 	PAR_1_2: "e obtivemos algumas estatísticas legais para mostrar... ",

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+		<title>CCC Analytics</title>
+
+		<link rel="shortcut icon" href="/favicon.ico">
+
+		<!--	 FOLHAS DE ESTILO	-->
+
+		<!--	 estilo proprio 	-->
+		<link rel="stylesheet" href="style/stylesheet.css" />
+
+		<!--	 bootstrap 	-->
+		<link rel="stylesheet" href="bootstrap/css/bootstrap.css" />
+		<link rel="stylesheet" href="bootstrap/css/bootstrap.min.css" />
+		<link rel="stylesheet" href="bootstrap/css/bootstrap-theme.css" />
+		<link rel="stylesheet" href="bootstrap/css/bootstrap-theme.min.css" />
+
+		<!--	 jsplumb 	-->
+		<link rel="stylesheet" href="css/demo-all.css">
+		<!-- posicionamento do grafico -->
+		<link rel="stylesheet" href="css/demo.css">
+		<!-- posicionamento do das caixas -->
+
+	</head>
+
+	<body>
+
+		<!--  HEADER  -->
+
+		<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+			<div class="container">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+						<span class="sr-only">Toggle navigation</span>
+					</button>
+					<a class="navbar-brand" href="index.html"><img src="image/ccc-header2.png" /> </a>
+				</div>
+
+				<div class="collapse navbar-collapse">
+					<!--<ul class="nav navbar-nav">
+					<li class="active">
+					<a href="#">Home</a>
+					</li>
+					</ul>-->
+
+					<ul class="nav navbar-nav navbar-right">
+						<li>
+							<br/>
+							<ul class="nav nav-pills">
+								<li class="dropdown" id="menu1">
+									<!-- imagem do menu 1 -->
+									<a class="dropdown-toggle" data-toggle="dropdown" href="#menu1"><img src="image/menu.png" width="15px" height="15px"/></a>
+									<!-- lista de links do menu 1 -->
+									<ul class="dropdown-menu">
+										<li>
+											<a href="index.html"><span class="glyphicon glyphicon-home"></span> Home</a>
+										</li>
+									</ul>
+								</li>
+							</ul>
+						</li>
+					</ul><!-- / navbar-right : drop menu-->
+
+				</div><!--/.nav-collapse -->
+			</div>
+		</div>
+
+		<!--  NEWS  -->
+		<br/>
+		<br/>
+		<br/>
+		<br/>
+		<br/>
+
+		<div class="container">
+
+			<div class="row">
+				<div class="col-md-3">
+					<div class="align-center">
+						<img src="images/nazareno.jpg" class="img-circle" width="100px" height="100px">
+						<br />
+						<br />
+
+						<dl>
+							<dt>
+								Nazareno Andrade
+							</dt>
+						</dl>
+						<dd>
+							Coordenador
+						</dd>
+
+					</div>
+				</div>
+
+				<div class="col-md-3">
+					<div class="align-center">
+						<img src="images/leandro.jpg" class="img-circle" width="100px" height="100px">
+						<br />
+						<br />
+
+						<dl>
+							<dt>
+								Leandro Balby
+							</dt>
+						</dl>
+						<dd>
+							Líder Técnico
+						</dd>
+
+					</div>
+				</div>
+
+				<div class="col-md-3">
+					<div class="align-center">
+						<img src="images/guilherme.jpg" class="img-circle" width="100px" height="100px">
+						<br />
+						<br />
+
+						<dl>
+							<dt>
+								Guilherme Gadelha
+							</dt>
+						</dl>
+						<dd>
+							Big Data Developer
+						</dd>
+
+					</div>
+				</div>
+
+				<div class="col-md-3">
+					<div class="align-center">
+						<img src="images/ricardo.jpg" class="img-circle" width="100px">
+						<br />
+						<br />
+
+						<dl>
+							<dt>
+								Ricardo Araújo
+							</dt>
+						</dl>
+						<dd>
+							Big Data Developer
+						</dd>
+
+					</div>
+				</div>
+				
+				<div class="col-md-3">
+					<div class="align-center">
+						<img src="images/felipe.jpg" class="img-circle" width="100px">
+						<br />
+						<br />
+
+						<dl>
+							<dt>
+								Felipe Vieira
+							</dt>
+						</dl>
+						<dd>
+							Big Data Developer
+						</dd>
+
+					</div>
+				</div>
+			</div>
+
+		</div>
+
+	</body>
+
+	<!--	 JAVA SCRIPT		-->
+
+	<!-- jsPlumb core -->
+	<script src="js/jquery-1.9.0.js"></script>
+	<script src="js/jquery-ui-1.9.2-min.js"></script>
+	<script src="js/jquery.ui.touch-punch.min.js"></script>
+
+	<!-- bootstrap core -->
+	<script src="bootstrap/js/bootstrap.js"></script>
+	<script src="bootstrap/js/bootstrap.min.js"></script>
+
+	<!-- JS -->
+	<!-- support lib for bezier stuff -->
+	<script src="js/jsBezier-0.6.js"></script>
+	<!-- jsplumb geom functions -->
+	<script src="js/jsplumb-geom-0.1.js"></script>
+	<!-- jsplumb util -->
+	<script src="js/util.js"></script>
+	<!-- base DOM adapter -->
+	<script src="js/dom-adapter.js"></script>
+	<!-- main jsplumb engine -->
+	<script src="js/jsPlumb.js"></script>
+	<!-- endpoint -->
+	<script src="js/endpoint.js"></script>
+	<!-- connection -->
+	<script src="js/connection.js"></script>
+	<!-- anchors -->
+	<script src="js/anchors.js"></script>
+	<!-- connectors, endpoint and overlays  -->
+	<script src="js/defaults.js"></script>
+
+	<!-- state machine connectors -->
+	<script src="js/connectors-statemachine.js"></script>
+
+	<!-- SVG renderer -->
+	<script src="js/renderers-svg.js"></script>
+	<!-- canvas renderer -->
+	<script src="js/renderers-canvas.js"></script>
+	<!-- vml renderer -->
+	<script src="js/renderers-vml.js"></script>
+
+	<!-- jquery jsPlumb adapter -->
+	<script src="js/jquery.jsPlumb.js"></script>
+
+	<script src="js/conexao_bd.js"></script>
+	<!-- /JS -->
+
+	<!--  demo code -->
+	<script src="js/index.js"></script>
+	<script src="js/d3.v3.min.js" charset="utf-8"></script>
+
+	<!--  script menu dropdown -->
+
+	<!-- CODIGO MORTO JDPLUMB - NAO APAGAR -->
+	<!--<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>-->
+
+	<!-- for demo dropdown. not a jsplumb dependency -->
+	<!--<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>-->
+	<!--<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css" rel="stylesheet">-->
+</html>
