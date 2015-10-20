@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="wikitrends">
+<html lang="<%= locale %>" ng-app="wikitrends">
 
 <head>
 
@@ -49,9 +49,9 @@
 					</ul>
 					
 					<ul class="nav navbar-nav navbar-right" ng-controller="Ctrl" class="ng-scope">
-					  <li id="eng-button" class="btn ng-scope" ng-click="changeLanguage('en')" translate="BUTTON_LANG_EN"><img src="images/usa.jpg"> 
+					  <li id="eng-button" class="btn ng-scope" ng-click="changeLanguage('en')" translate="BUTTON_LANG_EN"> 
 					  </li>
-					  <li id="pt-button" class="active btn ng-scope" ng-click="changeLanguage('pt')" translate="BUTTON_LANG_PT"><img src="images/br.jpg"> 
+					  <li id="pt-button" class="active btn ng-scope" ng-click="changeLanguage('pt')" translate="BUTTON_LANG_PT">
 					  </li>
 					</ul>
 				  </div><!--/.nav-collapse -->
@@ -88,16 +88,16 @@
 		
 		<div class="row">
 			  <div class="col-xs-4 col-sm-3 text-center" style="padding-top: 35px">
-				<a href="http://www.computacao.ufcg.edu.br/"><img src="/images/logocomp.png"></a>
+				<a href="http://www.computacao.ufcg.edu.br/"><img src="images/logocomp.png"></a>
 			  </div>
 			  <div class="col-xs-4 col-sm-3 text-center" style="padding-top: 55px">
-				<a href="https://www.facebook.com/analytics.ufcg"><img src="/images/analyticsLogo.png"></a>
+				<a href="https://www.facebook.com/analytics.ufcg"><img src="images/analyticsLogo.png"></a>
 			  </div>
 			  <div class="col-xs-4 col-sm-3 text-left" style="padding-top: 15px">
-				<a href="https://hadoop.apache.org/"><img src="/images/hadoop_logo.png"></a>
+				<a href="https://hadoop.apache.org/"><img src="images/hadoop_logo.png"></a>
 			  </div>
 			  <div class="col-xs-4 col-sm-3 text-left">
-				<a href="https://spark.apache.org/"><img src="/images/spark_logo.png"></a>
+				<a href="https://spark.apache.org/"><img src="images/spark_logo.png"></a>
 			  </div> 
 		</div>
 			
@@ -176,6 +176,9 @@
     <script src="js/directives/wikipie.js"></script>
     <script src="js/wikitranslation.js"></script>
     <script src="bower_angular_translate/angular-translate.min.js"></script>
+    <script src="bower_components/angular/i18n/angular-locale_en-us.js"></script>
+    <script src="bower_components/angular/i18n/angular-locale_pt.js"></script>
+    <script src="bower_components/angular-dynamic-locale/tmhDynamicLocale.min.js"</script>
 </body>
 
 </html>
