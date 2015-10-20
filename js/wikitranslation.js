@@ -88,3 +88,7 @@ app.controller('Ctrl', function ($scope, $translate, tmhDynamicLocale) {
 	tmhDynamicLocale.set(key);
   };
 });
+
+app.config(function(tmhDynamicLocaleProvider) {
+    tmhDynamicLocaleProvider.localeLocationPattern('bower_components/angular-i18n/angular-locale_{{locale}}.js');
+});

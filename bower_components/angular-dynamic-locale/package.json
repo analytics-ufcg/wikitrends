@@ -32,30 +32,5 @@
   "repository": {
     "type": "git",
     "url": "git://github.com/lgalfaso/angular-dynamic-locale.git"
-  },
-  "gitHead": "4ebf40230c0a73f33597609c6ee8cb811a7cf11f",
-  "bugs": {
-    "url": "https://github.com/lgalfaso/angular-dynamic-locale/issues"
-  },
-  "homepage": "https://github.com/lgalfaso/angular-dynamic-locale",
-  "_id": "angular-dynamic-locale@0.1.27",
-  "_shasum": "2cdc510894b3588c5bb9b482dabbcc8ef6e407f9",
-  "_from": "angular-dynamic-locale@",
-  "_npmVersion": "1.4.28",
-  "_npmUser": {
-    "name": "lgalfaso",
-    "email": "lgalfaso@gmail.com"
-  },
-  "maintainers": [
-    {
-      "name": "lgalfaso",
-      "email": "lgalfaso@gmail.com"
-    }
-  ],
-  "dist": {
-    "shasum": "2cdc510894b3588c5bb9b482dabbcc8ef6e407f9",
-    "tarball": "http://registry.npmjs.org/angular-dynamic-locale/-/angular-dynamic-locale-0.1.27.tgz"
-  },
-  "directories": {},
-  "_resolved": "https://registry.npmjs.org/angular-dynamic-locale/-/angular-dynamic-locale-0.1.27.tgz"
+  }
 }
