@@ -1,4 +1,4 @@
-var app = angular.module('wikitrends', ['ngRoute', 'pascalprecht.translate']);
+var app = angular.module('wikitrends', ['ngRoute', 'pascalprecht.translate', 'tmh.dynamicLocale']);
 
 app.config(function ($routeProvider) {
     $routeProvider

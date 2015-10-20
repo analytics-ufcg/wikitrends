@@ -1,0 +1,55 @@
+{
+  "name": "angular-i18n",
+  "version": "1.4.7",
+  "description": "AngularJS module for internationalization",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/angular/angular.js.git"
+  },
+  "keywords": [
+    "angular",
+    "framework",
+    "browser",
+    "internationalization",
+    "i18n",
+    "client-side"
+  ],
+  "author": {
+    "name": "Angular Core Team",
+    "email": "angular-core+npm@google.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/angular/angular.js/issues"
+  },
+  "homepage": "http://angularjs.org",
+  "gitHead": "1276b9f6de3fcd4a4c4dab0de67eadb57586e6b3",
+  "_id": "angular-i18n@1.4.7",
+  "_shasum": "0e942462635585a66e075b17680d96979ccd2027",
+  "_from": "angular-i18n@",
+  "_npmVersion": "2.0.2",
+  "_nodeVersion": "0.10.26",
+  "_npmUser": {
+    "name": "angularcore",
+    "email": "angular-core+npm@google.com"
+  },
+  "maintainers": [
+    {
+      "name": "angularcore",
+      "email": "angular-core+npm@google.com"
+    },
+    {
+      "name": "petebd",
+      "email": "pete@bacondarwin.com"
+    }
+  ],
+  "dist": {
+    "shasum": "0e942462635585a66e075b17680d96979ccd2027",
+    "tarball": "http://registry.npmjs.org/angular-i18n/-/angular-i18n-1.4.7.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/angular-i18n/-/angular-i18n-1.4.7.tgz"
+}

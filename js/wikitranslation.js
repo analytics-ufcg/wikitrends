@@ -82,8 +82,9 @@ app.config(function ($translateProvider) {
   $translateProvider.preferredLanguage('pt');
 });
 
-app.controller('Ctrl', function ($scope, $translate) {
+app.controller('Ctrl', function ($scope, $translate, tmhDynamicLocale) {
   $scope.changeLanguage = function (key) {
 	$translate.use(key);
+	tmhDynamicLocale.set(key);
   };
 });
