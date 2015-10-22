@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html ng-app="wikitrends">
-
 	<head>
 
 		<meta charset="utf-8">
@@ -14,12 +13,11 @@
 		<link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
 		<link href="bower_components/nvd3/build/nv.d3.min.css" rel='stylesheet'>
 		<link href="bower_components/lang_trans/languages.min.css" rel="stylesheet">
-		
-		<link href="css/home.css" rel="stylesheet">
-
+	
 	</head>
 
 	<body>
+
 		<!--  HEADER  -->
 		<div class="container">
 
@@ -59,56 +57,23 @@
 				</div><!--/.container-fluid -->
 			</nav>
 
-			<!-- Main component for a primary marketing message or call to action -->
-			<!-- Huge Header -->
-			<div class="jumbotron header-image">
-				<div class="headline">
-					<div class="container">
-						<h1>WikiTrends</h1>
-					</div>
-				</div>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			
+			<!--
+			<p>{{ 'PAR_PRESENT' | translate }}</p>
+			<div id="div1" style="height:550px">
+		    	<p>It appears you don't have Adobe Reader or PDF support in this web browser. 
+		    		<a href="pdf_presentation/presentation.pdf">Click here to download the PDF</a>
+	    		</p>
 			</div>
-
-			<hr class="featurette-divider">
-
-			<!-- Home Page Content -->
-			<div id="home" class="container">
-				<div ng-view></div>
-			</div>
-
-		</div>
-		<!-- nav bar container -->
-
-		<hr class="featurette-divider">
-
-		<!-- Footer -->
-		<footer>
-			<div class="row">
-				<p align="center">
-					{{ 'FOOTER_P_1' | translate }} <a href="/team_temp/team.html"> {{ 'FOOTER_P_2' | translate }} </a>
-					{{ 'FOOTER_P_3' | translate }} <a href="https://www.facebook.com/analytics.ufcg"> {{ 'FOOTER_P_4' | translate }} </a>
-				</p>
-			</div>
-
-			<div class="row">
-				<div class="col-xs-4 col-sm-3 text-center" style="padding-top: 35px">
-					<a href="http://www.computacao.ufcg.edu.br/"><img src="images/logocomp.png"></a>
-				</div>
-				<div class="col-xs-4 col-sm-3 text-center" style="padding-top: 55px">
-					<a href="https://www.facebook.com/analytics.ufcg"><img src="images/analyticsLogo.png"></a>
-				</div>
-				<div class="col-xs-4 col-sm-3 text-left" style="padding-top: 15px">
-					<a href="https://hadoop.apache.org/"><img src="images/hadoop_logo.png"></a>
-				</div>
-				<div class="col-xs-4 col-sm-3 text-left">
-					<a href="https://spark.apache.org/"><img src="images/spark_logo.png"></a>
-				</div>
-			</div>
-
-		</footer>
-
-		<a href="#0" class="cd-top">{{ 'TOP_BTN' | translate }}</a>
-
+			-->
+		</div>	
+	
+	
 		<script src="bower_components/angularjs/angular.min.js"></script>
 		<script src="bower_components/angular-route/angular-route.min.js"></script>
 		<script src="bower_components/angular-translate/angular-translate.min.js"></script>
@@ -118,13 +83,19 @@
 		<script src="bower_components/d3-plugins/fisheye/fisheye.js"></script>
 		<script src="bower_components/jquery/dist/jquery.min.js"></script>
 		<script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-
+		<script src="bower_components/pdfobject/pdfobject.js"></script>
+		
 		<script src="js/wikitrends.js"></script>
 		<script src="js/wikitrends-jquery.js"></script>
 		<script src="js/wikitrends-analytics.js"></script>
 		<script src="js/wikitranslation.js"></script>
-		<script src="js/directives/ranking.js"></script>
-		<script src="js/directives/wikipie.js"></script>
+		
+	    <script type="text/javascript">
+		  	window.onload = function (){
+	    		var myPDF = new PDFObject({ url: "pdf_presentation/presentation.pdf" }).embed("div1");
+			};
+	    </script>
+	
 	</body>
-
+   
 </html>

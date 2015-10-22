@@ -37,7 +37,14 @@ app.config(function ($translateProvider) {
 	FOOTER_P_1: "Site created by ",
 	FOOTER_P_2: " this team ",
 	FOOTER_P_3: "as part of GABDI Project at ",
-	FOOTER_P_4: "Analytics Lab"
+	FOOTER_P_4: "Analytics Lab",
+	ABOUT_BTN: "About",
+	CONTACT_BTN: "Contact",
+	TEAM_BTN: "Team",
+	TOP_BTN: "Top",
+	COORDINATOR_TEAM: "Coordinator",
+	DEVELOPER_TEAM: "Big Data Developer",
+	PAR_PRESENT: "We have done the following presentation to explain the infrastructure and details of the tools that we have used on our project."
   });
   $translateProvider.translations('pt', {
 	TITLE: 'Olá',
@@ -77,7 +84,14 @@ app.config(function ($translateProvider) {
 	FOOTER_P_1: "Site criado por ",
 	FOOTER_P_2: "este time ",
 	FOOTER_P_3: "como parte do Projeto GABDI do ",
-	FOOTER_P_4: "Laboratório Analytics"
+	FOOTER_P_4: "Laboratório Analytics",
+	ABOUT_BTN: "Sobre",
+	CONTACT_BTN: "Contato",
+	TEAM_BTN: "Equipe",
+	TOP_BTN: "Topo",
+	COORDINATOR_TEAM: "Coordenador",
+	DEVELOPER_TEAM: "Desenvolvedor Big Data",
+	PAR_PRESENT: "Nós fizemos a seguinte apresentação para explicar a infraestrutura e as ferramentas que utilizamos em nosso projeto."
   });
   $translateProvider.preferredLanguage('pt');
 });
@@ -90,5 +104,6 @@ app.controller('Ctrl', function ($scope, $translate, tmhDynamicLocale) {
 });
 
 app.config(function(tmhDynamicLocaleProvider) {
-    tmhDynamicLocaleProvider.localeLocationPattern('bower_components/angular-i18n/angular-locale_{{locale}}.js');
+    tmhDynamicLocaleProvider.localeLocationPattern('bower_components/angular-i18n/angular-locale_{{ locale }}.js');
 });
+

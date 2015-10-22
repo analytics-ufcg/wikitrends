@@ -1,233 +1,177 @@
 <!DOCTYPE html>
-<html lang="en">
+<html ng-app="wikitrends">
 	<head>
+
 		<meta charset="utf-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="">
+		<meta name="author" content="">
 
-		<title>CCC Analytics</title>
+		<title>WikiTrends</title>
 
-		<link rel="shortcut icon" href="/favicon.ico">
-
-		<!--	 FOLHAS DE ESTILO	-->
-
-		<!--	 estilo proprio 	-->
-		<link rel="stylesheet" href="style/stylesheet.css" />
-
-		<!--	 bootstrap 	-->
-		<link rel="stylesheet" href="bower_components/bootstrap-3.3.5/css/bootstrap.css" />
-		<link rel="stylesheet" href="bower_components/bootstrap-3.3.5/css/bootstrap.min.css" />
-		<link rel="stylesheet" href="bower_components/bootstrap-3.3.5/css/bootstrap-theme.css" />
-		<link rel="stylesheet" href="bower_components/bootstrap-3.3.5/css/bootstrap-theme.min.css" />
-
-		<!--	 jsplumb 	-->
-		<link rel="stylesheet" href="css/demo-all.css">
-		<!-- posicionamento do grafico -->
-		<link rel="stylesheet" href="css/demo.css">
-		<!-- posicionamento do das caixas -->
+		<link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+		<link href="bower_components/nvd3/build/nv.d3.min.css" rel='stylesheet'>
+		<link href="bower_components/lang_trans/languages.min.css" rel="stylesheet">
 
 	</head>
 
 	<body>
+
 		<!--  HEADER  -->
-
-		<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-			<div class="container">
-				<div class="navbar-header">
-					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-						<span class="sr-only">Toggle navigation</span>
-					</button>
-					<a class="navbar-brand" href="index.html"><img src="image/ccc-header2.png" /> </a>
-				</div>
-
-				<div class="collapse navbar-collapse">
-					<!--<ul class="nav navbar-nav">
-					<li class="active">
-					<a href="#">Home</a>
-					</li>
-					</ul>-->
-
-					<ul class="nav navbar-nav navbar-right">
-						<li>
-							<br/>
-							<ul class="nav nav-pills">
-								<li class="dropdown" id="menu1">
-									<!-- imagem do menu 1 -->
-									<a class="dropdown-toggle" data-toggle="dropdown" href="#menu1"><img src="images/menu.png" width="15px" height="15px"/></a>
-									<!-- lista de links do menu 1 -->
-									<ul class="dropdown-menu">
-										<li>
-											<a href="index.html"><span class="glyphicon glyphicon-home"></span> Home</a>
-										</li>
-									</ul>
-								</li>
-							</ul>
-						</li>
-					</ul><!-- / navbar-right : drop menu-->
-
-				</div><!--/.nav-collapse -->
-			</div>
-		</div>
-
-		<!--  NEWS  -->
-		<br/>
-		<br/>
-		<br/>
-		<br/>
-		<br/>
-		
 		<div class="container">
 
-			<div class="row">
-				<div class="col-md-3">
-					<div class="align-center">
-						<img src="images/nazareno.jpg" class="img-circle" width="100px" height="100px">
-						<br />
-						<br />
-
-						<dl>
-							<dt>
-								Nazareno Andrade
-							</dt>
-						</dl>
-						<dd>
-							Coordenador
-						</dd>
-
+			<!-- Static navbar -->
+			<nav class="navbar navbar-default navbar-fixed-top">
+				<div class="container-fluid">
+					<div class="navbar-header">
+						<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+							<span class="sr-only">Toggle navigation</span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+						</button>
+						<a class="navbar-brand" href="#">WikiTrends</a>
 					</div>
-				</div>
+					<div id="navbar" class="navbar-collapse collapse">
+						<ul class="nav navbar-nav">
+							<li>
+								<a href="/index.html">Home</a>
+							</li>
+							<li>
+								<a href="/about.html">{{ 'ABOUT_BTN' | translate }}</a>
+							</li>
+							<li>
+								<a href="/team.html">{{ 'TEAM_BTN' | translate }}</a>
+							</li>
+							<li>
+								<a href="#">{{ 'CONTACT_BTN' | translate }}</a>
+							</li>
+						</ul>
 
-				<div class="col-md-3">
-					<div class="align-center">
-						<img src="images/leandro.jpg" class="img-circle" width="100px" height="100px">
-						<br />
-						<br />
+						<ul class="nav navbar-nav navbar-right" ng-controller="Ctrl" class="ng-scope">
+							<li class="btn ng-scope" ng-click="changeLanguage('en')" translate="BUTTON_LANG_EN"></li>
+							<li class="active btn ng-scope" ng-click="changeLanguage('pt')" translate="BUTTON_LANG_PT"></li>
+						</ul>
+					</div><!--/.nav-collapse -->
+				</div><!--/.container-fluid -->
+			</nav>
 
-						<dl>
-							<dt>
-								Leandro Balby
-							</dt>
-						</dl>
-						<dd>
-							Líder Técnico
-						</dd>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
 
+			<div>
+				
+
+				<div class="row">
+					
+					<div class="col-md-3">
+						<div class="align-center">
+							<a href="http://www.researchgate.net/profile/Felipe_Vieira6"><img src="images/felipe.jpg" class="img-circle" width="100px"></a>
+							<br />
+							<br />
+							<dl>
+								<dt>
+									Felipe Vieira
+								</dt>
+							</dl>
+							<dd>
+								{{ 'DEVELOPER_TEAM' | translate }}
+							</dd>
+						</div>
 					</div>
-				</div>
-
-				<div class="col-md-3">
-					<div class="align-center">
-						<img src="images/guilherme.jpg" class="img-circle" width="100px" height="100px">
-						<br />
-						<br />
-
-						<dl>
-							<dt>
-								Guilherme Gadelha
-							</dt>
-						</dl>
-						<dd>
-							Big Data Developer
-						</dd>
-
+					
+					<div class="col-md-3">
+						<div class="align-center">
+							<a href="http://www.linkedin.com/in/guilhermegadelha"><img src="images/guilherme.jpg" class="img-circle" width="100px" height="100px"></a>
+							<br />
+							<br />
+							<dl>
+								<dt>
+									Guilherme Gadelha
+								</dt>
+							</dl>
+							<dd>
+								{{ 'DEVELOPER_TEAM' | translate }}
+							</dd>
+						</div>
 					</div>
-				</div>
 
-				<div class="col-md-3">
-					<div class="align-center">
-						<img src="images/ricardo.jpg" class="img-circle" width="100px">
-						<br />
-						<br />
-
-						<dl>
-							<dt>
-								Ricardo Araújo
-							</dt>
-						</dl>
-						<dd>
-							Big Data Developer
-						</dd>
-
+					<div class="col-md-3">
+						<div class="align-center">
+							<a href="https://sites.google.com/a/copin.ufcg.edu.br/ricardo/"><img src="images/ricardo.jpg" class="img-circle" width="100px"></a>
+							<br />
+							<br />
+							<dl>
+								<dt>
+									Ricardo Araújo
+								</dt>
+							</dl>
+							<dd>
+								{{ 'DEVELOPER_TEAM' | translate }}
+							</dd>
+						</div>
 					</div>
 				</div>
 				
-				<div class="col-md-3">
-					<div class="align-center">
-						<img src="images/felipe.jpg" class="img-circle" width="100px">
-						<br />
-						<br />
+				<br/>
+				<br/>
+				
+				<div class="row">
+					<div class="col-md-3">
+						<div class="align-center">
+							<a href="http://www2.lsd.ufcg.edu.br/~nazareno/"><img src="images/nazareno.jpg" class="img-circle" width="100px" height="100px"></a>
+							<br />
+							<br />
+							<dl>
+								<dt>
+									Nazareno Andrade
+								</dt>
+							</dl>
+							<dd>
+								{{ 'COORDINATOR_TEAM' | translate }}
+							</dd>
 
-						<dl>
-							<dt>
-								Felipe Vieira
-							</dt>
-						</dl>
-						<dd>
-							Big Data Developer
-						</dd>
+						</div>
+					</div>
 
+					<div class="col-md-3">
+						<div class="align-center">
+							<a href="http://www.dsc.ufcg.edu.br/~lbmarinho/homepage/"><img src="images/leandro.jpg" class="img-circle" width="100px" height="100px"></a>
+							<br />
+							<br />
+							<dl>
+								<dt>
+									Leandro Balby
+								</dt>
+							</dl>
+							<dd>
+								{{ 'COORDINATOR_TEAM' | translate }}
+							</dd>
+						</div>
 					</div>
 				</div>
 			</div>
+		</div>
 
 	</body>
 
-	<!--	 JAVA SCRIPT		-->
+	<script src="bower_components/angularjs/angular.min.js"></script>
+	<script src="bower_components/angular-route/angular-route.min.js"></script>
+	<script src="bower_components/angular-translate/angular-translate.min.js"></script>
+	<script src="bower_components/angular-dynamic-locale/tmhDynamicLocale.min.js"></script>
+	<script src="bower_components/d3/d3.min.js"></script>
+	<script src="bower_components/nvd3/build/nv.d3.min.js"></script>
+	<script src="bower_components/d3-plugins/fisheye/fisheye.js"></script>
+	<script src="bower_components/jquery/dist/jquery.min.js"></script>
+	<script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
 
-	<!-- jsPlumb core -->
-	<script src="bower_components/jquery/dist/jquery-1.9.0.js"></script>
-	<script src="bower_components/jquery/dist/jquery-ui-1.9.2-min.js"></script>
-	<script src="bower_components/jquery/dist/jquery.ui.touch-punch.min.js"></script>
-
-	<!-- bootstrap core -->
-	<script src="bower_components/bootstrap-3.3.5/js/bootstrap.js"></script>
-	<script src="bower_components/bootstrap-3.3.5/js/bootstrap.min.js"></script>
-
-	<!-- JS -->
-	<!-- support lib for bezier stuff -->
-	<script src="js/jsBezier-0.6.js"></script>
-	<!-- jsplumb geom functions -->
-	<script src="js/jsplumb-geom-0.1.js"></script>
-	<!-- jsplumb util -->
-	<script src="js/util.js"></script>
-	<!-- base DOM adapter -->
-	<script src="js/dom-adapter.js"></script>
-	<!-- main jsplumb engine -->
-	<script src="js/jsPlumb.js"></script>
-	<!-- endpoint -->
-	<script src="js/endpoint.js"></script>
-	<!-- connection -->
-	<script src="js/connection.js"></script>
-	<!-- anchors -->
-	<script src="js/anchors.js"></script>
-	<!-- connectors, endpoint and overlays  -->
-	<script src="js/defaults.js"></script>
-
-	<!-- state machine connectors -->
-	<script src="js/connectors-statemachine.js"></script>
-
-	<!-- SVG renderer -->
-	<script src="js/renderers-svg.js"></script>
-	<!-- canvas renderer -->
-	<script src="js/renderers-canvas.js"></script>
-	<!-- vml renderer -->
-	<script src="js/renderers-vml.js"></script>
-
-	<!-- jquery jsPlumb adapter -->
-	<script src="js/jquery.jsPlumb.js"></script>
-
-	<script src="js/conexao_bd.js"></script>
-	<!-- /JS -->
-
-	<!--  demo code -->
-	<script src="js/index.js"></script>
-	<script src="js/d3.v3.min.js" charset="utf-8"></script>
-
-	<!--  script menu dropdown -->
-
-	<!-- CODIGO MORTO JDPLUMB - NAO APAGAR -->
-	<!--<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>-->
-
-	<!-- for demo dropdown. not a jsplumb dependency -->
-	<!--<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>-->
-	<!--<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css" rel="stylesheet">-->
+	<script src="js/wikitrends.js"></script>
+	<script src="js/wikitrends-jquery.js"></script>
+	<script src="js/wikitrends-analytics.js"></script>
+	<script src="js/wikitranslation.js"></script>
+	
 </html>
