@@ -22,10 +22,10 @@ batch_logger.setLevel(logging.DEBUG)
 streaming_logger = logging.getLogger('streaming')
 streaming_logger.setLevel(logging.DEBUG)
 
-fh = logging.FileHandler('/var/log/gabdi/batch.log')
+fh = logging.FileHandler(config.LOG_CONFIG['BATCH_LOG_FILE'])
 fh.setLevel(logging.DEBUG)
 
-fh_streaming = logging.FileHandler('/var/log/gabdi/streaming.log')
+fh_streaming = logging.FileHandler(config.LOG_CONFIG['STREAMING_LOG_FILE'])
 fh_streaming.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter(
@@ -57,6 +57,7 @@ class WikiNamespace(socketIO_client.BaseNamespace):
 
     def on_change(self, change):
         try:
+            print change
             self.streaming_connection.send("%s\n" % change)
         except:
             self.streaming_connection = None
