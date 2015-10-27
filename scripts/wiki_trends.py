@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import ast
+import json
 import os
 
 from pyspark.sql import Row
@@ -48,6 +49,7 @@ def parse_output_entry(entry):
 def parse_wiki_edit(edit_entry):
     try:
         parsed_data = ast.literal_eval(edit_entry)
+        edit_length = parsed_data["length"]
         return (Row(
             edited_page=parsed_data["title"].encode("utf-8"),
             editor=parsed_data["user"].encode("utf-8"),
@@ -55,45 +57,29 @@ def parse_wiki_edit(edit_entry):
             minor=parsed_data.get("minor", False),
             server=parsed_data["server_name"].encode("utf-8"),
             timestamp=parsed_data["timestamp"],
-            old_length=get_edit_length(ast.literal_eval(
-                str(parsed_data["length"]))["old"])
-            if parsed_data.get("length") else -1,
-            new_length=get_edit_length(ast.literal_eval(
-                str(parsed_data["length"]))["new"])
-            if parsed_data.get("length") else -1
+            old_length=(edit_length["old"] or 0) if edit_length else -1,
+            new_length=(edit_length["new"] or 0) if edit_length else -1
         ), 1)
     except:
         return (edit_entry, 0)
 
 
 def parse_edits(hdfs_user_folder):
-    all_edits = (sc
-                 .textFile("%s/dataset/data.json" % hdfs_user_folder)
-                 .map(parse_wiki_edit)
-                 .cache())
-
-    parsed_edits = (all_edits
-                    .filter(lambda entry: entry[1] == 1)
-                    .map(lambda entry: entry[0])
-                    .cache())
-
-    failed_edits = (all_edits
-                    .filter(lambda entry: entry[1] == 0)
-                    .map(lambda entry: entry[0]))
+    all_edits = sc.textFile("%s/dataset/data.json" % hdfs_user_folder).map(parse_wiki_edit)
+    parsed_edits = all_edits.filter(lambda entry: entry[1] == 1).map(lambda entry: entry[0])
+    failed_edits = []#all_edits.filter(lambda entry: entry[1] == 0).map(lambda entry: entry[0])
 
     return parsed_edits, failed_edits
 
 
 def process_top_pages(rdd, hdfs_user_folder, proc_type, content=False):
-    if content:
-        rdd = rdd.filter(lambda edit: not (edit.edited_page
-                                         .startswith(WIKIPEDIA_SPECIAL_PAGES)))
-    sc.parallelize(PAGES_HEADER +
-                   rdd.map(lambda edit: (edit.edited_page, 1))
-                   .reduceByKey(lambda a, b: a + b)
-                   .takeOrdered(20, lambda edit: -edit[1])
-                   ).coalesce(1).map(parse_output_entry)\
-        .saveAsTextFile("{0}/{1}/pages{2}".format(hdfs_user_folder, proc_type, "_content" if content else ""))
+    ranking = rdd.map(lambda edit: (edit.edited_page, 1)).reduceByKey(lambda a, b: a + b).sortBy(lambda pair: -pair[1])
+# 
+    full_result = PAGES_HEADER + ranking.take(20)
+    sc.parallelize(full_result).coalesce(1).map(parse_output_entry).saveAsTextFile("{0}/{1}/pages{2}".format(hdfs_user_folder, proc_type, ""))
+
+    content_result = PAGES_HEADER + ranking.filter(lambda pair: not (pair[0].startswith(WIKIPEDIA_SPECIAL_PAGES))).take(20)
+    sc.parallelize(content_result).coalesce(1).map(parse_output_entry).saveAsTextFile("{0}/{1}/pages{2}".format(hdfs_user_folder, proc_type, "_content"))
 
 
 def process_top_servers(rdd, hdfs_user_folder, proc_type):
@@ -140,9 +126,7 @@ def minor_edits_count(rdd):
 
 
 def average_change_length(rdd):
-    editLength = rdd.filter(lambda edit: edit.new_length != -1)\
-        .map(lambda edit: (int(edit.new_length) - int(edit.old_length)))\
-        .cache()
+    editLength = rdd.filter(lambda edit: edit.new_length != -1).map(lambda edit: (int(edit.new_length) - int(edit.old_length)))
     totalEditLength = editLength.reduce(lambda a, b: a + b)
     return totalEditLength / editLength.count()
 
@@ -177,9 +161,9 @@ if __name__ == "__main__":
 
     parsed_edits, failed_edits = parse_edits(hdfs_user_folder)
     parsed_edits = clean_rdd(parsed_edits)
+    parsed_edits.cache()
 
     process_top_pages(parsed_edits, hdfs_user_folder, 'serving')
-    process_top_pages(parsed_edits, hdfs_user_folder, 'serving', content=True)
     process_top_editors(parsed_edits, hdfs_user_folder, 'serving')
     process_top_servers(parsed_edits, hdfs_user_folder, 'serving')
 
