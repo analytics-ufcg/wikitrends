@@ -57,7 +57,6 @@ class WikiNamespace(socketIO_client.BaseNamespace):
 
     def on_change(self, change):
         try:
-            print change
             self.streaming_connection.send("%s\n" % change)
         except:
             self.streaming_connection = None
