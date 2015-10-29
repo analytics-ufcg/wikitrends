@@ -1,19 +1,24 @@
 #!/bin/python
 
 HDFS_CONFIG = dict(
-    	USERNAME = <user with access to hdfs>,
-	PORT = <port to hadoop service>,
-	WEB_PORT = <web port of hadoop services>,
-	HOST = <namenode host>
+    	USERNAME = << user with access to hdfs >>,
+	PORT = << port to hadoop service >>,
+	WEB_PORT = << web port of hadoop services >>,
+	HOST = << namenode host >>
 )
 
 WIKI_CONN_CONFIG = dict(
-	BUFFER_SIZE = <buffer size of wiki connection>,  # in bytes(B)
-	DATASET_PATH = <file`s path to save data coming from wikipedia streaming>
+	BUFFER_SIZE = << buffer size of wiki connection >>,  # in bytes(B)
+	DATASET_PATH = << file`s path to save data coming from wikipedia streaming >>
 )
 
 STREAMING_CLIENT_CONFIG = dict(
-	HOST = <host to open socket to forward streaming flow from wikipedia>,
-	PORT = <socket´s port>,
-	WINDOW_SIZE = <window`s size in seconds to process real-time flow> # in seconds
+	HOST = << host to open socket to forward streaming flow from wikipedia >>,
+	PORT = << socket´s port >>,
+	WINDOW_SIZE = << window`s size in seconds to process real-time flow >> # in seconds
+)
+
+LOG_CONFIG = dict(
+	BATCH_LOG_FILE = << batch_log_file_path >>,
+	STREAMING_LOG_FILE = << streaming_log_file_path >>	
 )
