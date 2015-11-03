@@ -24,7 +24,9 @@ WIKIPEDIA_SPECIAL_PAGES = ("Wikipedia:", "User:", "File:", "Commons:",
                            "Portal:", "Wikipedia Diskussion:", "Usuario:",
                            "User talk:", "Template:", "Wikiprojekt:", "Benutzer:",
                            "Benutzer Diskussion:", "초안:", "Користувач:", "Utente:",
-                           "Wikipedia talk:", "Обсуждение:", "Anexo:", "Википедия:")
+                           "Wikipedia talk:", "Обсуждение:", "Anexo:", "Википедия:",
+                           "Wikipedia talk:", "Diskussion:", "Участник:", "Utilisateur:",
+                           ":ויקיפדיה")
 
 
 class OutputRow(Row):
@@ -74,7 +76,7 @@ def parse_edits(hdfs_user_folder):
 
 def process_top_pages(rdd, hdfs_user_folder, proc_type, content=False):
     ranking = rdd.map(lambda edit: (edit.edited_page, 1)).reduceByKey(lambda a, b: a + b).sortBy(lambda pair: -pair[1])
-# 
+#
     full_result = PAGES_HEADER + ranking.take(20)
     sc.parallelize(full_result).coalesce(1).map(parse_output_entry).saveAsTextFile("{0}/{1}/pages{2}".format(hdfs_user_folder, proc_type, ""))
 
