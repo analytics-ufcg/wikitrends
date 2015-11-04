@@ -37,7 +37,7 @@ public class AbsoluteValues implements Serializable {
         generateData(sc);
         //compute(sc);
         //showResults(sc);
-        //loadData(sc);
+        loadData(sc);
         sc.stop();
     }
 
@@ -57,8 +57,9 @@ public class AbsoluteValues implements Serializable {
             					"average_size INT," +
             					"distinct_pages INT," +
             					"distinct_servers INT," +
+            					"distinct_editors INT," +
             					"origin BIGINT," +
-            					"batch_elapse_time INT," +
+            					"batch_elapsed_time BIGINT," +
             					"total_executor_cores INT," +
             					"input_size BIGINT," +
             					"event_time TIMESTAMP," +
@@ -75,7 +76,7 @@ public class AbsoluteValues implements Serializable {
         Integer distinct_editors = 471502;
         Integer distinct_servers = 280;
         Long origin = 1444077595L; // in milliseconds (?)
-        Integer batch_elapsed_time = 1392315; // in milliseconds (?)
+        Long batch_e_time = 1392315L; // in milliseconds (?)
         Integer total_executor_cores = 4;
         Long input_size = 5145694870L; // in bytes (?)
         
@@ -85,7 +86,8 @@ public class AbsoluteValues implements Serializable {
         List<AbsoluteValuesShot> listAbsoluteValues = new ArrayList<AbsoluteValuesShot>();
         for(int i = 0; i < 6; i++) {
         	Date event_time = new Date();
-        	listAbsoluteValues.add(new AbsoluteValuesShot(i,
+        	listAbsoluteValues.add(new AbsoluteValuesShot(
+        									i,
         									dateFormatter.format(event_time),
         									hourFormatter.format(event_time),
         									all_edits+i*10000000,
@@ -95,7 +97,7 @@ public class AbsoluteValues implements Serializable {
         									distinct_editors+i,
         									distinct_servers+i,
         									origin+(i*100000),
-        									batch_elapsed_time+i*10,
+        									batch_e_time+(i*1000L),
         									total_executor_cores,
         									input_size+i*10,
         									event_time)
@@ -116,13 +118,13 @@ public class AbsoluteValues implements Serializable {
 
 					@Override
 					public Boolean call(AbsoluteValuesShot te) throws Exception {
-						return te.total_executor_cores > 3;
+						return te.batch_elapsed_time > 0;
 					}
         			
         		}
         );
         Integer num2 = (int) topEditorsRDD2.count();
-        System.out.println("#AbsoluteValuesShot.total_execturor_cores > 3: " + num2);
+        System.out.println("#AbsoluteValuesShot.batch_elapsed_time > 0: " + num2);
         System.out.println("filter first element: " + topEditorsRDD2.first());
                
         javaFunctions(topEditorsRDD2, AbsoluteValuesShot.class).saveToCassandra("batch_views", "absolute_values");
@@ -193,24 +195,19 @@ public class AbsoluteValues implements Serializable {
         }
     }*/
     
-//    private void loadData(JavaSparkContext sc) {
-//    	CassandraConnector connector = CassandraConnector.apply(sc.getConf());
-//    	
-//    	try (Session session = connector.openSession()) {
-//            ResultSet results = session.execute("SELECT * FROM batch_views.absolute_values");
-//            
-//            System.out.println(String.format("%-10s\t%-30s\t%-10s\t%-30s\t%-20s", "id", "date_event", "hour", "event_time", "data"));
-//        	for (Row row : results) {
-//        		System.out.println(String.format("%-10s\t%-30s\t%-10s\t%-30s\t%-20s", 
-//        													row.getInt("id"), 
-//        													row.getDate("date_event"),
-//        													row.getInt("hour"),
-//        													row.getDate("event_time"),
-//        													row.getMap("data", String.class, Integer.class).toString()));
-//        	}
-//            System.out.println();
-//        }
-//    }
+    private void loadData(JavaSparkContext sc) {
+    	CassandraConnector connector = CassandraConnector.apply(sc.getConf());
+    	
+    	try (Session session = connector.openSession()) {
+            ResultSet results = session.execute("SELECT * FROM batch_views.absolute_values");
+            
+            System.out.println(String.format("id, date, event_time, all_edits, average_size, batch_elapse_time, distinct_editors, distinct_pages, distinct_servers, hour, input_size, minor_edits, origin, total_executor_cores"));
+        	for (Row row : results) {
+        		System.out.println(row.toString());
+        	}
+            System.out.println();
+        }
+    }
 
     public static void main(String[] args) {
         /**if (args.length != 2) {
@@ -239,7 +236,7 @@ public class AbsoluteValues implements Serializable {
 		private Integer distinct_editors;
 		private Integer distinct_servers;
 		private Long origin;
-		private Integer batch_elapsed_time;
+		private Long batch_elapsed_time;
 		private Integer total_executor_cores;
 		private Long input_size;
 		private String hour;
@@ -250,7 +247,7 @@ public class AbsoluteValues implements Serializable {
         public AbsoluteValuesShot(Integer id, String date, String hour, Integer all_edits, Integer minor_edits,
         		Integer average_size, Integer distinct_pages, 
         		Integer distinct_editors, Integer distinct_servers,
-        		Long origin, Integer batch_elapsed_time,
+        		Long origin, Long batch_elapsed_time,
         		Integer total_executor_cores, Long input_size,
         		Date event_time) {
             this.id = id;
@@ -317,51 +314,51 @@ public class AbsoluteValues implements Serializable {
 			this.distinct_pages = distinct_pages;
 		}
 
-		public int getDistinct_editors() {
+		public Integer getDistinct_editors() {
 			return distinct_editors;
 		}
 
-		public void setDistinct_editors(int distinct_editors) {
+		public void setDistinct_editors(Integer distinct_editors) {
 			this.distinct_editors = distinct_editors;
 		}
 
-		public int getDistinct_servers() {
+		public Integer getDistinct_servers() {
 			return distinct_servers;
 		}
 
-		public void setDistinct_servers(int distinct_servers) {
+		public void setDistinct_servers(Integer distinct_servers) {
 			this.distinct_servers = distinct_servers;
 		}
 
-		public long getOrigin() {
+		public Long getOrigin() {
 			return origin;
 		}
 
-		public void setOrigin(long origin) {
+		public void setOrigin(Long origin) {
 			this.origin = origin;
 		}
 
-		public long getBatch_elapsed_time() {
+		public Long getBatch_elapsed_time() {
 			return batch_elapsed_time;
 		}
 
-		public void setBatch_elapsed_time(int batch_elapsed_time) {
+		public void setBatch_elapsed_time(Long batch_elapsed_time) {
 			this.batch_elapsed_time = batch_elapsed_time;
 		}
 
-		public int getTotal_executor_cores() {
+		public Integer getTotal_executor_cores() {
 			return total_executor_cores;
 		}
 
-		public void setTotal_executor_cores(int total_executor_cores) {
+		public void setTotal_executor_cores(Integer total_executor_cores) {
 			this.total_executor_cores = total_executor_cores;
 		}
 
-		public long getInput_size() {
+		public Long getInput_size() {
 			return input_size;
 		}
 
-		public void setInput_size(long input_size) {
+		public void setInput_size(Long input_size) {
 			this.input_size = input_size;
 		}
 
