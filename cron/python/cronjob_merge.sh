@@ -8,5 +8,5 @@ echo "done"
 touch /tmp/.gabdi.lock
 last=`hdfs dfs -ls /user/ubuntu/speed_tmp/*/_SUCCESS | tail -1 | awk '{print $8}'`
 hdfs dfs -getmerge ${last%/*} /tmp/absolute-realtime.tsv
-sudo bash /home/ubuntu/gabdi/wikitrends/scripts/merge_layers.sh /tmp/ /var/www/wikitrends/data/
+sudo bash merge_layers.sh /tmp/ /var/www/wikitrends/data/
 rm /tmp/.gabdi.lock
