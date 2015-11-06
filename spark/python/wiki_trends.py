@@ -4,6 +4,7 @@
 import ast
 import json
 import os
+import json
 
 from pyspark.sql import Row
 from pyspark import SparkContext
@@ -53,18 +54,20 @@ def parse_wiki_edit(edit_entry):
         parsed_data = ast.literal_eval(edit_entry)
         edit_length = parsed_data["length"]
         return (Row(
-            edited_page=parsed_data["title"].encode("utf-8"),
-            editor=parsed_data["user"].encode("utf-8"),
-            bot=parsed_data["bot"],
-            minor=parsed_data.get("minor", False),
-            server=parsed_data["server_name"].encode("utf-8"),
-            timestamp=parsed_data["timestamp"],
-            old_length=(edit_length["old"] or 0) if edit_length else -1,
-            new_length=(edit_length["new"] or 0) if edit_length else -1
-        ), 1)
+                edited_page=parsed_data["title"].encode("utf-8"),
+                editor=parsed_data["user"].encode("utf-8"),
+                bot=parsed_data["bot"],
+                minor=parsed_data.get("minor", False),
+                server=parsed_data["server_name"].encode("utf-8"),
+                timestamp=parsed_data["timestamp"],
+                old_length=(edit_length["old"] or 0) if edit_length else -1,
+                new_length=(edit_length["new"] or 0) if edit_length else -1
+            ), 1)
     except:
         return (edit_entry, 0)
 
+def parse_json_wiki_edit(edit_entry):
+    return json.loads(edit_entry)
 
 def parse_edits(hdfs_user_folder):
     all_edits = sc.textFile("%s/dataset/data.json" % hdfs_user_folder).map(parse_wiki_edit)

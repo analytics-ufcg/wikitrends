@@ -8,6 +8,7 @@ import math
 import argparse
 import socket
 import time
+import json
 
 from hdfs import InsecureClient as HDFSClient
 from threading import Lock, Thread
@@ -57,7 +58,7 @@ class WikiNamespace(socketIO_client.BaseNamespace):
 
     def on_change(self, change):
         try:
-            self.streaming_connection.send("%s\n" % change)
+            self.streaming_connection.send("%s\n" % json.dumps(change))
         except:
             self.streaming_connection = None
             self.__wait_for_consumer()
