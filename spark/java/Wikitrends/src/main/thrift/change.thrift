@@ -1,3 +1,5 @@
+namespace java br.edu.ufcg.analytics.wikitrends.thrift
+
 struct WikiMediaChange {
 	1: required string id;
 	2: required i32 type;

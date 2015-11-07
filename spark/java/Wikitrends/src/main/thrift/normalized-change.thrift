@@ -1,12 +1,14 @@
+namespace java br.edu.ufcg.analytics.wikitrends.thrift.normalized
+
 union UserID {
 	1: string login,
 }
 union UserPropertyValue {
-	1: boolean is_bot,
+	1: bool is_bot,
 }
 struct UserProperty {
-	1: required PersonID id,
-	2: required PersonPropertyValue property,
+	1: required UserID id,
+	2: required UserPropertyValue property,
 }
 
 union PageID {
@@ -16,8 +18,8 @@ union PagePropertyValue {
 	1: i32 rc_namespace,
 }
 struct PageProperty {
-	1: required PersonID id,
-	2: required PersonPropertyValue property,
+	1: required UserID id,
+	2: required UserPropertyValue property,
 }
 
 union ServerID {
@@ -39,24 +41,24 @@ struct EditEdge {
           1: required UserID person,
           2: required PageID page,
           3: required ServerID server,
-          4: required boolean minor,
-          3: required i64 nonce,
+          4: required bool minor,
+          5: required i64 nonce,
 }
 
 struct LogEdge {
           1: required UserID person,
           2: required PageID page,
           3: required ServerID server,
-          4: required boolean minor,
-          3: required i64 nonce,
+          4: required bool minor,
+          5: required i64 nonce,
 }
 
-struct EditEdge {
+struct ExternalEdge {
           1: required UserID person,
           2: required PageID page,
           3: required ServerID server,
-          4: required boolean minor,
-          3: required i64 nonce,
+          4: required bool minor,
+          5: required i64 nonce,
 }
 
 
@@ -66,7 +68,9 @@ union DataUnit {
 	1: UserProperty user_property,
 	2: PageProperty page_property,
 	3: ServerProperty server_property,
-	4: ChangeEdge change,
+	4: EditEdge edit,
+	5: LogEdge log,
+	6: ExternalEdge external,
 }
 struct Pedigree {
 	1: required i32 true_as_of_secs,
