@@ -9,6 +9,8 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
 
+import br.edu.ufcg.analytics.wikitrends.thrift.WikiMediaChange;
+
 /**
  * Entry point for both batch and speed layer Apache Spark jobs.
  * 
@@ -23,10 +25,16 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 		
+		WikiMediaChange change = null;
+		if(change == null){
+			System.out.println("NULL");
+		}
+		
 		SparkConf sparkConf = new SparkConf().setAppName("wikitrends-batch");
 		
 		try(JavaSparkContext jsc = new JavaSparkContext(sparkConf);){
-			int slices = (args.length == 1) ? Integer.parseInt(args[0]) : 2;
+			System.out.println("Running " + args[0] + " job!");
+			int slices = 100;
 			int n = 100000 * slices;
 			List<Integer> l = new ArrayList<Integer>(n);
 			for (int i = 0; i < n; i++) {

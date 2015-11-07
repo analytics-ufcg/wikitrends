@@ -1,0 +1,78 @@
+#!/bin/bash
+
+function show_help (){
+    echo "usage: wikitrends [-e env_var_file] [-m master_address]"
+    echo "                  [-w number_of_executor_workers]"
+    echo -e "             <subcommand>\n"
+    echo -e "Manage WikiTrends batch and speed layers\n"
+    echo "Positional arguments:"
+    echo "   <subcommand>"
+    echo "   batch                         Runs batch layer job"
+    echo "   speed <start|status|stop> [id]"
+    echo "             start               Submit speed layer job"
+    echo "             status <id>         Get status of running job"
+    echo "             stop   <id>         Kills job"
+
+}
+
+# default values
+MASTER_ADDRESS=spark://hdfs-namenode:7077
+TOTAL_EXECUTOR_CORES=2
+ENV_VAR_FILE=/home/ubuntu/.profile
+
+OPTIND=1         # Reset in case getopts has been used previously in the shell.
+
+while getopts "h?e:m:w:" opt; do
+    case "$opt" in
+    h|\?)
+        show_help
+        exit 0
+        ;;
+    e)  ENV_VAR_FILE=$OPTARG
+        ;;
+    m)  MASTER_ADDRESS=$OPTARG
+        ;;
+    w)  TOTAL_EXECUTOR_CORES=$OPTARG
+        ;;
+    esac
+done
+
+shift $((OPTIND-1))
+
+[ "$1" = "--" ] && shift
+
+
+
+
+case "$1" in
+batch)
+    echo "Submitting batch layer job"
+	source ${ENV_VAR_FILE}
+	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class br.edu.ufcg.analytics.wikitrends.Main lib/wikitrends-0.1.jar BATCH
+    echo "Finished executing batch layer job"
+    ;;
+speed)
+    case $2 in
+    start)
+	    echo "Submitting speed layer job"
+		source ${ENV_VAR_FILE}
+		spark-submit --supervise --deploy-mode cluster --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class br.edu.ufcg.analytics.wikitrends.Main lib/wikitrends-0.1.jar SPEED
+	    echo "Finished submitting speed layer job"
+        ;;
+    stop)
+	    echo "Attempting to stop speed layer job"
+		source ${ENV_VAR_FILE}
+		spark-submit --kill $3 --supervise --deploy-mode cluster --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class br.edu.ufcg.analytics.wikitrends.Main lib/wikitrends-0.1.jar SPEED
+	    echo "Finished speed layer job"
+        ;;
+    status)
+	    echo "Getting status of speed layer job"
+		source ${ENV_VAR_FILE}
+		spark-submit --status $3 --supervise --deploy-mode cluster --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class br.edu.ufcg.analytics.wikitrends.Main lib/wikitrends-0.1.jar SPEED
+        ;;
+    esac
+    ;;
+*)
+    show_help
+    ;;
+esac

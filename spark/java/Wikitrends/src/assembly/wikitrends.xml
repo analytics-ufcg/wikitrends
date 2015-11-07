@@ -7,22 +7,6 @@
 		<format>zip</format>
 	</formats>
 	<baseDirectory>wikitrends</baseDirectory>
-
-	<moduleSets>
-		<moduleSet>
-
-			<useAllReactorProjects>true</useAllReactorProjects>
-			<includes>
-				<include>br.edu.ufcg.lsd:saasim-core</include>
-				<include>br.edu.ufcg.lsd:saasim-ext</include>
-				<include>br.edu.ufcg.lsd:saasim-quid</include>
-			</includes>
-			<binaries>
-				<outputDirectory>lib</outputDirectory>
-				<unpack>false</unpack>
-			</binaries>
-		</moduleSet>
-	</moduleSets>
 	<dependencySets>
 		<dependencySet>
 			<outputDirectory>/lib</outputDirectory>
@@ -40,13 +24,6 @@
 		<fileSet>
 			<outputDirectory></outputDirectory>
 			<directory>src/main/resources/bin</directory>
-			<includes>
-				<include>*</include>
-			</includes>
-		</fileSet>
-		<fileSet>
-			<outputDirectory></outputDirectory>
-			<directory>src/main/resources/production</directory>
 			<includes>
 				<include>*</include>
 			</includes>
