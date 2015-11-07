@@ -1,2 +1,7 @@
+Inside eclipse:
 
-thrift -o src/main/ --gen java src/main/thrift/change.thrift
+ * Create a run configuration specifying THRIFT_PATH env variable value to point to your system thrift binary.
+ 
+Outside eclipse:
+ 
+ * just type 'mvn clean package' and be happy.
