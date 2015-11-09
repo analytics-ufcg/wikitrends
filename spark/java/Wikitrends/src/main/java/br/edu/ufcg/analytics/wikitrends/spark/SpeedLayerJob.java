@@ -1,14 +1,16 @@
 package br.edu.ufcg.analytics.wikitrends.spark;
 
-import org.apache.hadoop.mapred.TextOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaReceiverInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 
 import br.edu.ufcg.analytics.wikitrends.LambdaLayer;
 import scala.Tuple2;
@@ -55,9 +57,9 @@ public class SpeedLayerJob implements SparkJob {
 		try(JavaStreamingContext ssc = new JavaStreamingContext(conf, Durations.seconds(30))){
 
 
-			JavaReceiverInputDStream<String> edits = ssc.socketTextStream("gabdi", 9999);
+			JavaReceiverInputDStream<String> lines = ssc.socketTextStream("gabdi", 9999);
 						
-			JavaPairDStream<String, Integer> allEdits = edits
+			JavaPairDStream<String, Integer> allEdits = lines
 					.mapToPair(new PairFunction<String, String, Integer>() {
 
 						private static final long serialVersionUID = 1L;
@@ -77,23 +79,16 @@ public class SpeedLayerJob implements SparkJob {
 						}
 					}, 1);
 
-			JavaPairDStream<String, Integer> minorEdits = edits
-					.filter(new Function<String, Boolean>() {
-
-						private static final long serialVersionUID = 1L;
-
-						@Override
-						public Boolean call(String edit) throws Exception {
-							return edit.contains("minor\": true");
-						}
-					})
+			JavaPairDStream<String, Integer> minorEdits = lines
 					.mapToPair(new PairFunction<String, String, Integer>() {
 
 						private static final long serialVersionUID = 1L;
 
 						@Override
-						public Tuple2<String, Integer> call(String s) throws Exception {
-							return new Tuple2<String, Integer>("stream_minor_edits", 1);
+						public Tuple2<String, Integer> call(String line) throws Exception {
+							JsonElement minor = new JsonParser().parse(line).getAsJsonObject().get("minor");
+							int weight = minor != null && minor.getAsBoolean() ? 1: 0;
+							return new Tuple2<>("stream_minor_edits", weight);
 						}
 					})
 					.reduceByKey(new Function2<Integer, Integer, Integer>() {
@@ -108,7 +103,7 @@ public class SpeedLayerJob implements SparkJob {
 			
 			allEdits
 			.union(minorEdits)
-			.saveAsHadoopFiles(outputPath, SUFIX, String.class, Integer.class, TextOutputFormat.class);
+			.saveAsNewAPIHadoopFiles(outputPath, SUFIX, String.class, Integer.class, TextOutputFormat.class);
 
 			ssc.start();
 			ssc.awaitTermination();
