@@ -15,15 +15,15 @@ public class TablesGenerator {
 	public void generateTables() {
 
 		CassandraConnector connector = CassandraConnector.apply(sc.getConf());
-
+		
         // Prepare the schema
         try (Session session = connector.openSession()) {
-            session.execute("DROP KEYSPACE IF EXISTS batch_views");
+            session.execute("DROP KEYSPACE IF EXISTS master_dataset");
             
             session.execute("CREATE KEYSPACE master_dataset WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
             
             session.execute("CREATE TABLE IF NOT EXISTS master_dataset." +
-								"log" +
+								"logs" +
 							    "(log_uuid UUID," +
 							    "log_id INT," +
 								"log_type TEXT," +
@@ -55,7 +55,7 @@ public class TablesGenerator {
             
             // to types 'edit' and 'external'
             session.execute("CREATE TABLE IF NOT EXISTS master_dataset." +
-								"edit" +
+								"edits" +
 							    "(edit_uuid UUID," + 
 							    "edit_id INT," +
 								"edit_minor BOOLEAN," +

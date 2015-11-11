@@ -18,7 +18,7 @@ public class Main2 {
 		TablesGenerator tGen = new TablesGenerator(sc);
 		tGen.generateTables();
 		
-		DataGenerator gen = new DataGenerator();
-		gen.populateDatabase("/home/guilhermemg/gadbi/wikitrends/spark/java/Wikitrends/sample.json");
+		DataGenerator gen = new DataGenerator(sc);
+		gen.populateDatabase("/home/guilhermemg/Desktop/sample1.json");
 	}
 }
