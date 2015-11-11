@@ -2,7 +2,6 @@ package br.edu.ufcg.analytics.wikitrends.spark;
 
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
@@ -26,7 +25,7 @@ public class SpeedLayerJob implements SparkJob {
 	 * 
 	 */
 	private static final long serialVersionUID = -8237571274242642523L;
-	private static String HOST = "hdfs-namenode";
+	private static String HOST = "master";
 	private static String PORT = "9000";
 	private static String USER = "ubuntu";
 	private static String PATH = "speed_java";
@@ -60,24 +59,8 @@ public class SpeedLayerJob implements SparkJob {
 			JavaReceiverInputDStream<String> lines = ssc.socketTextStream("gabdi", 9999);
 						
 			JavaPairDStream<String, Integer> allEdits = lines
-					.mapToPair(new PairFunction<String, String, Integer>() {
-
-						private static final long serialVersionUID = 1L;
-
-						@Override
-						public Tuple2<String, Integer> call(String s) throws Exception {
-							return new Tuple2<String, Integer>("stream_all_edits", 1);
-						}
-					})
-					.reduceByKey(new Function2<Integer, Integer, Integer>() {
-
-						private static final long serialVersionUID = 1L;
-
-						@Override
-						public Integer call(Integer a, Integer b) throws Exception {
-							return a + b;
-						}
-					}, 1);
+					.mapToPair(l -> new Tuple2<>("stream_all_edits", 1))
+					.reduceByKey((a, b) -> a + b, 1);
 
 			JavaPairDStream<String, Integer> minorEdits = lines
 					.mapToPair(new PairFunction<String, String, Integer>() {
@@ -91,15 +74,7 @@ public class SpeedLayerJob implements SparkJob {
 							return new Tuple2<>("stream_minor_edits", weight);
 						}
 					})
-					.reduceByKey(new Function2<Integer, Integer, Integer>() {
-
-						private static final long serialVersionUID = 1L;
-
-						@Override
-						public Integer call(Integer a, Integer b) throws Exception {
-							return a + b;
-						}
-					}, 1);
+					.reduceByKey((a, b) -> a + b, 1);
 			
 			allEdits
 			.union(minorEdits)
@@ -108,5 +83,5 @@ public class SpeedLayerJob implements SparkJob {
 			ssc.start();
 			ssc.awaitTermination();
 		}
-	}	
+	}
 }
