@@ -78,5 +78,12 @@ public class LogType extends AbstractType implements Serializable {
 		this.log_action_comment = log_action_comment;
 	}
 
+	@Override
+	public String toString() {
+		return "LogType [log_uuid=" + log_uuid + ", log_id=" + log_id + ", log_type=" + log_type + ", log_action="
+				+ log_action + ", log_params=" + log_params + ", log_action_comment=" + log_action_comment
+				+ ", toString()=" + super.toString() + "]";
+	}
+
 	
 }

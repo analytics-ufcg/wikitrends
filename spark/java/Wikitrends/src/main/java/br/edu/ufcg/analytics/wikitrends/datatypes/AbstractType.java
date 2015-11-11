@@ -1,10 +1,13 @@
 package br.edu.ufcg.analytics.wikitrends.datatypes;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import org.joda.time.DateTime;
 
-public class AbstractType {
+public class AbstractType implements Serializable {
+	private static final long serialVersionUID = -3986062084077684976L;
+
 	private String common_server_url;
 	private String common_server_name;
 	private String common_server_script_path;

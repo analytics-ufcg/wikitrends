@@ -68,9 +68,9 @@ public class TopClasses extends WikitrendsApp implements Serializable {
         	for (Row row : results) {
         		System.out.println(String.format("%-10s\t%-30s\t%-10s\t%-30s\t%-20s", 
         													row.getInt("id"), 
-        													row.getDate("date_event"),
+        													row.getTimestamp("date_event"),
         													row.getInt("hour"),
-        													row.getDate("event_time"),
+        													row.getTimestamp("event_time"),
         													row.getMap("data", String.class, Integer.class).toString()));
         	}
             System.out.println();

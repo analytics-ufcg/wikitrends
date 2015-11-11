@@ -78,4 +78,11 @@ public class EditType extends AbstractType implements Serializable {
 	public void setEdit_revision(Map<String, Integer> edit_revision) {
 		this.edit_revision = edit_revision;
 	}
+
+	@Override
+	public String toString() {
+		return "EditType [edit_uuid=" + edit_uuid + ", edit_id=" + edit_id + ", edit_minor=" + edit_minor
+				+ ", edit_patrolled=" + edit_patrolled + ", edit_length=" + edit_length + ", edit_revision="
+				+ edit_revision + ", toString()=" + super.toString() + "]";
+	}
 }

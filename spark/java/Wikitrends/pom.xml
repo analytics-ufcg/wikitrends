@@ -150,7 +150,6 @@
 			<artifactId>spark-core_2.10</artifactId>
 			<version>1.5.0</version>
 			<scope>provided</scope>
-
 		</dependency>
 		<dependency>
 			<groupId>org.apache.spark</groupId>
@@ -176,10 +175,15 @@
 			<version>2.4</version>
 		</dependency>
 		<dependency>
-			<groupId>com.datastax.spark</groupId>
-			<artifactId>spark-cassandra-connector-java_2.10</artifactId>
-			<version>1.0.0-rc4</version>
-		</dependency>
+            <groupId>com.datastax.spark</groupId>
+            <artifactId>spark-cassandra-connector_2.10</artifactId>
+            <version>1.5.0-M2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.datastax.spark</groupId>
+            <artifactId>spark-cassandra-connector-java_2.10</artifactId>
+            <version>1.5.0-M2</version>
+        </dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
