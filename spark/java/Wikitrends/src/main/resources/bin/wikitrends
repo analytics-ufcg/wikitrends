@@ -57,6 +57,12 @@ batch)
 	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${JAR_PATH} BATCH
     echo "Finished executing batch layer job"
     ;;
+feed)
+    echo "Starting data ingestor"
+#	source ${ENV_VAR_FILE}
+#	nohup java -cp "lib/*" 
+    echo "Data ingestor is up!"
+	;;
 speed)
 	MASTER_ADDRESS=${MASTER_ADDRESS%:*}:6066
     case $2 in
