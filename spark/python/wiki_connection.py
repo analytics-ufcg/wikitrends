@@ -57,12 +57,13 @@ class WikiNamespace(socketIO_client.BaseNamespace):
         streaming_logger.info('Spark consumer connected')
 
     def on_change(self, change):
+        json_change = json.dumps(change)
         try:
-            self.streaming_connection.send("%s\n" % json.dumps(change))
+            self.streaming_connection.send("%s\n" % json_change)
         except:
             self.streaming_connection = None
             self.__wait_for_consumer()
-        self.buffer += "%s\n" % change
+        self.buffer += "%s\n" % json_change
         if sys.getsizeof(self.buffer.strip()) > buffer_size:
             batch_logger.info('Copying %fMB (%i Bytes) to HDFS...' %
                               (sys.getsizeof(self.buffer.strip()) *
