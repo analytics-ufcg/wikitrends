@@ -88,7 +88,18 @@ speed)
     esac
     ;;
 web)
-	nohup java -cp "lib/*" br.edu.ufcg.analytics.wikitrends.api.WikiTrendsAPI &
+    case $2 in
+    start)
+	    echo "Starting web application"
+	    nohup java -cp "lib/*" br.edu.ufcg.analytics.wikitrends.api.WikiTrendsAPI &
+        ;;
+    stop)
+	    echo "Attempting to stop web application"
+	    kill `ps aux | grep WikiTrendsAPI | awk '{print $2}'`
+		echo "Finished speed layer job"
+        ;;
+    esac
+    ;;
 *)
     show_help
     ;;

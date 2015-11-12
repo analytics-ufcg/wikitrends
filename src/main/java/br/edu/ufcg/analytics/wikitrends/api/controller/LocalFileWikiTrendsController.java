@@ -70,15 +70,19 @@ public class LocalFileWikiTrendsController implements WikiTrendsController {
 	private RankingRow[] query(String source, int numberOfResults) {
 		List<RankingRow> results = new ArrayList<>();
 		
-		try(Scanner input = new Scanner(new File(source));){
-			input.nextLine(); // removing headers (not best option but it's working!
+		try(Scanner input = new Scanner(new File(source), "utf-8");){
+			if(input.hasNextLine()){
+				input.nextLine(); // removing headers (not best option but it's working!
+			}
 			while(input.hasNextLine() && results.size() < numberOfResults){
 				String[] line = input.nextLine().split("\\t");
 				results.add(new RankingRow(line[0], line[1]));
 			}
 		} catch (FileNotFoundException e) {
+			System.err.println(source);
 			e.printStackTrace();
 		}
+		results.add(new RankingRow(source, "0"));
 		return results.toArray(new RankingRow[results.size()]);
 	}
 

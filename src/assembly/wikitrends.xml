@@ -12,17 +12,20 @@
 			<outputDirectory>/lib</outputDirectory>
 			<scope>runtime</scope>
 		</dependencySet>
-<!-- 		<dependencySet> -->
-<!-- 			<outputDirectory>/lib-web</outputDirectory> -->
-<!-- 			<scope>provided</scope> -->
-<!-- 		</dependencySet> -->
 	</dependencySets>
 		<fileSets>
 		<fileSet>
 			<outputDirectory></outputDirectory>
+			<directory>src/main/resources/production</directory>
+			<includes>
+				<include>*</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<outputDirectory></outputDirectory>
 			<directory>src/main/resources</directory>
 			<includes>
-				<include>examples/**</include>
+				<include>static/**</include>
 			</includes>
 		</fileSet>
 		<fileSet>
