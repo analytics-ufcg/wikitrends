@@ -8,6 +8,7 @@ public class LogType extends AbstractType implements Serializable {
 	private static final long serialVersionUID = -4354969409550959024L;
 
 	private UUID log_uuid;
+	private Integer id;
 	private Integer log_id;
 	private String log_type;
 	private String log_action;
@@ -17,15 +18,16 @@ public class LogType extends AbstractType implements Serializable {
 	public LogType(String common_server_url, String common_server_name, String common_server_script_path,
 			String common_server_wiki, String common_event_type, String common_event_namespace,
 			String common_event_user, Boolean common_event_bot, String common_event_comment, String common_event_title,
-			Date event_time, UUID log_uuid, Integer log_id, String log_type, String log_action, String log_params,
+			Date event_time, UUID log_uuid, Integer id, Integer log_id, String log_action, String log_type, String log_params,
 			String log_action_comment) {
 		super(common_server_url, common_server_name, common_server_script_path, common_server_wiki, common_event_type,
 				common_event_namespace, common_event_user, common_event_bot, common_event_comment, common_event_title,
 				event_time);
 		this.log_uuid = log_uuid;
+		this.id = id;
 		this.log_id = log_id;
-		this.log_type = log_type;
 		this.log_action = log_action;
+		this.log_type = log_type;
 		this.log_params = log_params;
 		this.log_action_comment = log_action_comment;
 	}
@@ -36,6 +38,14 @@ public class LogType extends AbstractType implements Serializable {
 
 	public void setLog_uuid(UUID log_uuid) {
 		this.log_uuid = log_uuid;
+	}
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
 	}
 
 	public Integer getLog_id() {
@@ -80,9 +90,9 @@ public class LogType extends AbstractType implements Serializable {
 
 	@Override
 	public String toString() {
-		return "LogType [log_uuid=" + log_uuid + ", log_id=" + log_id + ", log_type=" + log_type + ", log_action="
-				+ log_action + ", log_params=" + log_params + ", log_action_comment=" + log_action_comment
-				+ ", toString()=" + super.toString() + "]";
+		return "LogType [log_uuid=" + log_uuid + ", id=" + id + ", log_id=" + log_id + ", log_type=" + log_type
+				+ ", log_action=" + log_action + ", log_params=" + log_params + ", log_action_comment="
+				+ log_action_comment + ", toString()=" + super.toString() + "]";
 	}
 
 	

@@ -19,6 +19,6 @@ public class Main2 {
 		tGen.generateTables();
 		
 		DataGenerator gen = new DataGenerator(sc);
-		gen.populateDatabase("/home/guilhermemg/Desktop/sample1.json");
+		gen.populateDatabase("/home/guilhermemg/Desktop/tailnewdata.json");
 	}
 }

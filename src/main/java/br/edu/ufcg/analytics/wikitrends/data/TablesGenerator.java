@@ -25,9 +25,10 @@ public class TablesGenerator {
             session.execute("CREATE TABLE IF NOT EXISTS master_dataset." +
 								"logs" +
 							    "(log_uuid UUID," +
+							    "id INT," +
 							    "log_id INT," +
-								"log_type TEXT," +
 								"log_action TEXT," +
+							    "log_type TEXT," +
 								"log_params TEXT," +
 								"log_action_comment TEXT," +
 								
