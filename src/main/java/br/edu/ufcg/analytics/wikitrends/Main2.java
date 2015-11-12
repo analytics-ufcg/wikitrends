@@ -16,7 +16,7 @@ public class Main2 {
         JavaSparkContext sc = new JavaSparkContext(conf);
 		
 		TablesGenerator tGen = new TablesGenerator(sc);
-		tGen.generateTables();
+		tGen.generate();
 		
 		DataGenerator gen = new DataGenerator(sc);
 		gen.populateDatabase("/home/guilhermemg/Desktop/tailnewdata.json");
