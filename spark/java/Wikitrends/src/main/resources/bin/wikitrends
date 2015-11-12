@@ -87,6 +87,8 @@ speed)
         ;;
     esac
     ;;
+web)
+	nohup java -cp "lib/*" br.edu.ufcg.analytics.wikitrends.api.WikiTrendsAPI &
 *)
     show_help
     ;;

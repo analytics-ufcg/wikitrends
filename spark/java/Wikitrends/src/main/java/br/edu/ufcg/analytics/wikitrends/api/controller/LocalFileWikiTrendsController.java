@@ -36,7 +36,7 @@ public class LocalFileWikiTrendsController implements WikiTrendsController {
 	@Override
 	@RequestMapping("/editors")
 	public RankingRow[] editors(@RequestParam(value="size", defaultValue="20") String size) {
-		String source = "/var/www/wikitrends/data/idioms.tsv";
+		String source = "/var/www/wikitrends/data/editors.tsv";
 		int numberOfResults = Integer.valueOf(size);
 		
 		return query(source, numberOfResults);
@@ -59,9 +59,10 @@ public class LocalFileWikiTrendsController implements WikiTrendsController {
 	 */
 	@Override
 	@RequestMapping("/pages")
-	public RankingRow[] pages(@RequestParam(value="size", defaultValue="20") String size) {
-		String source = "/var/www/wikitrends/data/pages.tsv";
+	public RankingRow[] pages(@RequestParam(value="size", defaultValue="20") String size, @RequestParam(value="contentonly", defaultValue="false") String contentOnly) {
 		int numberOfResults = Integer.valueOf(size);
+		boolean contentOnlyPages = Boolean.valueOf(contentOnly);
+		String source = "/var/www/wikitrends/data/pages" + (contentOnlyPages? "_content": "") + ".tsv";
 		
 		return query(source, numberOfResults);
 	}
@@ -70,8 +71,9 @@ public class LocalFileWikiTrendsController implements WikiTrendsController {
 		List<RankingRow> results = new ArrayList<>();
 		
 		try(Scanner input = new Scanner(new File(source));){
+			input.nextLine(); // removing headers (not best option but it's working!
 			while(input.hasNextLine() && results.size() < numberOfResults){
-				String[] line = input.nextLine().split("\\s+");
+				String[] line = input.nextLine().split("\\t");
 				results.add(new RankingRow(line[0], line[1]));
 			}
 		} catch (FileNotFoundException e) {

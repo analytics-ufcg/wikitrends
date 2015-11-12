@@ -12,6 +12,10 @@
 			<outputDirectory>/lib</outputDirectory>
 			<scope>runtime</scope>
 		</dependencySet>
+<!-- 		<dependencySet> -->
+<!-- 			<outputDirectory>/lib-web</outputDirectory> -->
+<!-- 			<scope>provided</scope> -->
+<!-- 		</dependencySet> -->
 	</dependencySets>
 		<fileSets>
 		<fileSet>

@@ -14,43 +14,78 @@ app.config(function ($routeProvider) {
 });
 
 app.controller('StaticController', function ($scope, $http) {
-    $http.get('data/absolute.tsv').then(function (response) {
-        d3.tsv.parse(response.data).forEach(function (d) {
-            $scope[d.field] = d.count
+    $http.get('statistics').then(function (response) {
+        response.data.forEach(function (d) {
+            $scope[d.key] = parseInt(d.value, 10)
         })
         $scope.edits = [{
             label: "Major Edits",
             value: $scope['all_edits'] - $scope['minor_edits']
         }, {
             label: "Minor Edits",
-            value: parseInt($scope['minor_edits'], 10)
+            value: $scope['minor_edits']
         }]
-        console.log($scope.edits)
     }, function (response) {
         console.log(response.data);
     });
 
-    $http.get('data/editors.tsv').then(function (response) {
-        $scope.editors = d3.tsv.parse(response.data)
+    $http.get('editors', {
+        params: { 
+            size: 20
+        }
+    }).then(function (response) {
+        $scope.editors = response.data.map(function(d){
+            return {
+                user: d.key,
+                count: d.value
+            }
+        })
     }, function (response) {
         console.log(response.data);
     });
 
-    $http.get('data/idioms.tsv').then(function (response) {
-        $scope.idioms = d3.tsv.parse(response.data)
-        console.log($scope.idioms)
+    $http.get('idioms', {
+        params: { 
+            size: 20 
+        }
+    }).then(function (response) {
+        $scope.idioms = response.data.map(function(d){
+            return {
+                idiom: d.key,
+                count: d.value
+            }
+        })
     }, function (response) {
         console.log(response.data);
     });
 
-    $http.get('data/pages.tsv').then(function (response) {
-        $scope.pages = d3.tsv.parse(response.data)
+    $http.get('pages', {
+        params: { 
+            size: 20 
+        }
+    }).then(function (response) {
+        $scope.pages = response.data.map(function(d){
+            return {
+                page: d.key,
+                count: d.value
+            }
+        })
     }, function (response) {
         console.log(response.data);
     });
 
-    $http.get('data/pages_content.tsv').then(function (response) {
-        $scope.pages_content = d3.tsv.parse(response.data)
+    $http.get('pages', {
+        params: { 
+            contentonly: true,
+            size: 20 
+        }
+    }).then(function (response) {
+        $scope.pages_content = response.data.map(function(d){
+            return {
+                page: d.key,
+                count: d.value
+            }
+        })
     }, function (response) {
         console.log(response.data);
     });

@@ -17,5 +17,5 @@ public class RankingRow {
 	public String getValue() {
 		return value;
 	}
-
+	
 }

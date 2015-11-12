@@ -10,6 +10,6 @@ public interface WikiTrendsController {
 
 	RankingRow[] idioms(String size);
 
-	RankingRow[] pages(String size);
+	RankingRow[] pages(String size, String contentOnly);
 
 }
