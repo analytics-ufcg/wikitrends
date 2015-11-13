@@ -82,7 +82,6 @@ public class LocalFileWikiTrendsController implements WikiTrendsController {
 			System.err.println(source);
 			e.printStackTrace();
 		}
-		results.add(new RankingRow(source, "0"));
 		return results.toArray(new RankingRow[results.size()]);
 	}
 
