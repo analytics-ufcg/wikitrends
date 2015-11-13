@@ -1,5 +1,8 @@
 package br.edu.ufcg.analytics.wikitrends.spark;
 
+import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
+import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapRowTo;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +15,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import br.edu.ufcg.analytics.wikitrends.LambdaLayer;
+import br.edu.ufcg.analytics.wikitrends.datatypes.EditType;
 import br.edu.ufcg.analytics.wikitrends.thrift.WikiMediaChange;
 import scala.Tuple2;
 
@@ -62,10 +66,7 @@ public class BatchLayerJob implements SparkJob {
 
 		try(JavaSparkContext sc = new JavaSparkContext(conf);){
 
-			JavaRDD<JsonObject> wikipediaEdits = sc.textFile("/user/ubuntu/dataset/newdata.json")
-					.map(l -> new JsonParser().parse(l).getAsJsonObject())
-					.filter( edit -> edit.get("server_name").getAsString().endsWith("wikipedia.org"))
-					.cache();
+			JavaRDD<JsonObject> wikipediaEdits = readInput(sc).cache();
 
 			processRanking(sc, wikipediaEdits, "title", PAGES_HEADER, outputPath + PAGES_FILE);
 
@@ -76,7 +77,24 @@ public class BatchLayerJob implements SparkJob {
 			processRanking(sc, wikipediaEdits, "user", EDITORS_HEADER, outputPath + EDITORS_FILE);
 
 			processStatistics(sc, wikipediaEdits, ABSOLUTE_HEADER, outputPath + ABSOLUTE_FILE);
-}	
+		}	
+	}
+
+	private JavaRDD<JsonObject> readInput(JavaSparkContext sc) {
+		JavaRDD<JsonObject> wikipediaEdits = sc.textFile("/user/ubuntu/dataset/newdata.json")
+				.map(l -> new JsonParser().parse(l).getAsJsonObject())
+				.filter( edit -> edit.get("server_name").getAsString().endsWith("wikipedia.org"));
+		return wikipediaEdits;
+	}
+
+	private JavaRDD<EditType> readInputFromCassandra(JavaSparkContext sc) {
+
+		JavaRDD<EditType> wikipediaEdits = javaFunctions(sc)
+				.cassandraTable("master_dataset", "edit", mapRowTo(EditType.class))
+				.select("title", "bot")
+				.filter(edit -> edit.getCommon_server_name().endsWith("wikipedia.org"));
+
+		return wikipediaEdits;
 	}
 
 	/**
@@ -114,12 +132,12 @@ public class BatchLayerJob implements SparkJob {
 	private void processContentOnlyRanking(JavaSparkContext sc, JavaRDD<JsonObject> wikipediaEdits, String key, BatchLayerOutput header, String path) {
 		JavaRDD<JsonObject> filteredEdits = wikipediaEdits
 				.filter(edits -> edits.get("namespace").getAsInt() == 0);
-		
+
 		processRanking(sc, filteredEdits, key, header, path);
 	}
-	
+
 	private void processStatistics(JavaSparkContext sc, JavaRDD<JsonObject> wikipediaEdits, BatchLayerOutput header, String path) {
-		
+
 		List<BatchLayerOutput> statistics = new ArrayList<>();
 		statistics.add(header);
 		statistics.add(new BatchLayerOutput("all_edits", countAllEdits(wikipediaEdits)));
@@ -143,7 +161,7 @@ public class BatchLayerJob implements SparkJob {
 			return minor != null && minor.getAsBoolean();
 		}).count();
 	}
-	
+
 	private long calcAverageEditLength(JavaRDD<JsonObject> wikipediaEdits) {
 		JavaRDD<Long> result = wikipediaEdits.filter(edit -> {
 			return edit.get("length") != null;
@@ -154,7 +172,7 @@ public class BatchLayerJob implements SparkJob {
 		});
 		return result.reduce((a, b) -> a+b) / result.count();
 	}
-	
+
 	private long distinctPages(JavaRDD<JsonObject> wikipediaEdits) {
 		return wikipediaEdits.map(edit -> edit.get("title").getAsString()).distinct().count();
 	}

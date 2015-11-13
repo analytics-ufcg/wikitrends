@@ -12,15 +12,12 @@ public class CreateCassandraSchema {
 	 */
 	public static void main(String[] args) {
 
-		String[] nodess = args[0].split(",");
-
+		String[] nodes = args[0].split(",");
+		
 		try(
-				Cluster cluster = Cluster.builder().addContactPoints(nodess).build();
+				Cluster cluster = Cluster.builder().addContactPoints(nodes).build();
 				Session session = cluster.newSession();){
 			new TablesGenerator(session).generate();
 		}
-
-
 	}
-
 }

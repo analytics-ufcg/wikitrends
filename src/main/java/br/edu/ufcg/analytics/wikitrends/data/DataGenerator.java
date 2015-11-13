@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Scanner;
 import java.util.UUID;
 
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.joda.time.DateTime;
 
@@ -21,6 +23,14 @@ import br.edu.ufcg.analytics.wikitrends.datatypes.EditType;
 import br.edu.ufcg.analytics.wikitrends.datatypes.LogType;
 
 public class DataGenerator {
+	
+	
+	private String inputFile;
+
+	public DataGenerator(String inputFile) {
+		this.inputFile = inputFile;
+	}
+	
 	private JavaSparkContext sc;
 
 	public DataGenerator(JavaSparkContext sc) {
@@ -125,4 +135,23 @@ public class DataGenerator {
 			System.out.println("Database populated with success!!");
 		}
 	}
+
+	public void run() {
+		SparkConf conf = new SparkConf();
+		conf.setAppName("wikitrends-migrate-master");
+
+		try(JavaSparkContext sc = new JavaSparkContext(conf);){
+
+			JavaRDD<JsonObject> oldMasterDataset = sc.textFile(inputFile)
+					.map(l -> new JsonParser().parse(l).getAsJsonObject());
+			
+//			oldMasterDataset
+//			.filter(change -> change.get("type").getAsString() != "log")
+//			.map(change -> new EditType(change));
+			
+			
+		}
+	}
+		
+		
 }
