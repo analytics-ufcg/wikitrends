@@ -19,7 +19,7 @@ WIKITRENDS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 JAR_FILE=wikitrends-0.1.jar
 JAR_PATH=${WIKITRENDS_HOME}/lib/${JAR_FILE}
 HDFS_JAR_PATH=hdfs:///tmp/${JAR_FILE}
-MAIN_CLASS=br.edu.ufcg.analytics.wikitrends.processing
+MAIN_CLASS=br.edu.ufcg.analytics.wikitrends.processing.Main
 
 # default values
 MASTER_ADDRESS=spark://hdfs-namenode:7077
