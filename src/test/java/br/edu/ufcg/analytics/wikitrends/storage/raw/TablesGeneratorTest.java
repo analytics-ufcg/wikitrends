@@ -1,8 +1,7 @@
-package br.edu.ufcg.analytics.wikitrends.data;
+package br.edu.ufcg.analytics.wikitrends.storage.raw;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
-import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -10,19 +9,12 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 
-import br.edu.ufcg.analytics.wikitrends.storage.raw.TablesGenerator;
-
 /**
  * @author Ricardo Araújo Santos - ricardo@copin.ufcg.edu.br
  *
  */
 public class TablesGeneratorTest {
 	
-	@After
-	public void clean(){
-		
-	}
-
 	/**
 	 * 
 	 */

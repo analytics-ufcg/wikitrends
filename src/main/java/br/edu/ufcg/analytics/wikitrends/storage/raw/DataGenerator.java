@@ -3,6 +3,7 @@ package br.edu.ufcg.analytics.wikitrends.storage.raw;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -22,16 +23,20 @@ import com.google.gson.JsonParser;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.LogType;
 
-public class DataGenerator {
+public class DataGenerator implements Serializable{
 	
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6066687152165846375L;
 	private String inputFile;
 
-	public DataGenerator(String inputFile) {
+	public DataGenerator(String cassandraSeedHostname, String inputFile) {
 		this.inputFile = inputFile;
 	}
 	
-	private JavaSparkContext sc;
+	private transient JavaSparkContext sc;
 
 	public DataGenerator(JavaSparkContext sc) {
 		this.sc = sc;
@@ -43,7 +48,6 @@ public class DataGenerator {
 		try (Session session = connector.openSession()){
 			@SuppressWarnings("resource")
 			Scanner scan = new Scanner(new File(path));
-			EditType et;
 			LogType lt;
 
 			while(scan.hasNextLine()){
@@ -54,72 +58,14 @@ public class DataGenerator {
 		        //System.out.println(obj.toString());
 				
 		        if(obj.get("type").getAsString().equals("edit")) {
-		        	JsonObject j_obj1 = obj.has("length") ? obj.get("length").getAsJsonObject() : null;
-					JsonObject j_obj2 = obj.has("revision") ? obj.get("revision").getAsJsonObject() : null;
-					
-					HashMap<String, Integer> m1 = null, m2 = null;
-					if(j_obj1 != null) {
-						m1 = new HashMap<String, Integer>();
-						m1.put("new", j_obj1.has("new") ? j_obj1.get("new").getAsInt() : null);
-						m1.put("old", j_obj1.has("old") ? j_obj1.get("old").getAsInt() : null);
-					}
-					if(j_obj2 != null) {
-						m2 = new HashMap<String, Integer>();
-						m2.put("new", j_obj2.has("new") ? j_obj2.get("new").getAsInt() : null);
-						m2.put("old", j_obj2.has("old") ? j_obj2.get("old").getAsInt() : null);
-					}
-					
-					Boolean patrolled = obj.has("patrolled") ? obj.get("patrolled").getAsBoolean() : null;
-					
-		        	et = new EditType(obj.get("server_url").getAsString(),
-        							   obj.get("server_name").getAsString(),
-        							   obj.get("server_script_path").getAsString(),
-        							   obj.get("wiki").getAsString(),
-        							   obj.get("type").getAsString(),
-        							   obj.get("namespace").getAsString(),
-        							   obj.get("user").getAsString(),
-        							   obj.get("bot").getAsBoolean(),
-        							   obj.get("comment").getAsString(),
-        							   obj.get("title").getAsString(),
-        							   new DateTime(obj.get("timestamp").getAsLong() * 1000L).toDate(),
-        							   UUID.randomUUID(),
-        							   obj.get("id").getAsInt(),
-        							   obj.get("minor").getAsBoolean(),
-        							   patrolled,
-        							   m1, 
-        							   m2);
-		        	
 		        	//System.out.println(et);
 		        	
-		        	CassandraJavaUtil.javaFunctions(sc.parallelize(Arrays.asList(et)))
+		        	CassandraJavaUtil.javaFunctions(sc.parallelize(Arrays.asList(parseEdit(obj))))
 		        		.writerBuilder("master_dataset", "edits", mapToRow(EditType.class))
 		        		.saveToCassandra();
 		        }
 		        else if(obj.get("type").getAsString().equals("log")) {
-					String log_params = obj.has("log_params") ? obj.get("log_params").toString() : null;
-					
-					Integer id = obj.has("id") && !obj.get("id").isJsonNull() ? obj.get("id").getAsInt() : null;
-					
-					String log_type = obj.has("log_type") ? obj.get("log_type").getAsString() : null;
-					
-		        	lt = new LogType(obj.get("server_url").getAsString(),
-	    							   obj.get("server_name").getAsString(),
-	    							   obj.get("server_script_path").getAsString(),
-	    							   obj.get("wiki").getAsString(),
-	    							   obj.get("type").getAsString(),
-	    							   obj.get("namespace").getAsString(),
-	    							   obj.get("user").getAsString(),
-	    							   obj.get("bot").getAsBoolean(),
-	    							   obj.get("comment").getAsString(),
-	    							   obj.get("title").getAsString(),
-	    							   new DateTime(obj.get("timestamp").getAsLong() * 1000L).toDate(),
-	    							   UUID.randomUUID(),
-	    							   id,
-	    							   obj.get("log_id").getAsInt(),
-	    							   obj.get("log_action").getAsString(),
-	    							   log_type,
-	    							   log_params, 
-	    							   obj.get("log_action_comment").getAsString());
+					lt = parseLog(obj);
 		        	
 		        	//System.out.println(lt);
 		        	
@@ -136,20 +82,109 @@ public class DataGenerator {
 		}
 	}
 
+	private LogType parseLog(JsonObject obj) {
+		LogType lt;
+		String log_params = obj.has("log_params") ? obj.get("log_params").toString() : null;
+		
+		Integer id = obj.has("id") && !obj.get("id").isJsonNull() ? obj.get("id").getAsInt() : null;
+		
+		String log_type = obj.has("log_type") ? obj.get("log_type").getAsString() : null;
+		
+		lt = new LogType(obj.get("server_url").getAsString(),
+						   obj.get("server_name").getAsString(),
+						   obj.get("server_script_path").getAsString(),
+						   obj.get("wiki").getAsString(),
+						   obj.get("type").getAsString(),
+						   obj.get("namespace").getAsString(),
+						   obj.get("user").getAsString(),
+						   obj.get("bot").getAsBoolean(),
+						   obj.get("comment").getAsString(),
+						   obj.get("title").getAsString(),
+						   new DateTime(obj.get("timestamp").getAsLong() * 1000L).toDate(),
+						   UUID.randomUUID(),
+						   id,
+						   obj.get("log_id").getAsInt(),
+						   obj.get("log_action").getAsString(),
+						   log_type,
+						   log_params, 
+						   obj.get("log_action_comment").getAsString());
+		return lt;
+	}
+
+	private EditType parseEdit(JsonObject obj) {
+		EditType et;
+		JsonObject j_obj1 = obj.has("length") ? obj.get("length").getAsJsonObject() : null;
+		JsonObject j_obj2 = obj.has("revision") ? obj.get("revision").getAsJsonObject() : null;
+		
+		HashMap<String, Integer> m1 = null, m2 = null;
+		if(j_obj1 != null) {
+			m1 = new HashMap<String, Integer>();
+			if(j_obj1.has("new") && !j_obj1.get("new").isJsonNull()){
+				m1.put("new", j_obj1.get("new").getAsInt());
+			}
+			if(j_obj1.has("old") && !j_obj1.get("old").isJsonNull()){
+				m1.put("old", j_obj1.get("old").getAsInt());
+			}
+		}
+		if(j_obj2 != null) {
+			m2 = new HashMap<String, Integer>();
+			if(j_obj2.has("new") && !j_obj2.get("new").isJsonNull()){
+				m2.put("new", j_obj2.get("new").getAsInt());
+			}
+			if(j_obj2.has("old") && !j_obj2.get("old").isJsonNull()){
+				m2.put("new", j_obj2.get("new").getAsInt());
+				m2.put("old", j_obj2.get("old").getAsInt());
+			}
+		}
+		
+		Boolean patrolled = obj.has("patrolled") && !obj.get("patrolled").isJsonNull() ? obj.get("patrolled").getAsBoolean() : null;
+		
+		et = new EditType(obj.get("server_url").getAsString(),
+						   obj.get("server_name").getAsString(),
+						   obj.get("server_script_path").getAsString(),
+						   obj.get("wiki").getAsString(),
+						   obj.get("type").getAsString(),
+						   obj.get("namespace").getAsString(),
+						   obj.get("user").getAsString(),
+						   obj.get("bot").getAsBoolean(),
+						   obj.get("comment").getAsString(),
+						   obj.get("title").getAsString(),
+						   new DateTime(obj.get("timestamp").getAsLong() * 1000L).toDate(),
+						   UUID.randomUUID(),
+						   obj.get("id").getAsInt(),
+						   obj.get("minor").getAsBoolean(),
+						   patrolled,
+						   m1, 
+						   m2);
+		return et;
+	}
+
 	public void run() {
 		SparkConf conf = new SparkConf();
 		conf.setAppName("wikitrends-migrate-master");
-
+		conf.setMaster("spark://tomato:7077");
+		conf.set("spark.cassandra.connection.host", "localhost");
+		
 		try(JavaSparkContext sc = new JavaSparkContext(conf);){
 
 			JavaRDD<JsonObject> oldMasterDataset = sc.textFile(inputFile)
 					.map(l -> new JsonParser().parse(l).getAsJsonObject());
 			
-//			oldMasterDataset
-//			.filter(change -> change.get("type").getAsString() != "log")
-//			.map(change -> new EditType(change));
+			JavaRDD<EditType> edits = oldMasterDataset
+			.filter(change -> !"log".equals(change.get("type").getAsString()))
+			.map(change -> parseEdit(change));
 			
-			
+			CassandraJavaUtil.javaFunctions(edits)
+			.writerBuilder("master_dataset", "edits", mapToRow(EditType.class))
+			.saveToCassandra();
+
+//			JavaRDD<LogType> logs = oldMasterDataset
+//			.filter(change -> "log".equals(change.get("type").getAsString()))
+//			.map(change -> parseLog(change));
+//
+//			CassandraJavaUtil.javaFunctions(logs)
+//			.writerBuilder("master_dataset", "logs", mapToRow(LogType.class))
+//			.saveToCassandra();
 		}
 	}
 		

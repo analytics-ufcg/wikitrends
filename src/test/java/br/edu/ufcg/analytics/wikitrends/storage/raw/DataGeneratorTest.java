@@ -1,13 +1,10 @@
-package br.edu.ufcg.analytics.wikitrends.data;
+package br.edu.ufcg.analytics.wikitrends.storage.raw;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
-
-import br.edu.ufcg.analytics.wikitrends.storage.raw.DataGenerator;
-import br.edu.ufcg.analytics.wikitrends.storage.raw.TablesGenerator;
 
 /**
  * @author Ricardo Araújo Santos - ricardo@copin.ufcg.edu.br
@@ -16,6 +13,7 @@ import br.edu.ufcg.analytics.wikitrends.storage.raw.TablesGenerator;
 public class DataGeneratorTest {
 	
 	private static String[] testHosts = "localhost".split(",");
+	private static String seedNode = "localhost";
 
 	@Before
 	public void clean(){
@@ -31,11 +29,11 @@ public class DataGeneratorTest {
 	 */
 	@Test
 	public void testEmptyEditsTableCreation() {
-		String inputFile = "src/test/resources";
+		String inputFile = "src/test/resources/small_test_data.json";
 		
 		try(Cluster cluster = Cluster.builder().addContactPoints(testHosts).build();){
 			try(Session session = cluster.newSession();){
-				new DataGenerator(inputFile).run();
+				new DataGenerator(seedNode , inputFile).run();
 			}
 		}
 		
