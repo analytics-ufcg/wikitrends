@@ -5,7 +5,8 @@ import java.util.List;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.wikitrends.serving.datagenerator.TablesGenerator;
+
+import br.edu.ufcg.analytics.wikitrends.storage.serving.TablesGenerator;
 
 public class Main {
 	public static void main(String[] args) {

@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.data;
+package br.edu.ufcg.analytics.wikitrends.storage.raw;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;

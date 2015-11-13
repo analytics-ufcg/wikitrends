@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.spark;
+package br.edu.ufcg.analytics.wikitrends.processing.batch;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapRowTo;
@@ -14,8 +14,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import br.edu.ufcg.analytics.wikitrends.LambdaLayer;
-import br.edu.ufcg.analytics.wikitrends.datatypes.EditType;
+import br.edu.ufcg.analytics.wikitrends.processing.LambdaLayer;
+import br.edu.ufcg.analytics.wikitrends.processing.SparkJob;
+import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
 import br.edu.ufcg.analytics.wikitrends.thrift.WikiMediaChange;
 import scala.Tuple2;
 

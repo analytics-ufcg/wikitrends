@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.spark;
+package br.edu.ufcg.analytics.wikitrends.processing.speed;
 
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.spark.SparkConf;
@@ -11,7 +11,8 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
-import br.edu.ufcg.analytics.wikitrends.LambdaLayer;
+import br.edu.ufcg.analytics.wikitrends.processing.LambdaLayer;
+import br.edu.ufcg.analytics.wikitrends.processing.SparkJob;
 import scala.Tuple2;
 
 /**

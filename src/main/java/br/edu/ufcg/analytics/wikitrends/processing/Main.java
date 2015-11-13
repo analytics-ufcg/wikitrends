@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends;
+package br.edu.ufcg.analytics.wikitrends.processing;
 
 /**
  * Entry point for both batch and speed layer Apache Spark jobs.

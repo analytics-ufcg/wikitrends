@@ -1,6 +1,6 @@
-package br.edu.ufcg.analytics.wikitrends.api.controller;
+package br.edu.ufcg.analytics.wikitrends.view.api.controller;
 
-import br.edu.ufcg.analytics.wikitrends.api.controller.beans.RankingRow;
+import br.edu.ufcg.analytics.wikitrends.view.api.controller.beans.RankingRow;
 
 public interface WikiTrendsController {
 

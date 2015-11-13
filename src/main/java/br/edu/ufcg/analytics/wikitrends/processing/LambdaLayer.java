@@ -1,8 +1,7 @@
-package br.edu.ufcg.analytics.wikitrends;
+package br.edu.ufcg.analytics.wikitrends.processing;
 
-import br.edu.ufcg.analytics.wikitrends.spark.BatchLayerJob;
-import br.edu.ufcg.analytics.wikitrends.spark.SparkJob;
-import br.edu.ufcg.analytics.wikitrends.spark.SpeedLayerJob;
+import br.edu.ufcg.analytics.wikitrends.processing.batch.BatchLayerJob;
+import br.edu.ufcg.analytics.wikitrends.processing.speed.SpeedLayerJob;
 
 /**
  * Possible layers to submit WikiTrends jobs according to &lambda; architecture.

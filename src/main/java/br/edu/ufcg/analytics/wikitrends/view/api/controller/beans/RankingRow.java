@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.api.controller.beans;
+package br.edu.ufcg.analytics.wikitrends.view.api.controller.beans;
 
 public class RankingRow {
 	

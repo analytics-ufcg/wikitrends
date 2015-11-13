@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.datatypes;
+package br.edu.ufcg.analytics.wikitrends.storage.raw.types;
 
 import java.io.Serializable;
 import java.util.Date;

@@ -1,4 +1,4 @@
-package org.wikitrends.serving.datagenerator;
+package br.edu.ufcg.analytics.wikitrends.storage.serving;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
@@ -13,10 +13,11 @@ import java.util.Map;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.wikitrends.serving.datatypes.AbsoluteValuesShot;
-import org.wikitrends.serving.datatypes.TopClass;
 
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
+
+import br.edu.ufcg.analytics.wikitrends.storage.serving.types.AbsoluteValuesShot;
+import br.edu.ufcg.analytics.wikitrends.storage.serving.types.TopClass;
 
 public class DataGenerator {
 	

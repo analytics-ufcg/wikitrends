@@ -6,6 +6,9 @@ import org.junit.Test;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 
+import br.edu.ufcg.analytics.wikitrends.storage.raw.DataGenerator;
+import br.edu.ufcg.analytics.wikitrends.storage.raw.TablesGenerator;
+
 /**
  * @author Ricardo Araújo Santos - ricardo@copin.ufcg.edu.br
  *

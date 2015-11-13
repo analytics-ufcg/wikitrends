@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.data;
+package br.edu.ufcg.analytics.wikitrends.storage.raw;
 
 import org.apache.spark.api.java.JavaSparkContext;
 

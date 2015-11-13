@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.api.controller;
+package br.edu.ufcg.analytics.wikitrends.view.api.controller;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.edu.ufcg.analytics.wikitrends.api.controller.beans.RankingRow;
+import br.edu.ufcg.analytics.wikitrends.view.api.controller.beans.RankingRow;
 
 /**
  * @author Ricardo Araújo Santos - ricardo@copin.ufcg.edu.br

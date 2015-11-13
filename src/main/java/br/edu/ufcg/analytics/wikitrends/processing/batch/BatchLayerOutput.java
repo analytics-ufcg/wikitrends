@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.spark;
+package br.edu.ufcg.analytics.wikitrends.processing.batch;
 
 import java.io.Serializable;
 

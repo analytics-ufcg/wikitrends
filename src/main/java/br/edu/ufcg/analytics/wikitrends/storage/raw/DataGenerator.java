@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.data;
+package br.edu.ufcg.analytics.wikitrends.storage.raw;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
@@ -19,8 +19,8 @@ import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import br.edu.ufcg.analytics.wikitrends.datatypes.EditType;
-import br.edu.ufcg.analytics.wikitrends.datatypes.LogType;
+import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
+import br.edu.ufcg.analytics.wikitrends.storage.raw.types.LogType;
 
 public class DataGenerator {
 	

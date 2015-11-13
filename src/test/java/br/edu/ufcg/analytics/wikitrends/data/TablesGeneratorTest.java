@@ -10,6 +10,8 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 
+import br.edu.ufcg.analytics.wikitrends.storage.raw.TablesGenerator;
+
 /**
  * @author Ricardo Araújo Santos - ricardo@copin.ufcg.edu.br
  *

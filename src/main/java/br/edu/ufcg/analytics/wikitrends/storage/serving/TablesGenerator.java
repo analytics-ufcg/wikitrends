@@ -1,4 +1,4 @@
-package org.wikitrends.serving.datagenerator;
+package br.edu.ufcg.analytics.wikitrends.storage.serving;
 
 import org.apache.spark.api.java.JavaSparkContext;
 

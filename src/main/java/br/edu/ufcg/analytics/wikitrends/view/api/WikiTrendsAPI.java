@@ -1,7 +1,7 @@
 /**
  * 
  */
-package br.edu.ufcg.analytics.wikitrends.api;
+package br.edu.ufcg.analytics.wikitrends.view.api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
