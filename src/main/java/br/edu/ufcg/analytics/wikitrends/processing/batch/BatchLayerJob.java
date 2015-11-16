@@ -1,7 +1,6 @@
 package br.edu.ufcg.analytics.wikitrends.processing.batch;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
-import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapRowTo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +8,9 @@ import java.util.List;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function;
 
+import com.datastax.spark.connector.japi.CassandraRow;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -64,12 +65,17 @@ public class BatchLayerJob implements SparkJob {
 
 		SparkConf conf = new SparkConf();
 		conf.setAppName("wikitrends-batch");
+		conf.set("spark.cassandra.connection.host", "localhost");
 
 		try(JavaSparkContext sc = new JavaSparkContext(conf);){
 
 			JavaRDD<JsonObject> wikipediaEdits = readInput(sc).cache();
 
 			processRanking(sc, wikipediaEdits, "title", PAGES_HEADER, outputPath + PAGES_FILE);
+
+//			JavaRDD<EditType> wikipediaEdits = readInputFromCassandra(sc).cache();
+//
+//			processRanking(sc, wikipediaEdits, PAGES_HEADER, outputPath + PAGES_FILE);
 
 			processContentOnlyRanking(sc, wikipediaEdits, "title", PAGES_HEADER, outputPath + CONTENT_PAGES_FILE);
 
@@ -84,18 +90,64 @@ public class BatchLayerJob implements SparkJob {
 	private JavaRDD<JsonObject> readInput(JavaSparkContext sc) {
 		JavaRDD<JsonObject> wikipediaEdits = sc.textFile("/user/ubuntu/dataset/newdata.json")
 				.map(l -> new JsonParser().parse(l).getAsJsonObject())
+				.filter( edit -> {
+					String type = edit.get("type").getAsString();
+					return "new".equals(type) || "edit".equals(type);
+				} )
 				.filter( edit -> edit.get("server_name").getAsString().endsWith("wikipedia.org"));
 		return wikipediaEdits;
 	}
 
 	private JavaRDD<EditType> readInputFromCassandra(JavaSparkContext sc) {
 
+		
 		JavaRDD<EditType> wikipediaEdits = javaFunctions(sc)
-				.cassandraTable("master_dataset", "edit", mapRowTo(EditType.class))
-				.select("title", "bot")
+				.cassandraTable("master_dataset", "edits")
+				.select("common_event_bot", "common_event_title", "common_server_name", "common_event_user", "common_event_namespace", "edit_minor", "edit_length")
+				.map(new Function<CassandraRow, EditType>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public EditType call(CassandraRow v1) throws Exception {
+						EditType edit = new EditType();
+						edit.setCommon_event_bot(v1.getBoolean("common_event_bot"));
+						edit.setCommon_event_title(v1.getString("common_event_title"));
+						edit.setCommon_event_user(v1.getString("common_event_user"));
+						edit.setCommon_event_namespace(v1.getString("common_event_namespace"));
+						edit.setCommon_server_name(v1.getString("common_server_name"));
+						edit.setEdit_minor(v1.getBoolean("edit_minor"));
+//						edit.setEdit_length(v1.getMap("edit_length"));
+						return edit;
+					}
+					
+				})
 				.filter(edit -> edit.getCommon_server_name().endsWith("wikipedia.org"));
 
 		return wikipediaEdits;
+	}
+
+	/**
+	 * Processes {@link WikiMediaChange}s currently modeled as {@link JsonObject}s and generates a ranking based on given key.
+	 *    
+	 * @param sc {@link JavaSparkContext}
+	 * @param wikipediaEdits input as a {@link JavaRDD}
+	 * @param key ranking key
+	 * @param path HDFS output path.
+	 */
+	private void processRanking(JavaSparkContext sc, JavaRDD<EditType> wikipediaEdits, BatchLayerOutput header, String path) {
+		JavaRDD<BatchLayerOutput> result = wikipediaEdits
+				.mapToPair( edit -> {
+					return new Tuple2<>(edit.getCommon_event_title(), 1);
+				})
+				.reduceByKey( (a,b) -> a+b )
+				.mapToPair( edit -> edit.swap() )
+				.sortByKey(false)
+				.map( edit -> new BatchLayerOutput(edit._2, edit._1.toString()) );
+
+		List<BatchLayerOutput> allPages = result.take(20);
+		allPages.add(0, header);
+		
+		sc.parallelize(allPages).coalesce(1).saveAsTextFile(path);
 	}
 
 	/**
@@ -118,7 +170,7 @@ public class BatchLayerJob implements SparkJob {
 
 		List<BatchLayerOutput> allPages = result.take(20);
 		allPages.add(0, header);
-
+		
 		sc.parallelize(allPages).coalesce(1).saveAsTextFile(path);
 	}
 
