@@ -2,28 +2,26 @@ package br.edu.ufcg.analytics.wikitrends.ingestion;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 
-/**
- * An example using the new java client Producer for Kafka 0.8.2
- * 
- * 2015/02/27
- * @author Cameron Gregory, http://www.bloke.com/
- */
 public class CustomKafkaProducer {
 	
 	private KafkaProducer<String,String> producer;
+	private transient Configuration configuration;
 
-	public CustomKafkaProducer() {
+	public CustomKafkaProducer(Configuration configuration) {
 		this.producer = null;
+		this.configuration = configuration;
 	}
 	
 	public void initializeKafkaProducer() throws InterruptedException, ExecutionException {
 		Properties props = new Properties();
-		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,"localhost:9092");
+		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, String.format("%s:%s", 
+				configuration.getString("wikitrends.ingestion.kafka.host"), configuration.getString("wikitrends.ingestion.kafka.port")));
 		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,StringSerializer.class.getName());
 		props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,StringSerializer.class.getName());
 

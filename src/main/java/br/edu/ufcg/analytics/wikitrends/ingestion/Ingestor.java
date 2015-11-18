@@ -6,6 +6,10 @@ import java.net.URISyntaxException;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
+
 import com.google.gson.JsonElement;
 
 import io.socket.IOAcknowledge;
@@ -17,23 +21,31 @@ public class Ingestor {
 
 	private SocketIO wikimediaSocket;
 	private CustomKafkaProducer kafkaProducer;
+	
+	private transient Configuration configuration;
 
-	public Ingestor() throws IOException {
+	public Ingestor(Configuration configuration) throws IOException {
 		this.wikimediaSocket = new SocketIO("http://stream.wikimedia.org:80/rc");
-		this.kafkaProducer = new CustomKafkaProducer();
+		this.kafkaProducer = new CustomKafkaProducer(configuration);
+		this.configuration = configuration;
 	}
 
 	public void start() throws MalformedURLException, InterruptedException, ExecutionException {
 		// Avoiding logs
 		Logger l0 = Logger.getLogger("");
 		l0.removeHandler(l0.getHandlers()[0]);
-		
+		 
 		kafkaProducer.initializeKafkaProducer();
 		
 		wikimediaSocket.connect(new IOCallback() {
 			@Override
 			public void onMessage(String data, IOAcknowledge ack) {
 				System.out.println("Server said: " + data);
+			}
+			
+			@Override
+			public void onMessage(JsonElement arg0, IOAcknowledge arg1) {
+				System.out.println("Server said: " + arg0);
 			}
 
 			@Override
@@ -51,39 +63,25 @@ public class Ingestor {
 			public void onConnect() {
 				wikimediaSocket.emit("subscribe", "*");
 				System.out.println("Connection established");
-				Thread socketThread = new Thread() {
-					public void run() {
-						while (true) {
-
-						}
-					}
-				};
-
-				socketThread.start();
-
 			}
 
 			@Override
 			public void on(String arg0, IOAcknowledge arg1, JsonElement... arg2) {
 				try {
-					System.out.println(arg2[0].toString());
 					kafkaProducer.sendMessage(arg2[0].toString());
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				} catch (ExecutionException e) {
 					e.printStackTrace();
 				}
-			}
-
-			@Override
-			public void onMessage(JsonElement arg0, IOAcknowledge arg1) {
-
-			}
+			}			
 		});
 	}
 
-	public static void main(String[] args) throws URISyntaxException, IOException, InterruptedException, ExecutionException {
-		Ingestor ingestor = new Ingestor();
+	public static void main(String[] args) throws URISyntaxException, IOException, InterruptedException, ExecutionException, ConfigurationException {
+		Configuration configuration = new PropertiesConfiguration(args.length == 2? args[1]: "wikitrends.properties");
+		
+		Ingestor ingestor = new Ingestor(configuration);
 		ingestor.start();
 	}
 }
