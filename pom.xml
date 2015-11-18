@@ -203,5 +203,10 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 			<version>1.2.7.RELEASE</version>
 		</dependency>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>1.10</version>
+		</dependency>
 	</dependencies>
 </project>
