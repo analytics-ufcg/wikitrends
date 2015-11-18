@@ -112,34 +112,29 @@ public class DataGenerator implements Serializable{
 	}
 
 	private EditType parseEdit(JsonObject obj) {
-		EditType et;
-		JsonObject j_obj1 = obj.has("length") ? obj.get("length").getAsJsonObject() : null;
-		JsonObject j_obj2 = obj.has("revision") ? obj.get("revision").getAsJsonObject() : null;
+		JsonObject length = obj.get("length").getAsJsonObject();
 		
-		HashMap<String, Long> m1 = null, m2 = null;
-		if(j_obj1 != null) {
-			m1 = new HashMap<String, Long>();
-			if(j_obj1.has("new") && !j_obj1.get("new").isJsonNull()){
-				m1.put("new", j_obj1.get("new").getAsLong());
-			}
-			if(j_obj1.has("old") && !j_obj1.get("old").isJsonNull()){
-				m1.put("old", j_obj1.get("old").getAsLong());
-			}
+		HashMap<String, Long> lengthMap = new HashMap<>(2);
+		if(!length.get("new").isJsonNull()){
+			lengthMap.put("new", length.get("new").getAsLong());
 		}
-		if(j_obj2 != null) {
-			m2 = new HashMap<String, Long>();
-			if(j_obj2.has("new") && !j_obj2.get("new").isJsonNull()){
-				m2.put("new", j_obj2.get("new").getAsLong());
-			}
-			if(j_obj2.has("old") && !j_obj2.get("old").isJsonNull()){
-				m2.put("new", j_obj2.get("new").getAsLong());
-				m2.put("old", j_obj2.get("old").getAsLong());
-			}
+		if(!length.get("old").isJsonNull()){
+			lengthMap.put("old", length.get("old").getAsLong());
+		}
+		
+		JsonObject review = obj.get("revision").getAsJsonObject();
+		
+		HashMap<String, Long>  revisionMap = new HashMap<>(2);
+		if(!review.get("new").isJsonNull()){
+			revisionMap.put("new", review.get("new").getAsLong());
+		}
+		if(!review.get("old").isJsonNull()){
+			revisionMap.put("old", review.get("old").getAsLong());
 		}
 		
 		Boolean patrolled = obj.has("patrolled") && !obj.get("patrolled").isJsonNull() ? obj.get("patrolled").getAsBoolean() : null;
-		
-		et = new EditType(obj.get("server_url").getAsString(),
+
+		return new EditType(obj.get("server_url").getAsString(),
 						   obj.get("server_name").getAsString(),
 						   obj.get("server_script_path").getAsString(),
 						   obj.get("wiki").getAsString(),
@@ -154,9 +149,8 @@ public class DataGenerator implements Serializable{
 						   obj.get("id").getAsInt(),
 						   obj.get("minor").getAsBoolean(),
 						   patrolled,
-						   m1, 
-						   m2);
-		return et;
+						   lengthMap, 
+						   revisionMap);
 	}
 
 	public void run() {
@@ -171,7 +165,10 @@ public class DataGenerator implements Serializable{
 					.map(l -> new JsonParser().parse(l).getAsJsonObject());
 			
 			JavaRDD<EditType> edits = oldMasterDataset
-			.filter(change -> !"log".equals(change.get("type").getAsString()))
+			.filter(change -> {
+				String type = change.get("type").getAsString();
+				return "edit".equals(type) || "new".equals(type);
+			})
 			.map(change -> parseEdit(change));
 			
 			CassandraJavaUtil.javaFunctions(edits)
