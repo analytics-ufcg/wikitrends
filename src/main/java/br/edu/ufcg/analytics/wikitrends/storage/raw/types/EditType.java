@@ -14,6 +14,10 @@ public class EditType extends AbstractType implements Serializable {
 	private Boolean edit_patrolled;
 	private Map<String, Integer> edit_length;
 	private Map<String, Integer> edit_revision;
+	
+	public EditType() {
+		super();
+	}
 
 	public EditType(String common_server_url, String common_server_name, String common_server_script_path,
 			String common_server_wiki, String common_event_type, String common_event_namespace,

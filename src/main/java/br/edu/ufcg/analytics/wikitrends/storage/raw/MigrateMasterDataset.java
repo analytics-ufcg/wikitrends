@@ -1,21 +1,15 @@
 package br.edu.ufcg.analytics.wikitrends.storage.raw;
 
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaSparkContext;
-
 public class MigrateMasterDataset {
+	
+	/**
+	 * @param args
+	 */
 	public static void main(String[] args) {
-		SparkConf conf = new SparkConf();
-        conf.setAppName("Java API demo");
-        conf.setMaster("local");
-        conf.set("spark.cassandra.connection.host", "localhost");
-        
-        JavaSparkContext sc = new JavaSparkContext(conf);
 		
-		TablesGenerator tGen = new TablesGenerator(sc);
-		tGen.generate();
+		String seedNode = args[0];
+		String inputFile = args[1];
 		
-		DataGenerator gen = new DataGenerator(sc);
-		gen.populateDatabase("/home/guilhermemg/Desktop/tailnewdata.json");
+		new DataGenerator(seedNode, inputFile).run();
 	}
 }

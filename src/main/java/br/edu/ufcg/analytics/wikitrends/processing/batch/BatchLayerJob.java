@@ -1,18 +1,16 @@
 package br.edu.ufcg.analytics.wikitrends.processing.batch;
 
-import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
-import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapRowTo;
-
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
+import java.util.Map;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import br.edu.ufcg.analytics.wikitrends.processing.LambdaLayer;
 import br.edu.ufcg.analytics.wikitrends.processing.SparkJob;
@@ -25,35 +23,20 @@ import scala.Tuple2;
  * 
  * @author Ricardo Ara&eacute;jo Santos - ricoaraujosantos@gmail.com
  */
-public class BatchLayerJob implements SparkJob {
-
-	private static BatchLayerOutput PAGES_HEADER = new BatchLayerOutput("page", "count");
-	private static BatchLayerOutput IDIOMS_HEADER = new BatchLayerOutput("server", "count");
-	private static BatchLayerOutput EDITORS_HEADER = new BatchLayerOutput("user", "count");
-	private static BatchLayerOutput ABSOLUTE_HEADER = new BatchLayerOutput("field", "count");
-
-	private static String HOST = "master";
-	private static String PORT = "9000";
-	private static String USER = "ubuntu";
-	private static String PATH = "serving_java";
-	private static String PAGES_FILE = "pages";
-	private static String CONTENT_PAGES_FILE = PAGES_FILE + "_content";
-	private static String IDIOMS_FILE = "idioms";
-	private static String EDITORS_FILE = "editors";
-	private static String ABSOLUTE_FILE = "absolute";
-
+public abstract class BatchLayerJob implements SparkJob {
 
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -1348604327884764150L;
-	private String outputPath;
+	private static final long serialVersionUID = 833872580572610849L;
+	private transient Configuration configuration;
 
 	/**
 	 * Default constructor
+	 * @param configuration 
 	 */
-	public BatchLayerJob() {
-		outputPath = String.format("hdfs://%s:%s/user/%s/%s/", HOST, PORT, USER, PATH);
+	public BatchLayerJob(Configuration configuration) {
+		this.configuration = configuration;
 	}
 
 	/*@ (non-Javadoc)
@@ -63,137 +46,148 @@ public class BatchLayerJob implements SparkJob {
 	public void run() {
 
 		SparkConf conf = new SparkConf();
-		conf.setAppName("wikitrends-batch");
+		conf.setAppName(configuration.getString("wikitrends.batch.id"));
+		Iterator<String> keys = configuration.getKeys();
+		while (keys.hasNext()) {
+			String key = keys.next();
+			conf.set(key, configuration.getString(key));
+		}
 
 		try(JavaSparkContext sc = new JavaSparkContext(conf);){
 
-			JavaRDD<JsonObject> wikipediaEdits = readInput(sc).cache();
+			JavaRDD<EditType> wikipediaEdits = readRDD(sc)
+					.filter(edit -> edit.getCommon_server_name().endsWith("wikipedia.org"))
+					.cache();
+			
+			System.out.println(wikipediaEdits.count());
+			System.out.println(wikipediaEdits.partitions().size());
+			
+			JavaPairRDD<String, Integer> titleRDD = wikipediaEdits
+			.mapPartitionsToPair( iterator -> {
+				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
+				while(iterator.hasNext()){
+					EditType edit = iterator.next();
+					pairs.add(new Tuple2<String, Integer>(edit.getCommon_event_title(), 1));
+				}
+				return pairs;
+			});
+			JavaRDD<BatchLayerOutput> titleRanking = processRanking(sc, titleRDD);
+			
+			saveTitleRanking(sc, titleRanking);
 
-			processRanking(sc, wikipediaEdits, "title", PAGES_HEADER, outputPath + PAGES_FILE);
+			JavaPairRDD<String, Integer> contentTitleRDD = wikipediaEdits
+			.filter(edits -> "0".equals(edits.getCommon_event_namespace()))
+			.mapPartitionsToPair( iterator -> {
+				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
+				while(iterator.hasNext()){
+					EditType edit = iterator.next();
+					pairs.add(new Tuple2<String, Integer>(edit.getCommon_event_title(), 1));
+				}
+				return pairs;
+			});
+			JavaRDD<BatchLayerOutput> contentTitleRanking = processRanking(sc, contentTitleRDD);
+			
+			saveContentTitleRanking(sc, contentTitleRanking);
 
-			processContentOnlyRanking(sc, wikipediaEdits, "title", PAGES_HEADER, outputPath + CONTENT_PAGES_FILE);
+			JavaPairRDD<String, Integer> serverRDD = wikipediaEdits
+			.mapPartitionsToPair( iterator -> {
+				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
+				while(iterator.hasNext()){
+					EditType edit = iterator.next();
+					pairs.add(new Tuple2<String, Integer>(edit.getCommon_server_name(), 1));
+				}
+				return pairs;
+			});
+			JavaRDD<BatchLayerOutput> serverRanking = processRanking(sc, serverRDD);
+			saveServerRanking(sc, serverRanking);
+			
+			JavaPairRDD<String, Integer> userRDD = wikipediaEdits
+			.mapPartitionsToPair( iterator -> {
+				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
+				while(iterator.hasNext()){
+					EditType edit = iterator.next();
+					pairs.add(new Tuple2<String, Integer>(edit.getCommon_event_user(), 1));
+				}
+				return pairs;
+			});
+			JavaRDD<BatchLayerOutput> userRanking = processRanking(sc, userRDD);
+			saveUserRanking(sc, userRanking);
 
-			processRanking(sc, wikipediaEdits, "server_name", IDIOMS_HEADER, outputPath + IDIOMS_FILE);
-
-			processRanking(sc, wikipediaEdits, "user", EDITORS_HEADER, outputPath + EDITORS_FILE);
-
-			processStatistics(sc, wikipediaEdits, ABSOLUTE_HEADER, outputPath + ABSOLUTE_FILE);
+			processStatistics(sc, wikipediaEdits);
 		}	
 	}
+	
 
-	private JavaRDD<JsonObject> readInput(JavaSparkContext sc) {
-		JavaRDD<JsonObject> wikipediaEdits = sc.textFile("/user/ubuntu/dataset/newdata.json")
-				.map(l -> new JsonParser().parse(l).getAsJsonObject())
-				.filter( edit -> edit.get("server_name").getAsString().endsWith("wikipedia.org"));
-		return wikipediaEdits;
-	}
 
-	private JavaRDD<EditType> readInputFromCassandra(JavaSparkContext sc) {
-
-		JavaRDD<EditType> wikipediaEdits = javaFunctions(sc)
-				.cassandraTable("master_dataset", "edit", mapRowTo(EditType.class))
-				.select("title", "bot")
-				.filter(edit -> edit.getCommon_server_name().endsWith("wikipedia.org"));
-
-		return wikipediaEdits;
-	}
+	protected abstract JavaRDD<EditType> readRDD(JavaSparkContext sc);
 
 	/**
 	 * Processes {@link WikiMediaChange}s currently modeled as {@link JsonObject}s and generates a ranking based on given key.
 	 *    
 	 * @param sc {@link JavaSparkContext}
-	 * @param wikipediaEdits input as a {@link JavaRDD}
+	 * @param pairRDD input as a {@link JavaRDD}
 	 * @param key ranking key
 	 * @param path HDFS output path.
+	 * @return 
 	 */
-	private void processRanking(JavaSparkContext sc, JavaRDD<JsonObject> wikipediaEdits, String key, BatchLayerOutput header, String path) {
-		JavaRDD<BatchLayerOutput> result = wikipediaEdits
-				.mapToPair( edit -> {
-					return new Tuple2<>(edit.get(key).getAsString(), 1);
-				})
+	private JavaRDD<BatchLayerOutput> processRanking(JavaSparkContext sc, JavaPairRDD<String,Integer> pairRDD) {
+		JavaRDD<BatchLayerOutput> result = pairRDD
 				.reduceByKey( (a,b) -> a+b )
 				.mapToPair( edit -> edit.swap() )
 				.sortByKey(false)
 				.map( edit -> new BatchLayerOutput(edit._2, edit._1.toString()) );
-
-		List<BatchLayerOutput> allPages = result.take(20);
-		allPages.add(0, header);
-
-		sc.parallelize(allPages).coalesce(1).saveAsTextFile(path);
+		
+		return result;
 	}
 
-	/**
-	 * Processes content-only {@link WikiMediaChange}s currently modeled as {@link JsonObject}s and generates a ranking based on given key.
-	 *    
-	 * @param sc {@link JavaSparkContext}
-	 * @param wikipediaEdits input as a {@link JavaRDD}
-	 * @param key ranking key
-	 * @param path HDFS output path.
-	 */
-	private void processContentOnlyRanking(JavaSparkContext sc, JavaRDD<JsonObject> wikipediaEdits, String key, BatchLayerOutput header, String path) {
-		JavaRDD<JsonObject> filteredEdits = wikipediaEdits
-				.filter(edits -> edits.get("namespace").getAsInt() == 0);
+	protected abstract void saveTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput> titleRanking);
 
-		processRanking(sc, filteredEdits, key, header, path);
-	}
+	protected abstract void saveContentTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput> contentTitleRanking);
 
-	private void processStatistics(JavaSparkContext sc, JavaRDD<JsonObject> wikipediaEdits, BatchLayerOutput header, String path) {
+	protected abstract void saveServerRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput> serverRanking);
+	
+	protected abstract void saveUserRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput> userRanking);
 
-		List<BatchLayerOutput> statistics = new ArrayList<>();
-		statistics.add(header);
-		statistics.add(new BatchLayerOutput("all_edits", countAllEdits(wikipediaEdits)));
-		statistics.add(new BatchLayerOutput("minor_edits", countMinorEdits(wikipediaEdits)));
-		statistics.add(new BatchLayerOutput("average_size", calcAverageEditLength(wikipediaEdits)));
-		statistics.add(new BatchLayerOutput("distinct_pages", distinctPages(wikipediaEdits)));
-		statistics.add(new BatchLayerOutput("distinct_editors", distinctEditors(wikipediaEdits)));
-		statistics.add(new BatchLayerOutput("distinct_servers", distinctServers(wikipediaEdits)));
-		statistics.add(new BatchLayerOutput("origin", getOrigin(wikipediaEdits)));
+	protected abstract void processStatistics(JavaSparkContext sc, JavaRDD<EditType> wikipediaEdits);
 
-		sc.parallelize(statistics).coalesce(1).saveAsTextFile(path);
-	}
-
-	private long countAllEdits(JavaRDD<JsonObject> wikipediaEdits) {
+	protected long countAllEdits(JavaRDD<EditType> wikipediaEdits) {
 		return wikipediaEdits.count();
 	}
 
-	private long countMinorEdits(JavaRDD<JsonObject> wikipediaEdits) {
+	protected long countMinorEdits(JavaRDD<EditType> wikipediaEdits) {
 		return wikipediaEdits.filter(edit -> {
-			JsonElement minor = edit.get("minor");
-			return minor != null && minor.getAsBoolean();
+			return edit.getEdit_minor() != null && edit.getEdit_minor();
 		}).count();
 	}
 
-	private long calcAverageEditLength(JavaRDD<JsonObject> wikipediaEdits) {
-		JavaRDD<Long> result = wikipediaEdits.filter(edit -> {
-			return edit.get("length") != null;
-		}).map( edit -> {
-			JsonElement newLength = edit.get("length").getAsJsonObject().get("new");
-			JsonElement oldLength = edit.get("length").getAsJsonObject().get("old");
-			return (newLength != null && !newLength.isJsonNull()? newLength.getAsLong(): 0) - (oldLength != null && !oldLength.isJsonNull()? oldLength.getAsLong(): 0);
+	protected long calcAverageEditLength(JavaRDD<EditType> wikipediaEdits) {
+		JavaRDD<Long> result = wikipediaEdits.map( edit -> {
+			Map<String, Integer> length = edit.getEdit_length();
+			long oldLength = length.containsKey("old")? length.get("old"): 0;
+			long newLength = length.containsKey("new")? length.get("new"): 0;
+			return newLength - oldLength;
 		});
 		return result.reduce((a, b) -> a+b) / result.count();
 	}
 
-	private long distinctPages(JavaRDD<JsonObject> wikipediaEdits) {
-		return wikipediaEdits.map(edit -> edit.get("title").getAsString()).distinct().count();
+	protected long distinctPages(JavaRDD<EditType> wikipediaEdits) {
+		return wikipediaEdits.map(edit -> edit.getCommon_event_title()).distinct().count();
 	}
 
-	private long distinctServers(JavaRDD<JsonObject> wikipediaEdits) {
-		return wikipediaEdits.map(edit -> edit.get("server_name").getAsString())
-				.filter(serverName -> serverName.endsWith("wikipedia.org")).distinct().count();
+	protected long distinctServers(JavaRDD<EditType> wikipediaEdits) {
+		return wikipediaEdits.map(edit -> edit.getCommon_server_name()).distinct().count();
 	}
 
-	private long distinctEditors(JavaRDD<JsonObject> wikipediaEdits) {
+	protected long distinctEditors(JavaRDD<EditType> wikipediaEdits) {
 		return wikipediaEdits
 				.filter(edit -> {
-					JsonElement isBot = edit.get("bot");
-					return isBot != null && !isBot.getAsBoolean();
+					return edit.getCommon_event_bot() != null && !edit.getCommon_event_bot();
 				})
-				.map(edit -> edit.get("user").getAsString()).distinct().count();
+				.map(edit -> edit.getCommon_event_user()).distinct().count();
 	}
 
-	private long getOrigin(JavaRDD<JsonObject> wikipediaEdits) {
-		return wikipediaEdits.map(edit -> edit.get("timestamp").getAsLong()).first();
+	protected long getOrigin(JavaRDD<EditType> wikipediaEdits) {
+		return wikipediaEdits.first().getEvent_time().getTime();
 	}
 
 }

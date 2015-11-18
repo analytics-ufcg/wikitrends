@@ -5,7 +5,7 @@ import java.util.Date;
 
 import org.joda.time.DateTime;
 
-public class AbstractType implements Serializable {
+public abstract class AbstractType implements Serializable {
 	private static final long serialVersionUID = -3986062084077684976L;
 
 	private String common_server_url;
@@ -25,6 +25,10 @@ public class AbstractType implements Serializable {
 	private Integer day;
 	private Integer hour;
 	private Date event_time;
+	
+	public AbstractType() {
+		// TODO Auto-generated constructor stub
+	}
 	
 	public AbstractType(String common_server_url, String common_server_name, String common_server_script_path,
 			String common_server_wiki, String common_event_type, String common_event_namespace,
