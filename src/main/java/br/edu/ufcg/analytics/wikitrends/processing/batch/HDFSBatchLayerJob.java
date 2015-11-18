@@ -8,6 +8,7 @@ import java.util.Map;
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.joda.time.DateTime;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -59,6 +60,7 @@ public class HDFSBatchLayerJob extends BatchLayerJob {
 			          return "new".equals(type) || "edit".equals(type);
 				}).map(jsonObject -> {
 					EditType edit = new EditType();
+					edit.setEvent_time(new DateTime(jsonObject.get("timestamp").getAsLong() * 1000L).toDate());
 					edit.setCommon_event_type(jsonObject.get("type").getAsString());
 					edit.setCommon_event_bot(jsonObject.get("bot").getAsBoolean());
 					edit.setCommon_event_title(jsonObject.get("title").getAsString());

@@ -47,7 +47,7 @@ public class CassandraBatchLayerJob extends BatchLayerJob {
 	@Override
 	protected JavaRDD<EditType> readRDD(JavaSparkContext sc) {
 		JavaRDD<EditType> wikipediaEdits = javaFunctions(sc).cassandraTable("master_dataset", "edits")
-				.select("common_event_bot", "common_event_title", "common_server_name", "common_event_user",
+				.select("event_time", "common_event_bot", "common_event_title", "common_server_name", "common_event_user",
 						"common_event_namespace", "edit_minor", "edit_length")
 				.map(new Function<CassandraRow, EditType>() {
 					private static final long serialVersionUID = 1L;
@@ -55,13 +55,14 @@ public class CassandraBatchLayerJob extends BatchLayerJob {
 					@Override
 					public EditType call(CassandraRow v1) throws Exception {
 						EditType edit = new EditType();
+						edit.setEvent_time(v1.getDate("event_time"));
 						edit.setCommon_event_bot(v1.getBoolean("common_event_bot"));
 						edit.setCommon_event_title(v1.getString("common_event_title"));
 						edit.setCommon_event_user(v1.getString("common_event_user"));
 						edit.setCommon_event_namespace(v1.getInt("common_event_namespace"));
 						edit.setCommon_server_name(v1.getString("common_server_name"));
 						edit.setEdit_minor(v1.getBoolean("edit_minor"));
-						// edit.setEdit_length(v1.getMap("edit_length"));
+						edit.setEdit_length(v1.getMap("edit_length", CassandraJavaUtil.typeConverter(String.class), CassandraJavaUtil.typeConverter(Long.class)));
 						return edit;
 					}
 
