@@ -2,11 +2,19 @@
 	xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-	<id>all</id>
+	<id>dist</id>
 	<formats>
 		<format>zip</format>
 	</formats>
 	<baseDirectory>wikitrends</baseDirectory>
+	<files>
+        <file>
+            <source>target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</source>
+        </file>
+        <file>
+			<source>README.md</source>
+		</file>
+    </files>
 	<dependencySets>
 		<dependencySet>
 			<outputDirectory>/lib</outputDirectory>
@@ -36,10 +44,5 @@
 			</includes>
 		</fileSet>
 	</fileSets>
-	<files>
-		<file>
-			<source>README.md</source>
-		</file>
-	</files>
 
 </assembly>

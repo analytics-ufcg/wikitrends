@@ -101,7 +101,24 @@
 				<version>2.6</version>
 				<executions>
 					<execution>
-						<id>distro-assembly</id>
+						<id>jar-with-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+							<archive>
+								<manifest>
+									<mainClass>br.edu.ufcg.analytics.wikitrends.processing.Main</mainClass>
+								</manifest>
+							</archive>
+						</configuration>
+					</execution>
+					<execution>
+						<id>dist</id>
 						<phase>package</phase>
 						<goals>
 							<goal>single</goal>
@@ -147,9 +164,9 @@
 				<artifactId>cassandra-maven-plugin</artifactId>
 				<version>2.1.7-1</version>
 				<configuration>
-				<listenAddress>tomato</listenAddress>
-				<rpcAddress>tomato</rpcAddress>
-				<rpcPort>9042</rpcPort>
+					<listenAddress>tomato</listenAddress>
+					<rpcAddress>tomato</rpcAddress>
+					<rpcPort>9042</rpcPort>
 				</configuration>
 				<executions>
 					<execution>

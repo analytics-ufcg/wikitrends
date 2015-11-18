@@ -2,9 +2,8 @@ package br.edu.ufcg.analytics.wikitrends.processing;
 
 import org.apache.commons.configuration.Configuration;
 
-import br.edu.ufcg.analytics.wikitrends.processing.batch.BatchLayerJob;
 import br.edu.ufcg.analytics.wikitrends.processing.batch.BatchLayerJobBuilder;
-import br.edu.ufcg.analytics.wikitrends.processing.speed.SpeedLayerJob;
+import br.edu.ufcg.analytics.wikitrends.processing.speed.SpeedLayerJobBuilder;
 
 /**
  * Possible layers to submit WikiTrends jobs according to &lambda; architecture.
@@ -22,7 +21,7 @@ public enum LambdaLayer {
 	SPEED {
 		@Override
 		public SparkJob buildJob(Configuration configuration) {
-			return new SpeedLayerJob();
+			return SpeedLayerJobBuilder.build(configuration);
 		}
 	};
 
