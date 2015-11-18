@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.processing.ingestion;
+package br.edu.ufcg.analytics.wikitrends.ingestion;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
