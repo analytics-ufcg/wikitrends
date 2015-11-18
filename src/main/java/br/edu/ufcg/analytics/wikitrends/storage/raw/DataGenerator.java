@@ -95,7 +95,7 @@ public class DataGenerator implements Serializable{
 						   obj.get("server_script_path").getAsString(),
 						   obj.get("wiki").getAsString(),
 						   obj.get("type").getAsString(),
-						   obj.get("namespace").getAsString(),
+						   obj.get("namespace").getAsInt(),
 						   obj.get("user").getAsString(),
 						   obj.get("bot").getAsBoolean(),
 						   obj.get("comment").getAsString(),
@@ -116,24 +116,24 @@ public class DataGenerator implements Serializable{
 		JsonObject j_obj1 = obj.has("length") ? obj.get("length").getAsJsonObject() : null;
 		JsonObject j_obj2 = obj.has("revision") ? obj.get("revision").getAsJsonObject() : null;
 		
-		HashMap<String, Integer> m1 = null, m2 = null;
+		HashMap<String, Long> m1 = null, m2 = null;
 		if(j_obj1 != null) {
-			m1 = new HashMap<String, Integer>();
+			m1 = new HashMap<String, Long>();
 			if(j_obj1.has("new") && !j_obj1.get("new").isJsonNull()){
-				m1.put("new", j_obj1.get("new").getAsInt());
+				m1.put("new", j_obj1.get("new").getAsLong());
 			}
 			if(j_obj1.has("old") && !j_obj1.get("old").isJsonNull()){
-				m1.put("old", j_obj1.get("old").getAsInt());
+				m1.put("old", j_obj1.get("old").getAsLong());
 			}
 		}
 		if(j_obj2 != null) {
-			m2 = new HashMap<String, Integer>();
+			m2 = new HashMap<String, Long>();
 			if(j_obj2.has("new") && !j_obj2.get("new").isJsonNull()){
-				m2.put("new", j_obj2.get("new").getAsInt());
+				m2.put("new", j_obj2.get("new").getAsLong());
 			}
 			if(j_obj2.has("old") && !j_obj2.get("old").isJsonNull()){
-				m2.put("new", j_obj2.get("new").getAsInt());
-				m2.put("old", j_obj2.get("old").getAsInt());
+				m2.put("new", j_obj2.get("new").getAsLong());
+				m2.put("old", j_obj2.get("old").getAsLong());
 			}
 		}
 		
@@ -144,7 +144,7 @@ public class DataGenerator implements Serializable{
 						   obj.get("server_script_path").getAsString(),
 						   obj.get("wiki").getAsString(),
 						   obj.get("type").getAsString(),
-						   obj.get("namespace").getAsString(),
+						   obj.get("namespace").getAsInt(),
 						   obj.get("user").getAsString(),
 						   obj.get("bot").getAsBoolean(),
 						   obj.get("comment").getAsString(),

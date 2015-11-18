@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.storage.serving;
+package org.wikitrends.serving.datagenerator;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
@@ -10,15 +10,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.wikitrends.serving.datatypes.AbsoluteValuesShot;
+import org.wikitrends.serving.datatypes.TopClass;
 
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
-
-import br.edu.ufcg.analytics.wikitrends.storage.serving.types.AbsoluteValuesShot;
-import br.edu.ufcg.analytics.wikitrends.storage.serving.types.TopClass;
 
 public class DataGenerator {
 	
@@ -65,10 +63,9 @@ public class DataGenerator {
         
         List<AbsoluteValuesShot> listAbsoluteValues = new ArrayList<AbsoluteValuesShot>();
         for(int i = 0; i < 6; i++) {
-        	UUID id = UUID.randomUUID();
         	Date event_time = new Date();
         	listAbsoluteValues.add(new AbsoluteValuesShot(
-        									id,
+        									i,
         									dateFormatter.format(event_time),
         									hourFormatter.format(event_time),
         									all_edits+i*10000000,
@@ -155,10 +152,10 @@ public class DataGenerator {
         
         // Prepare the products hierarchy
         List<TopClass> topEditors = Arrays.asList(
-                new TopClass(UUID.randomUUID(), dt11, 7, dt21, m1),
-                new TopClass(UUID.randomUUID(), dt12, 7, dt22, m2),
-                new TopClass(UUID.randomUUID(), dt13, 7, dt23, m3),
-                new TopClass(UUID.randomUUID(), dt14, 7, dt24, m4)
+                new TopClass(1, dt11, 7, dt21, m1),
+                new TopClass(2, dt12, 7, dt22, m2),
+                new TopClass(3, dt13, 7, dt23, m3),
+                new TopClass(4, dt14, 7, dt24, m4)
         );
 
         JavaRDD<TopClass> topEditorsRDD = sc.parallelize(topEditors);
@@ -227,10 +224,10 @@ public class DataGenerator {
         
         // Prepare the products hierarchy
         List<TopClass> topIdioms = Arrays.asList(
-                new TopClass(UUID.randomUUID(), dt11, 7, dt21, m1),
-                new TopClass(UUID.randomUUID(), dt12, 7, dt22, m2),
-                new TopClass(UUID.randomUUID(), dt13, 7, dt23, m3),
-                new TopClass(UUID.randomUUID(), dt14, 7, dt24, m4)
+                new TopClass(1, dt11, 7, dt21, m1),
+                new TopClass(2, dt12, 7, dt22, m2),
+                new TopClass(3, dt13, 7, dt23, m3),
+                new TopClass(4, dt14, 7, dt24, m4)
         );
 
         JavaRDD<TopClass> topIdiomsRDD = sc.parallelize(topIdioms);
@@ -298,10 +295,10 @@ public class DataGenerator {
         
         // Prepare the products hierarchy
         List<TopClass> topEditors = Arrays.asList(
-                new TopClass(UUID.randomUUID(), dt11, 7, dt21, m1),
-                new TopClass(UUID.randomUUID(), dt12, 7, dt22, m2),
-                new TopClass(UUID.randomUUID(), dt13, 7, dt23, m3),
-                new TopClass(UUID.randomUUID(), dt14, 7, dt24, m4)
+                new TopClass(1, dt11, 7, dt21, m1),
+                new TopClass(2, dt12, 7, dt22, m2),
+                new TopClass(3, dt13, 7, dt23, m3),
+                new TopClass(4, dt14, 7, dt24, m4)
         );
 
         JavaRDD<TopClass> topPagesRDD = sc.parallelize(topEditors);
@@ -369,10 +366,10 @@ public class DataGenerator {
         
         // Prepare the products hierarchy
         List<TopClass> topContentPages = Arrays.asList(
-                new TopClass(UUID.randomUUID(), dt11, 7, dt21, m1),
-                new TopClass(UUID.randomUUID(), dt12, 7, dt22, m2),
-                new TopClass(UUID.randomUUID(), dt13, 7, dt23, m3),
-                new TopClass(UUID.randomUUID(), dt14, 7, dt24, m4)
+                new TopClass(1, dt11, 7, dt21, m1),
+                new TopClass(2, dt12, 7, dt22, m2),
+                new TopClass(3, dt13, 7, dt23, m3),
+                new TopClass(4, dt14, 7, dt24, m4)
         );
         
         System.out.println("topContentPages: " + topContentPages.toString());

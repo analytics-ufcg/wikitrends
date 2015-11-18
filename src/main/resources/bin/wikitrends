@@ -54,7 +54,7 @@ case "$1" in
 batch)
     echo "Submitting batch layer job"
 	source ${ENV_VAR_FILE}
-	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${JAR_PATH} BATCH
+	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} --jars $(ls -m lib/* |xargs | sed 's/ //g') ${JAR_PATH} BATCH
     echo "Finished executing batch layer job"
     ;;
 feed)

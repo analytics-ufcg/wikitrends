@@ -38,7 +38,7 @@ public class TablesGenerator {
 	            "common_server_wiki TEXT," +
 
 				"common_event_type TEXT," +
-				"common_event_namespace TEXT," +
+				"common_event_namespace INT," +
 				"common_event_user TEXT," +
 				"common_event_bot BOOLEAN," +
 				"common_event_comment TEXT," +
@@ -70,7 +70,7 @@ public class TablesGenerator {
 	            "common_server_wiki TEXT," +
 
 				"common_event_type TEXT," +
-				"common_event_namespace TEXT," +
+				"common_event_namespace INT," +
 				"common_event_user TEXT," +
 				"common_event_bot BOOLEAN," +
 				"common_event_comment TEXT," +

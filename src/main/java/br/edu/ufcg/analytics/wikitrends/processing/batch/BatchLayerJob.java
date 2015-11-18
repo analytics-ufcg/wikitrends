@@ -2,21 +2,26 @@ package br.edu.ufcg.analytics.wikitrends.processing.batch;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapRowTo;
+import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
-import com.google.gson.JsonElement;
+import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import br.edu.ufcg.analytics.wikitrends.processing.LambdaLayer;
 import br.edu.ufcg.analytics.wikitrends.processing.SparkJob;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
+import br.edu.ufcg.analytics.wikitrends.storage.serving.types.AbsoluteValueShot2;
+import br.edu.ufcg.analytics.wikitrends.storage.serving.types.TopClass2;
 import br.edu.ufcg.analytics.wikitrends.thrift.WikiMediaChange;
 import scala.Tuple2;
 
@@ -24,36 +29,37 @@ import scala.Tuple2;
  * {@link SparkJob} implementation when a {@link LambdaLayer#BATCH} is chosen. 
  * 
  * @author Ricardo Ara&eacute;jo Santos - ricoaraujosantos@gmail.com
+ * @author Guilherme Gadelha
  */
 public class BatchLayerJob implements SparkJob {
 
-	private static BatchLayerOutput PAGES_HEADER = new BatchLayerOutput("page", "count");
-	private static BatchLayerOutput IDIOMS_HEADER = new BatchLayerOutput("server", "count");
-	private static BatchLayerOutput EDITORS_HEADER = new BatchLayerOutput("user", "count");
-	private static BatchLayerOutput ABSOLUTE_HEADER = new BatchLayerOutput("field", "count");
+//	private static BatchLayerOutput PAGES_HEADER = new BatchLayerOutput("page", "count");
+//	private static BatchLayerOutput IDIOMS_HEADER = new BatchLayerOutput("server", "count");
+//	private static BatchLayerOutput EDITORS_HEADER = new BatchLayerOutput("user", "count");
+//	private static BatchLayerOutput ABSOLUTE_HEADER = new BatchLayerOutput("field", "count");
 
-	private static String HOST = "master";
-	private static String PORT = "9000";
-	private static String USER = "ubuntu";
-	private static String PATH = "serving_java";
-	private static String PAGES_FILE = "pages";
-	private static String CONTENT_PAGES_FILE = PAGES_FILE + "_content";
-	private static String IDIOMS_FILE = "idioms";
-	private static String EDITORS_FILE = "editors";
-	private static String ABSOLUTE_FILE = "absolute";
-
+//	private static String HOST = "master";
+//	private static String PORT = "9000";
+//	private static String USER = "ubuntu";
+//	private static String PATH = "serving_java";
+	
+//	private static String PAGES_FILE = "pages";
+//	private static String CONTENT_PAGES_FILE = PAGES_FILE + "_content";
+//	private static String IDIOMS_FILE = "idioms";
+//	private static String EDITORS_FILE = "editors";
+//	private static String ABSOLUTE_FILE = "absolute";
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -1348604327884764150L;
-	private String outputPath;
+//	private String outputPath;
 
 	/**
 	 * Default constructor
 	 */
 	public BatchLayerJob() {
-		outputPath = String.format("hdfs://%s:%s/user/%s/%s/", HOST, PORT, USER, PATH);
+//		outputPath = String.format("hdfs://%s:%s/user/%s/%s/", HOST, PORT, USER, PATH);
 	}
 
 	/*@ (non-Javadoc)
@@ -64,20 +70,27 @@ public class BatchLayerJob implements SparkJob {
 
 		SparkConf conf = new SparkConf();
 		conf.setAppName("wikitrends-batch");
+		conf.set("spark.cassandra.connection.host", "localhost");
 
 		try(JavaSparkContext sc = new JavaSparkContext(conf);){
 
-			JavaRDD<JsonObject> wikipediaEdits = readInput(sc).cache();
+//			JavaRDD<JsonObject> wikipediaEdits = readInput(sc).cache();
+			JavaRDD<EditType> wikipediaEdits = readInputFromCassandra(sc).cache();
 
-			processRanking(sc, wikipediaEdits, "title", PAGES_HEADER, outputPath + PAGES_FILE);
+//			processRanking(sc, wikipediaEdits, "title", PAGES_HEADER, outputPath + PAGES_FILE);
+			processTopPagesRanking(sc, wikipediaEdits, "batch_views", "top_pages");
 
-			processContentOnlyRanking(sc, wikipediaEdits, "title", PAGES_HEADER, outputPath + CONTENT_PAGES_FILE);
+//			processContentOnlyRanking(sc, wikipediaEdits, "title", PAGES_HEADER, outputPath + CONTENT_PAGES_FILE);
+			processTopContentPagesRanking(sc, wikipediaEdits, "batch_views", "top_content_pages");
 
-			processRanking(sc, wikipediaEdits, "server_name", IDIOMS_HEADER, outputPath + IDIOMS_FILE);
+//			processRanking(sc, wikipediaEdits, "server_name", IDIOMS_HEADER, outputPath + IDIOMS_FILE);
+			processTopIdiomsRanking(sc, wikipediaEdits, "batch_views", "top_idioms");
 
-			processRanking(sc, wikipediaEdits, "user", EDITORS_HEADER, outputPath + EDITORS_FILE);
+//			processRanking(sc, wikipediaEdits, "user", EDITORS_HEADER, outputPath + EDITORS_FILE);
+			processTopEditorsRanking(sc, wikipediaEdits, "batch_views", "top_editors");
 
-			processStatistics(sc, wikipediaEdits, ABSOLUTE_HEADER, outputPath + ABSOLUTE_FILE);
+//			processStatistics(sc, wikipediaEdits, ABSOLUTE_HEADER, outputPath + ABSOLUTE_FILE);
+			processStatistics(sc, wikipediaEdits, "batch_views", "absolute_values");
 		}	
 	}
 
@@ -91,8 +104,8 @@ public class BatchLayerJob implements SparkJob {
 	private JavaRDD<EditType> readInputFromCassandra(JavaSparkContext sc) {
 
 		JavaRDD<EditType> wikipediaEdits = javaFunctions(sc)
-				.cassandraTable("master_dataset", "edit", mapRowTo(EditType.class))
-				.select("title", "bot")
+				.cassandraTable("master_dataset", "edits", mapRowTo(EditType.class))
+				.select("common_event_title", "common_event_bot")
 				.filter(edit -> edit.getCommon_server_name().endsWith("wikipedia.org"));
 
 		return wikipediaEdits;
@@ -106,20 +119,88 @@ public class BatchLayerJob implements SparkJob {
 	 * @param key ranking key
 	 * @param path HDFS output path.
 	 */
-	private void processRanking(JavaSparkContext sc, JavaRDD<JsonObject> wikipediaEdits, String key, BatchLayerOutput header, String path) {
-		JavaRDD<BatchLayerOutput> result = wikipediaEdits
+	private void processTopEditorsRanking(JavaSparkContext sc, JavaRDD<EditType> wikipediaEdits, String keyspace, String table) {
+		JavaRDD<BatchLayerOutput<Integer>> resultRDD = wikipediaEdits
 				.mapToPair( edit -> {
-					return new Tuple2<>(edit.get(key).getAsString(), 1);
+					return new Tuple2<>(edit.getCommon_event_user(), 1);
 				})
 				.reduceByKey( (a,b) -> a+b )
 				.mapToPair( edit -> edit.swap() )
 				.sortByKey(false)
-				.map( edit -> new BatchLayerOutput(edit._2, edit._1.toString()) );
+				.map( edit -> new BatchLayerOutput<Integer>(edit._2, edit._1));
+		
+		List<BatchLayerOutput<Integer>> allPages = resultRDD.take(20); // data map
+		
+		Map<String, Integer> data = new HashMap<String, Integer>();
+		for(BatchLayerOutput<Integer> t  : allPages) {
+			data.put(t.getKey(), t.getValue());
+		}
+		
+		List<TopClass2> output = Arrays.asList(new TopClass2(data));
+		
+		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
+			.writerBuilder(keyspace, table, mapToRow(TopClass2.class))
+			.saveToCassandra();
+		
+		//allPages.add(0, header);
 
-		List<BatchLayerOutput> allPages = result.take(20);
-		allPages.add(0, header);
+		//sc.parallelize(allPages).coalesce(1).saveAsTextFile(path);
+	}
+	
+	private void processTopPagesRanking(JavaSparkContext sc, JavaRDD<EditType> wikipediaEdits, String keyspace, String table) {
+		JavaRDD<BatchLayerOutput<Integer>> resultRDD = wikipediaEdits
+				.mapToPair( edit -> {
+					return new Tuple2<>(edit.getCommon_event_title(), 1);
+				})
+				.reduceByKey( (a,b) -> a+b )
+				.mapToPair( edit -> edit.swap() )
+				.sortByKey(false)
+				.map( edit -> new BatchLayerOutput<Integer>(edit._2, edit._1));
+		
+		List<BatchLayerOutput<Integer>> allPages = resultRDD.take(20); // data map
+		
+		Map<String, Integer> data = new HashMap<String, Integer>();
+		for(BatchLayerOutput<Integer> t  : allPages) {
+			data.put(t.getKey(), t.getValue());
+		}
+		
+		List<TopClass2> output = Arrays.asList(new TopClass2(data));
+		
+		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
+			.writerBuilder(keyspace, table, mapToRow(TopClass2.class))
+			.saveToCassandra();
+		
+		//allPages.add(0, header);
 
-		sc.parallelize(allPages).coalesce(1).saveAsTextFile(path);
+		//sc.parallelize(allPages).coalesce(1).saveAsTextFile(path);
+	}
+	
+	private void processTopIdiomsRanking(JavaSparkContext sc, JavaRDD<EditType> wikipediaEdits, String keyspace, String table) {
+		JavaRDD<BatchLayerOutput<Integer>> resultRDD = wikipediaEdits
+				.mapToPair( edit -> {
+					return new Tuple2<>(edit.getCommon_server_name(), 1);
+				})
+				.reduceByKey( (a,b) -> a+b )
+				.mapToPair( edit -> edit.swap() )
+				.sortByKey(false)
+				.map( edit -> new BatchLayerOutput<Integer>(edit._2, edit._1));
+		
+		List<BatchLayerOutput<Integer>> allPages = resultRDD.take(20); // data map
+		
+		Map<String, Integer> data = new HashMap<String, Integer>();
+		for(BatchLayerOutput<Integer> t  : allPages) {
+			data.put(t.getKey(), t.getValue());
+		}
+		
+		List<TopClass2> output = Arrays.asList(new TopClass2(data));
+		
+		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
+			.writerBuilder(keyspace, table, mapToRow(TopClass2.class))
+			.saveToCassandra();
+		
+		//allPages.add(0, header);
+
+		//sc.parallelize(allPages).coalesce(1).saveAsTextFile(path);
 	}
 
 	/**
@@ -130,70 +211,86 @@ public class BatchLayerJob implements SparkJob {
 	 * @param key ranking key
 	 * @param path HDFS output path.
 	 */
-	private void processContentOnlyRanking(JavaSparkContext sc, JavaRDD<JsonObject> wikipediaEdits, String key, BatchLayerOutput header, String path) {
-		JavaRDD<JsonObject> filteredEdits = wikipediaEdits
-				.filter(edits -> edits.get("namespace").getAsInt() == 0);
+	private void processTopContentPagesRanking(JavaSparkContext sc, JavaRDD<EditType> wikipediaEdits, String keyspace, String table) {
+		JavaRDD<EditType> filteredEdits = wikipediaEdits
+				.filter(edits -> edits.getCommon_event_namespace() == 0);
 
-		processRanking(sc, filteredEdits, key, header, path);
+//		processRanking(sc, filteredEdits, key, header, path);
+		processTopPagesRanking(sc, filteredEdits, "batch_views", "top_content_pages");
 	}
 
-	private void processStatistics(JavaSparkContext sc, JavaRDD<JsonObject> wikipediaEdits, BatchLayerOutput header, String path) {
+	private void processStatistics(JavaSparkContext sc, JavaRDD<EditType> wikipediaEdits, String keyspace, String table) {
 
-		List<BatchLayerOutput> statistics = new ArrayList<>();
-		statistics.add(header);
-		statistics.add(new BatchLayerOutput("all_edits", countAllEdits(wikipediaEdits)));
-		statistics.add(new BatchLayerOutput("minor_edits", countMinorEdits(wikipediaEdits)));
-		statistics.add(new BatchLayerOutput("average_size", calcAverageEditLength(wikipediaEdits)));
-		statistics.add(new BatchLayerOutput("distinct_pages", distinctPages(wikipediaEdits)));
-		statistics.add(new BatchLayerOutput("distinct_editors", distinctEditors(wikipediaEdits)));
-		statistics.add(new BatchLayerOutput("distinct_servers", distinctServers(wikipediaEdits)));
-		statistics.add(new BatchLayerOutput("origin", getOrigin(wikipediaEdits)));
+//		List<BatchLayerOutput<String>> statistics = new ArrayList<>();
+//		//statistics.add(header);
+//		statistics.add(new BatchLayerOutput<String>("all_edits", countAllEdits(wikipediaEdits)));
+//		statistics.add(new BatchLayerOutput<String>("minor_edits", countMinorEdits(wikipediaEdits)));
+//		statistics.add(new BatchLayerOutput<String>("average_size", calcAverageEditLength(wikipediaEdits)));
+//		statistics.add(new BatchLayerOutput<String>("distinct_pages", distinctPages(wikipediaEdits)));
+//		statistics.add(new BatchLayerOutput<String>("distinct_editors", distinctEditors(wikipediaEdits)));
+//		statistics.add(new BatchLayerOutput<String>("distinct_servers", distinctServers(wikipediaEdits)));
+//		statistics.add(new BatchLayerOutput<String>("origin", getOrigin(wikipediaEdits)));
+		
+		Map<String, String> statistics = new HashMap<String, String>();
+		statistics.put("all_edits", countAllEdits(wikipediaEdits).toString());
+		statistics.put("minor_edits", countMinorEdits(wikipediaEdits).toString());
+		statistics.put("average_size", calcAverageEditLength(wikipediaEdits).toString());
+		statistics.put("distinct_pages", distinctPages(wikipediaEdits).toString());
+		statistics.put("distinct_editors", distinctEditors(wikipediaEdits).toString());
+		statistics.put("distinct_servers", distinctServers(wikipediaEdits).toString());
+		statistics.put("origin", getOrigin(wikipediaEdits).toString());
+		
+		List<AbsoluteValueShot2> output = Arrays.asList(new AbsoluteValueShot2(statistics));
+		
+		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
+			.writerBuilder(keyspace, table, mapToRow(AbsoluteValueShot2.class))
+			.saveToCassandra();
 
-		sc.parallelize(statistics).coalesce(1).saveAsTextFile(path);
+//		sc.parallelize(statistics).coalesce(1).saveAsTextFile(path);
 	}
 
-	private long countAllEdits(JavaRDD<JsonObject> wikipediaEdits) {
+	private Long countAllEdits(JavaRDD<EditType> wikipediaEdits) {
 		return wikipediaEdits.count();
 	}
 
-	private long countMinorEdits(JavaRDD<JsonObject> wikipediaEdits) {
+	private Long countMinorEdits(JavaRDD<EditType> wikipediaEdits) {
 		return wikipediaEdits.filter(edit -> {
-			JsonElement minor = edit.get("minor");
-			return minor != null && minor.getAsBoolean();
+			Boolean minor = edit.getEdit_minor();
+			return minor != null && minor;
 		}).count();
 	}
 
-	private long calcAverageEditLength(JavaRDD<JsonObject> wikipediaEdits) {
+	private Long calcAverageEditLength(JavaRDD<EditType> wikipediaEdits) {
 		JavaRDD<Long> result = wikipediaEdits.filter(edit -> {
-			return edit.get("length") != null;
+			return edit.getEdit_length() != null;
 		}).map( edit -> {
-			JsonElement newLength = edit.get("length").getAsJsonObject().get("new");
-			JsonElement oldLength = edit.get("length").getAsJsonObject().get("old");
-			return (newLength != null && !newLength.isJsonNull()? newLength.getAsLong(): 0) - (oldLength != null && !oldLength.isJsonNull()? oldLength.getAsLong(): 0);
+			Long newLength = edit.getEdit_length().containsKey("new") ? edit.getEdit_length().get("new") : 0L;
+			Long oldLength = edit.getEdit_length().containsKey("old") ? edit.getEdit_length().get("old") : 0L;
+			return newLength - oldLength;
 		});
 		return result.reduce((a, b) -> a+b) / result.count();
 	}
 
-	private long distinctPages(JavaRDD<JsonObject> wikipediaEdits) {
-		return wikipediaEdits.map(edit -> edit.get("title").getAsString()).distinct().count();
+	private Long distinctPages(JavaRDD<EditType> wikipediaEdits) {
+		return wikipediaEdits.map(edit -> edit.getCommon_event_title()).distinct().count();
 	}
 
-	private long distinctServers(JavaRDD<JsonObject> wikipediaEdits) {
-		return wikipediaEdits.map(edit -> edit.get("server_name").getAsString())
+	private Long distinctServers(JavaRDD<EditType> wikipediaEdits) {
+		return wikipediaEdits.map(edit -> edit.getCommon_server_name())
 				.filter(serverName -> serverName.endsWith("wikipedia.org")).distinct().count();
 	}
 
-	private long distinctEditors(JavaRDD<JsonObject> wikipediaEdits) {
+	private Long distinctEditors(JavaRDD<EditType> wikipediaEdits) {
 		return wikipediaEdits
 				.filter(edit -> {
-					JsonElement isBot = edit.get("bot");
-					return isBot != null && !isBot.getAsBoolean();
+					Boolean isBot = edit.getCommon_event_bot();
+					return isBot != null && isBot;
 				})
-				.map(edit -> edit.get("user").getAsString()).distinct().count();
+				.map(edit -> edit.getCommon_event_user()).distinct().count();
 	}
 
-	private long getOrigin(JavaRDD<JsonObject> wikipediaEdits) {
-		return wikipediaEdits.map(edit -> edit.get("timestamp").getAsLong()).first();
+	private Long getOrigin(JavaRDD<EditType> wikipediaEdits) {
+		return wikipediaEdits.map(edit -> edit.getEvent_time().getTime()).first();
 	}
 
 }
