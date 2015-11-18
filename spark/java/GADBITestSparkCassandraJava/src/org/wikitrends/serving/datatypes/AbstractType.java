@@ -1,11 +1,11 @@
-package br.edu.ufcg.analytics.wikitrends.storage.raw.types;
+package org.wikitrends.serving.datatypes;
 
 import java.io.Serializable;
 import java.util.Date;
 
 import org.joda.time.DateTime;
 
-public abstract class AbstractType implements Serializable {
+public class AbstractType implements Serializable {
 	private static final long serialVersionUID = -3986062084077684976L;
 
 	private String common_server_url;
@@ -14,7 +14,7 @@ public abstract class AbstractType implements Serializable {
 	private String common_server_wiki;
 			
 	private String common_event_type;
-	private Integer common_event_namespace;
+	private String common_event_namespace;
 	private String common_event_user;
 	private Boolean common_event_bot;
 	private String common_event_comment;
@@ -26,12 +26,8 @@ public abstract class AbstractType implements Serializable {
 	private Integer hour;
 	private Date event_time;
 	
-	public AbstractType() {
-		// TODO Auto-generated constructor stub
-	}
-	
 	public AbstractType(String common_server_url, String common_server_name, String common_server_script_path,
-			String common_server_wiki, String common_event_type, Integer common_event_namespace,
+			String common_server_wiki, String common_event_type, String common_event_namespace,
 			String common_event_user, Boolean common_event_bot, String common_event_comment, String common_event_title,
 			Date event_time) {
 		super();
@@ -94,11 +90,11 @@ public abstract class AbstractType implements Serializable {
 		this.common_event_type = common_event_type;
 	}
 
-	public Integer getCommon_event_namespace() {
+	public String getCommon_event_namespace() {
 		return common_event_namespace;
 	}
 
-	public void setCommon_event_namespace(Integer common_event_namespace) {
+	public void setCommon_event_namespace(String common_event_namespace) {
 		this.common_event_namespace = common_event_namespace;
 	}
 

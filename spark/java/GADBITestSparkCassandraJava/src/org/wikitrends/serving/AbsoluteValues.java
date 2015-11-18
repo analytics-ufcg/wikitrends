@@ -4,13 +4,12 @@ package org.wikitrends.serving;
 import java.io.Serializable;
 
 import org.apache.spark.api.java.JavaSparkContext;
+import org.wikitrends.serving.datagenerator.DataGenerator;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.spark.connector.cql.CassandraConnector;
-
-import br.edu.ufcg.analytics.wikitrends.storage.serving.DataGenerator;
 
 public class AbsoluteValues extends WikitrendsApp implements Serializable  {
 

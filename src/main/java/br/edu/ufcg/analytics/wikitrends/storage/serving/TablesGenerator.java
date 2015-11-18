@@ -23,71 +23,99 @@ public class TablesGenerator {
             
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
 								"top_editors" +
-							    "(id INT," +
-							    "date_event TIMESTAMP," +
-								"hour INT," +
-								"event_time TIMESTAMP," +
+							    "(id UUID," +
 								"data MAP<TEXT,INT>," +
 								
-			    				"PRIMARY KEY((date_event, hour), event_time)," +
-			    				") WITH CLUSTERING ORDER BY (event_time DESC);"
+								"year INT," +
+								"month INT," +
+								"day INT," +
+								"hour INT," +
+								"event_time TIMESTAMP," +
+								
+								"PRIMARY KEY((year, month, day, hour), id)," +
+								") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
             		);
             
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
 								"top_idioms" +
-							    "(id INT," +
-							    "date_event TIMESTAMP," +
-								"hour INT," +
-								"event_time TIMESTAMP," +
+								"(id UUID," +
 								"data MAP<TEXT,INT>," +
 								
-			    				"PRIMARY KEY((date_event, hour), event_time)," +
-			    				") WITH CLUSTERING ORDER BY (event_time DESC);"
+								"year INT," +
+								"month INT," +
+								"day INT," +
+								"hour INT," +
+								"event_time TIMESTAMP," +
+								
+								"PRIMARY KEY((year, month, day, hour), id)," +
+								") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
             		);
            
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
 								"top_pages" +
-							    "(id INT," +
-							    "date_event TIMESTAMP," +
-								"hour INT," +
-								"event_time TIMESTAMP," +
+								"(id UUID," +
 								"data MAP<TEXT,INT>," +
 								
-			    				"PRIMARY KEY((date_event, hour), event_time)," +
-			    				") WITH CLUSTERING ORDER BY (event_time DESC);"
+								"year INT," +
+								"month INT," +
+								"day INT," +
+								"hour INT," +
+								"event_time TIMESTAMP," +
+								
+								"PRIMARY KEY((year, month, day, hour), id)," +
+								") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
             		);
             
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
 								"top_content_pages" +
-							    "(id INT," +
-							    "date_event TIMESTAMP," +
-								"hour INT," +
-								"event_time TIMESTAMP," +
+								"(id UUID," +
 								"data MAP<TEXT,INT>," +
 								
-			    				"PRIMARY KEY((date_event, hour), event_time)," +
-			    				") WITH CLUSTERING ORDER BY (event_time DESC);"
-            		);
-            
-            session.execute("CREATE TABLE IF NOT EXISTS batch_views.absolute_values (" +
-							    "id INT," +
-							    "date TEXT," +
-							    "hour TEXT," +
-								"all_edits INT," +
-								"minor_edits INT," +
-								"average_size INT," +
-								"distinct_pages INT," +
-								"distinct_servers INT," +
-								"distinct_editors INT," +
-								"origin BIGINT," +
-								"batch_elapsed_time BIGINT," +
-								"total_executor_cores INT," +
-								"input_size BIGINT," +
+								"year INT," +
+								"month INT," +
+								"day INT," +
+								"hour INT," +
 								"event_time TIMESTAMP," +
 								
-								"PRIMARY KEY((id, date), event_time)," +
-								") WITH CLUSTERING ORDER BY (event_time DESC);"
+								"PRIMARY KEY((year, month, day, hour), id)," +
+								") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
             		);
+            
+//            session.execute("CREATE TABLE IF NOT EXISTS batch_views.absolute_values (" +
+//							    "id INT," +
+//							    "date TEXT," +
+//							    "hour TEXT," +
+//								"all_edits INT," +
+//								"minor_edits INT," +
+//								"average_size INT," +
+//								"distinct_pages INT," +
+//								"distinct_servers INT," +
+//								"distinct_editors INT," +
+//								"origin BIGINT," +
+//								"batch_elapsed_time BIGINT," +
+//								"total_executor_cores INT," +
+//								"input_size BIGINT," +
+//								"event_time TIMESTAMP," +
+//								
+//								"PRIMARY KEY((id, date), event_time)," +
+//								") WITH CLUSTERING ORDER BY (event_time DESC);"
+//            		);
+            
+            session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
+					"absolute_values" +
+					"(id UUID," +
+					"data MAP<TEXT,TEXT>," +
+					
+					"year INT," +
+					"month INT," +
+					"day INT," +
+					"hour INT," +
+					"event_time TIMESTAMP," +
+					
+					"PRIMARY KEY((year, month, day, hour), id)," +
+					") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
+		);
+            
         }
 	}
 }

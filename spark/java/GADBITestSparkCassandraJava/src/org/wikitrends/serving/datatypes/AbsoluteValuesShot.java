@@ -1,13 +1,12 @@
-package br.edu.ufcg.analytics.wikitrends.storage.serving.types;
+package org.wikitrends.serving.datatypes;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.UUID;
 
 public class AbsoluteValuesShot implements Serializable {
 	private static final long serialVersionUID = -6188817936589241852L;
 
-	private UUID id;
+	private Integer id;
 	private String date;
 	private Integer all_edits;
 	private Integer minor_edits;
@@ -24,7 +23,7 @@ public class AbsoluteValuesShot implements Serializable {
 
     public AbsoluteValuesShot() { }
 
-    public AbsoluteValuesShot(UUID id, String date, String hour, Integer all_edits, Integer minor_edits,
+    public AbsoluteValuesShot(Integer id, String date, String hour, Integer all_edits, Integer minor_edits,
     		Integer average_size, Integer distinct_pages, 
     		Integer distinct_editors, Integer distinct_servers,
     		Long origin, Long batch_elapsed_time,
@@ -46,11 +45,11 @@ public class AbsoluteValuesShot implements Serializable {
         this.event_time = event_time;
     }
     
-    public UUID getid() {
+    public Integer getid() {
 		return id;
 	}
 
-	public void setid(UUID id) {
+	public void setid(Integer id) {
 		this.id = id;
 	}
 

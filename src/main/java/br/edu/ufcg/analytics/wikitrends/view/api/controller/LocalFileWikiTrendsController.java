@@ -71,9 +71,6 @@ public class LocalFileWikiTrendsController implements WikiTrendsController {
 		List<RankingRow> results = new ArrayList<>();
 		
 		try(Scanner input = new Scanner(new File(source), "utf-8");){
-			if(input.hasNextLine()){
-				input.nextLine(); // removing headers (not best option but it's working!
-			}
 			while(input.hasNextLine() && results.size() < numberOfResults){
 				String[] line = input.nextLine().split("\\t");
 				results.add(new RankingRow(line[0], line[1]));

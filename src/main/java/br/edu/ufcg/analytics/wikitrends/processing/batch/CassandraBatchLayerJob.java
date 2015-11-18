@@ -1,20 +1,47 @@
 package br.edu.ufcg.analytics.wikitrends.processing.batch;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
+import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 
+import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.datastax.spark.connector.japi.CassandraRow;
 
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
+import br.edu.ufcg.analytics.wikitrends.storage.serving.types.AbsoluteValueShot2;
+import br.edu.ufcg.analytics.wikitrends.storage.serving.types.TopClass2;
 
 public class CassandraBatchLayerJob extends BatchLayerJob {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1876586531051844584L;
+	private String batchViewsKeyspace;
+	private String pagesTable;
+	private String contentPagesTable;
+	private String serversTable;
+	private String usersTable;
+	private String absoluteValuesTable;
+
 	public CassandraBatchLayerJob(Configuration configuration) {
 		super(configuration);
+		batchViewsKeyspace = configuration.getString("wikitrends.batch.cassandra.keyspace");
+		pagesTable = configuration.getString("wikitrends.batch.cassandra.table.pages");
+		contentPagesTable = configuration.getString("wikitrends.batch.cassandra.table.contentpages");
+		serversTable = configuration.getString("wikitrends.batch.cassandra.table.servers");
+		usersTable = configuration.getString("wikitrends.batch.cassandra.table.users");
+		absoluteValuesTable = configuration.getString("wikitrends.batch.cassandra.table.absolutevalues");
+		
 	}
 
 	@Override
@@ -31,7 +58,7 @@ public class CassandraBatchLayerJob extends BatchLayerJob {
 						edit.setCommon_event_bot(v1.getBoolean("common_event_bot"));
 						edit.setCommon_event_title(v1.getString("common_event_title"));
 						edit.setCommon_event_user(v1.getString("common_event_user"));
-						edit.setCommon_event_namespace(v1.getString("common_event_namespace"));
+						edit.setCommon_event_namespace(v1.getInt("common_event_namespace"));
 						edit.setCommon_server_name(v1.getString("common_server_name"));
 						edit.setEdit_minor(v1.getBoolean("edit_minor"));
 						// edit.setEdit_length(v1.getMap("edit_length"));
@@ -43,33 +70,90 @@ public class CassandraBatchLayerJob extends BatchLayerJob {
 	}
 
 	@Override
-	protected void saveTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput> titleRanking) {
-		// TODO Auto-generated method stub
+	protected void saveTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput<Integer>> titleRanking) {
+		List<BatchLayerOutput<Integer>> allPages = titleRanking.take(100); // data map
+		
+		Map<String, Integer> data = new HashMap<String, Integer>();
+		for(BatchLayerOutput<Integer> t  : allPages) {
+			data.put(t.getKey(), t.getValue());
+		}
+		
+		List<TopClass2> output = Arrays.asList(new TopClass2(data));
+		
+		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
+			.writerBuilder(batchViewsKeyspace, pagesTable, mapToRow(TopClass2.class))
+			.saveToCassandra();
 		
 	}
 
 	@Override
-	protected void saveContentTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput> contentTitleRanking) {
-		// TODO Auto-generated method stub
+	protected void saveContentTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput<Integer>> contentTitleRanking) {
+		List<BatchLayerOutput<Integer>> allPages = contentTitleRanking.take(100); // data map
+		
+		Map<String, Integer> data = new HashMap<String, Integer>();
+		for(BatchLayerOutput<Integer> t  : allPages) {
+			data.put(t.getKey(), t.getValue());
+		}
+		
+		List<TopClass2> output = Arrays.asList(new TopClass2(data));
+		
+		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
+			.writerBuilder(batchViewsKeyspace, contentPagesTable, mapToRow(TopClass2.class))
+			.saveToCassandra();
 		
 	}
 
 	@Override
-	protected void saveServerRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput> serverRanking) {
-		// TODO Auto-generated method stub
+	protected void saveServerRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput<Integer>> serverRanking) {
+		List<BatchLayerOutput<Integer>> allPages = serverRanking.collect(); // data map
+		
+		Map<String, Integer> data = new HashMap<String, Integer>();
+		for(BatchLayerOutput<Integer> t  : allPages) {
+			data.put(t.getKey(), t.getValue());
+		}
+		
+		List<TopClass2> output = Arrays.asList(new TopClass2(data));
+		
+		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
+			.writerBuilder(batchViewsKeyspace, serversTable, mapToRow(TopClass2.class))
+			.saveToCassandra();
 		
 	}
 
 	@Override
-	protected void saveUserRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput> userRanking) {
-		// TODO Auto-generated method stub
+	protected void saveUserRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput<Integer>> userRanking) {
+		List<BatchLayerOutput<Integer>> allPages = userRanking.take(100);
 		
+		Map<String, Integer> data = new HashMap<String, Integer>();
+		for(BatchLayerOutput<Integer> t  : allPages) {
+			data.put(t.getKey(), t.getValue());
+		}
+		
+		List<TopClass2> output = Arrays.asList(new TopClass2(data));
+		
+		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
+			.writerBuilder(batchViewsKeyspace, usersTable, mapToRow(TopClass2.class))
+			.saveToCassandra();
+		
+
 	}
 
 	@Override
 	protected void processStatistics(JavaSparkContext sc, JavaRDD<EditType> wikipediaEdits) {
-		// TODO Auto-generated method stub
+		Map<String, String> statistics = new HashMap<String, String>();
+		statistics.put("all_edits", countAllEdits(wikipediaEdits).toString());
+		statistics.put("minor_edits", countMinorEdits(wikipediaEdits).toString());
+		statistics.put("average_size", calcAverageEditLength(wikipediaEdits).toString());
+		statistics.put("distinct_pages", distinctPages(wikipediaEdits).toString());
+		statistics.put("distinct_editors", distinctEditors(wikipediaEdits).toString());
+		statistics.put("distinct_servers", distinctServers(wikipediaEdits).toString());
+		statistics.put("origin", getOrigin(wikipediaEdits).toString());
 		
+		List<AbsoluteValueShot2> output = Arrays.asList(new AbsoluteValueShot2(statistics));
+		
+		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
+			.writerBuilder(batchViewsKeyspace, absoluteValuesTable, mapToRow(AbsoluteValueShot2.class))
+			.saveToCassandra();
 	}
 
 

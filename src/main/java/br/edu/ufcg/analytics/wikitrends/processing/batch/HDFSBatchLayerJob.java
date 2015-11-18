@@ -20,15 +20,11 @@ import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
  */
 public class HDFSBatchLayerJob extends BatchLayerJob {
 	
+
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 4753586703404568254L;
-	private static BatchLayerOutput PAGES_HEADER = new BatchLayerOutput("title", "count");
-	private static BatchLayerOutput SERVERS_HEADER = new BatchLayerOutput("server", "count");
-	private static BatchLayerOutput USERS_HEADER = new BatchLayerOutput("user", "count");
-	private static BatchLayerOutput ABSOLUTE_HEADER = new BatchLayerOutput("field", "count");
-
+	private static final long serialVersionUID = -5026803132250503620L;
 	private String inputFile;
 	private String pagesFile;
 	private String contentPagesFile;
@@ -67,16 +63,16 @@ public class HDFSBatchLayerJob extends BatchLayerJob {
 					edit.setCommon_event_bot(jsonObject.get("bot").getAsBoolean());
 					edit.setCommon_event_title(jsonObject.get("title").getAsString());
 					edit.setCommon_event_user(jsonObject.get("user").getAsString());
-					edit.setCommon_event_namespace(jsonObject.get("namespace").getAsString());
+					edit.setCommon_event_namespace(jsonObject.get("namespace").getAsInt());
 					edit.setCommon_server_name(jsonObject.get("server_name").getAsString());
 					edit.setEdit_minor(jsonObject.get("minor").getAsBoolean());
-					Map<String, Integer> length = new HashMap<>();
+					Map<String, Long> length = new HashMap<>();
 					JsonObject lengthObject = jsonObject.get("length").getAsJsonObject();
 					if(!lengthObject.get("old").isJsonNull()){
-						length.put("old", lengthObject.get("old").getAsInt());
+						length.put("old", lengthObject.get("old").getAsLong());
 					}
 					if(!lengthObject.get("new").isJsonNull()){
-						length.put("new", lengthObject.get("new").getAsInt());
+						length.put("new", lengthObject.get("new").getAsLong());
 					}
 					edit.setEdit_length(length);
 					return edit;
@@ -85,37 +81,29 @@ public class HDFSBatchLayerJob extends BatchLayerJob {
 	}
 
 	@Override
-	protected void saveTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput> titleRanking) {
-		List<BatchLayerOutput> allPages = titleRanking.take(100);
-		allPages.add(0, PAGES_HEADER);
-		
-		for (BatchLayerOutput batchLayerOutput : allPages) {
-			System.out.println(batchLayerOutput);
-		}
+	protected void saveTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput<Integer>> titleRanking) {
+		List<BatchLayerOutput<Integer>> allPages = titleRanking.take(100);
 		
 		sc.parallelize(allPages).coalesce(1).saveAsTextFile(pagesFile);
 	}
 
 	@Override
-	protected void saveContentTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput> contentTitleRanking) {
-		List<BatchLayerOutput> allPages = contentTitleRanking.take(100);
-		allPages.add(0, PAGES_HEADER);
+	protected void saveContentTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput<Integer>> contentTitleRanking) {
+		List<BatchLayerOutput<Integer>> allPages = contentTitleRanking.take(100);
 		
 		sc.parallelize(allPages).coalesce(1).saveAsTextFile(contentPagesFile);
 	}
 
 	@Override
-	protected void saveServerRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput> serverRanking) {
-		List<BatchLayerOutput> allPages = serverRanking.collect();
-		allPages.add(0, SERVERS_HEADER);
+	protected void saveServerRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput<Integer>> serverRanking) {
+		List<BatchLayerOutput<Integer>> allPages = serverRanking.collect();
 		
 		sc.parallelize(allPages).coalesce(1).saveAsTextFile(serversFile);
 	}
 
 	@Override
-	protected void saveUserRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput> userRanking) {
-		List<BatchLayerOutput> allPages = userRanking.take(100);
-		allPages.add(0, USERS_HEADER);
+	protected void saveUserRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput<Integer>> userRanking) {
+		List<BatchLayerOutput<Integer>> allPages = userRanking.take(100);
 		
 		sc.parallelize(allPages).coalesce(1).saveAsTextFile(usersFile);
 	}
@@ -123,15 +111,14 @@ public class HDFSBatchLayerJob extends BatchLayerJob {
 	@Override
 	protected void processStatistics(JavaSparkContext sc, JavaRDD<EditType> wikipediaEdits) {
 
-		List<BatchLayerOutput> statistics = new ArrayList<>();
-		statistics.add(ABSOLUTE_HEADER);
-		statistics.add(new BatchLayerOutput("all_edits", countAllEdits(wikipediaEdits)));
-		statistics.add(new BatchLayerOutput("minor_edits", countMinorEdits(wikipediaEdits)));
-		statistics.add(new BatchLayerOutput("average_size", calcAverageEditLength(wikipediaEdits)));
-		statistics.add(new BatchLayerOutput("distinct_pages", distinctPages(wikipediaEdits)));
-		statistics.add(new BatchLayerOutput("distinct_editors", distinctEditors(wikipediaEdits)));
-		statistics.add(new BatchLayerOutput("distinct_servers", distinctServers(wikipediaEdits)));
-		statistics.add(new BatchLayerOutput("origin", getOrigin(wikipediaEdits)));
+		List<BatchLayerOutput<Long>> statistics = new ArrayList<>();
+		statistics.add(new BatchLayerOutput<Long>("all_edits", countAllEdits(wikipediaEdits)));
+		statistics.add(new BatchLayerOutput<Long>("minor_edits", countMinorEdits(wikipediaEdits)));
+		statistics.add(new BatchLayerOutput<Long>("average_size", calcAverageEditLength(wikipediaEdits)));
+		statistics.add(new BatchLayerOutput<Long>("distinct_pages", distinctPages(wikipediaEdits)));
+		statistics.add(new BatchLayerOutput<Long>("distinct_editors", distinctEditors(wikipediaEdits)));
+		statistics.add(new BatchLayerOutput<Long>("distinct_servers", distinctServers(wikipediaEdits)));
+		statistics.add(new BatchLayerOutput<Long>("origin", getOrigin(wikipediaEdits)));
 
 		sc.parallelize(statistics).coalesce(1).saveAsTextFile(absoluteValuesFile);
 	}

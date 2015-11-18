@@ -21,7 +21,7 @@
 			<scope>runtime</scope>
 		</dependencySet>
 	</dependencySets>
-	<fileSets>
+		<fileSets>
 		<fileSet>
 			<outputDirectory></outputDirectory>
 			<directory>src/main/resources/production</directory>

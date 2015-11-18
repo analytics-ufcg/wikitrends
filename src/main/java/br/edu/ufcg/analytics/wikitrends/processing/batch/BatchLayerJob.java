@@ -71,7 +71,7 @@ public abstract class BatchLayerJob implements SparkJob {
 				}
 				return pairs;
 			});
-			JavaRDD<BatchLayerOutput> titleRanking = processRanking(sc, titleRDD);
+			JavaRDD<BatchLayerOutput<Integer>> titleRanking = processRanking(sc, titleRDD);
 			
 			saveTitleRanking(sc, titleRanking);
 
@@ -85,7 +85,7 @@ public abstract class BatchLayerJob implements SparkJob {
 				}
 				return pairs;
 			});
-			JavaRDD<BatchLayerOutput> contentTitleRanking = processRanking(sc, contentTitleRDD);
+			JavaRDD<BatchLayerOutput<Integer>> contentTitleRanking = processRanking(sc, contentTitleRDD);
 			
 			saveContentTitleRanking(sc, contentTitleRanking);
 
@@ -98,7 +98,7 @@ public abstract class BatchLayerJob implements SparkJob {
 				}
 				return pairs;
 			});
-			JavaRDD<BatchLayerOutput> serverRanking = processRanking(sc, serverRDD);
+			JavaRDD<BatchLayerOutput<Integer>> serverRanking = processRanking(sc, serverRDD);
 			saveServerRanking(sc, serverRanking);
 			
 			JavaPairRDD<String, Integer> userRDD = wikipediaEdits
@@ -110,7 +110,7 @@ public abstract class BatchLayerJob implements SparkJob {
 				}
 				return pairs;
 			});
-			JavaRDD<BatchLayerOutput> userRanking = processRanking(sc, userRDD);
+			JavaRDD<BatchLayerOutput<Integer>> userRanking = processRanking(sc, userRDD);
 			saveUserRanking(sc, userRanking);
 
 			processStatistics(sc, wikipediaEdits);
@@ -130,39 +130,39 @@ public abstract class BatchLayerJob implements SparkJob {
 	 * @param path HDFS output path.
 	 * @return 
 	 */
-	private JavaRDD<BatchLayerOutput> processRanking(JavaSparkContext sc, JavaPairRDD<String,Integer> pairRDD) {
-		JavaRDD<BatchLayerOutput> result = pairRDD
+	private JavaRDD<BatchLayerOutput<Integer>> processRanking(JavaSparkContext sc, JavaPairRDD<String,Integer> pairRDD) {
+		JavaRDD<BatchLayerOutput<Integer>> result = pairRDD
 				.reduceByKey( (a,b) -> a+b )
 				.mapToPair( edit -> edit.swap() )
 				.sortByKey(false)
-				.map( edit -> new BatchLayerOutput(edit._2, edit._1.toString()) );
+				.map( edit -> new BatchLayerOutput<Integer>(edit._2, edit._1) );
 		
 		return result;
 	}
 
-	protected abstract void saveTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput> titleRanking);
+	protected abstract void saveTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput<Integer>> titleRanking);
 
-	protected abstract void saveContentTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput> contentTitleRanking);
+	protected abstract void saveContentTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput<Integer>> contentTitleRanking);
 
-	protected abstract void saveServerRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput> serverRanking);
+	protected abstract void saveServerRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput<Integer>> serverRanking);
 	
-	protected abstract void saveUserRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput> userRanking);
+	protected abstract void saveUserRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput<Integer>> userRanking);
 
 	protected abstract void processStatistics(JavaSparkContext sc, JavaRDD<EditType> wikipediaEdits);
 
-	protected long countAllEdits(JavaRDD<EditType> wikipediaEdits) {
+	protected Long countAllEdits(JavaRDD<EditType> wikipediaEdits) {
 		return wikipediaEdits.count();
 	}
 
-	protected long countMinorEdits(JavaRDD<EditType> wikipediaEdits) {
+	protected Long countMinorEdits(JavaRDD<EditType> wikipediaEdits) {
 		return wikipediaEdits.filter(edit -> {
 			return edit.getEdit_minor() != null && edit.getEdit_minor();
 		}).count();
 	}
 
-	protected long calcAverageEditLength(JavaRDD<EditType> wikipediaEdits) {
+	protected Long calcAverageEditLength(JavaRDD<EditType> wikipediaEdits) {
 		JavaRDD<Long> result = wikipediaEdits.map( edit -> {
-			Map<String, Integer> length = edit.getEdit_length();
+			Map<String, Long> length = edit.getEdit_length();
 			long oldLength = length.containsKey("old")? length.get("old"): 0;
 			long newLength = length.containsKey("new")? length.get("new"): 0;
 			return newLength - oldLength;
@@ -170,15 +170,15 @@ public abstract class BatchLayerJob implements SparkJob {
 		return result.reduce((a, b) -> a+b) / result.count();
 	}
 
-	protected long distinctPages(JavaRDD<EditType> wikipediaEdits) {
+	protected Long distinctPages(JavaRDD<EditType> wikipediaEdits) {
 		return wikipediaEdits.map(edit -> edit.getCommon_event_title()).distinct().count();
 	}
 
-	protected long distinctServers(JavaRDD<EditType> wikipediaEdits) {
+	protected Long distinctServers(JavaRDD<EditType> wikipediaEdits) {
 		return wikipediaEdits.map(edit -> edit.getCommon_server_name()).distinct().count();
 	}
 
-	protected long distinctEditors(JavaRDD<EditType> wikipediaEdits) {
+	protected Long distinctEditors(JavaRDD<EditType> wikipediaEdits) {
 		return wikipediaEdits
 				.filter(edit -> {
 					return edit.getCommon_event_bot() != null && !edit.getCommon_event_bot();
@@ -186,7 +186,7 @@ public abstract class BatchLayerJob implements SparkJob {
 				.map(edit -> edit.getCommon_event_user()).distinct().count();
 	}
 
-	protected long getOrigin(JavaRDD<EditType> wikipediaEdits) {
+	protected Long getOrigin(JavaRDD<EditType> wikipediaEdits) {
 		return wikipediaEdits.first().getEvent_time().getTime();
 	}
 

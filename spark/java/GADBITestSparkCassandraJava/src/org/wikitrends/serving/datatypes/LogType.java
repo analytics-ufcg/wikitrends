@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.storage.raw.types;
+package org.wikitrends.serving.datatypes;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -16,7 +16,7 @@ public class LogType extends AbstractType implements Serializable {
 	private String log_action_comment;
 	
 	public LogType(String common_server_url, String common_server_name, String common_server_script_path,
-			String common_server_wiki, String common_event_type, Integer common_event_namespace,
+			String common_server_wiki, String common_event_type, String common_event_namespace,
 			String common_event_user, Boolean common_event_bot, String common_event_comment, String common_event_title,
 			Date event_time, UUID log_uuid, Integer id, Integer log_id, String log_action, String log_type, String log_params,
 			String log_action_comment) {

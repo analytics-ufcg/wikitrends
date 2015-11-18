@@ -1,15 +1,14 @@
-package br.edu.ufcg.analytics.wikitrends.storage.serving.types;
+package org.wikitrends.serving.datatypes;
 
 import java.io.Serializable;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Map;
-import java.util.UUID;
 
 public class TopClass implements Serializable {
 		private static final long serialVersionUID = 2644747318393169105L;
 		
-		private UUID id;
+		private Integer id;
     	private Date date_event;
         private Integer hour;
         private Date event_time;
@@ -17,7 +16,7 @@ public class TopClass implements Serializable {
 
         public TopClass() { }
 
-        public TopClass(UUID id, Date date_event, Integer hour, Date event_time, Map<String, Integer> data) {
+        public TopClass(Integer id, Date date_event, Integer hour, Date event_time, Map<String, Integer> data) {
             this.id = id;
         	this.date_event = date_event;
             this.hour = hour;
@@ -25,11 +24,11 @@ public class TopClass implements Serializable {
             this.data = data;
         }
         
-        public void setid(UUID id) {
+        public void setid(Integer id) {
         	this.id = id;
         }
         
-        public UUID getid() {
+        public Integer getid() {
         	return id;
         }
 

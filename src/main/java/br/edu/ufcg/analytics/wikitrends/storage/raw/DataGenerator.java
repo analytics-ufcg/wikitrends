@@ -95,7 +95,7 @@ public class DataGenerator implements Serializable{
 						   obj.get("server_script_path").getAsString(),
 						   obj.get("wiki").getAsString(),
 						   obj.get("type").getAsString(),
-						   obj.get("namespace").getAsString(),
+						   obj.get("namespace").getAsInt(),
 						   obj.get("user").getAsString(),
 						   obj.get("bot").getAsBoolean(),
 						   obj.get("comment").getAsString(),
@@ -114,32 +114,32 @@ public class DataGenerator implements Serializable{
 	private EditType parseEdit(JsonObject obj) {
 		JsonObject length = obj.get("length").getAsJsonObject();
 		
-		HashMap<String, Integer> lengthMap = new HashMap<>(2);
+		HashMap<String, Long> lengthMap = new HashMap<>(2);
 		if(!length.get("new").isJsonNull()){
-			lengthMap.put("new", length.get("new").getAsInt());
+			lengthMap.put("new", length.get("new").getAsLong());
 		}
 		if(!length.get("old").isJsonNull()){
-			lengthMap.put("old", length.get("old").getAsInt());
+			lengthMap.put("old", length.get("old").getAsLong());
 		}
 		
 		JsonObject review = obj.get("revision").getAsJsonObject();
 		
-		HashMap<String, Integer>  revisionMap = new HashMap<>(2);
+		HashMap<String, Long>  revisionMap = new HashMap<>(2);
 		if(!review.get("new").isJsonNull()){
-			revisionMap.put("new", review.get("new").getAsInt());
+			revisionMap.put("new", review.get("new").getAsLong());
 		}
 		if(!review.get("old").isJsonNull()){
-			revisionMap.put("old", review.get("old").getAsInt());
+			revisionMap.put("old", review.get("old").getAsLong());
 		}
 		
 		Boolean patrolled = obj.has("patrolled") && !obj.get("patrolled").isJsonNull() ? obj.get("patrolled").getAsBoolean() : null;
-		
+
 		return new EditType(obj.get("server_url").getAsString(),
 						   obj.get("server_name").getAsString(),
 						   obj.get("server_script_path").getAsString(),
 						   obj.get("wiki").getAsString(),
 						   obj.get("type").getAsString(),
-						   obj.get("namespace").getAsString(),
+						   obj.get("namespace").getAsInt(),
 						   obj.get("user").getAsString(),
 						   obj.get("bot").getAsBoolean(),
 						   obj.get("comment").getAsString(),
