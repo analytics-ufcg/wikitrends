@@ -7,16 +7,21 @@ import com.datastax.spark.connector.cql.CassandraConnector;
 
 public class TablesGenerator {
 	protected JavaSparkContext sc;
+	private Session session;
 	
 	public TablesGenerator(JavaSparkContext sc2) {
 		this.sc = sc2;
 	}
 	
+	public TablesGenerator(Session session) {
+		this.session = session;
+	}
+	
 	public void generateTables() {
-		CassandraConnector connector = CassandraConnector.apply(sc.getConf());
-
-        // Prepare the schema
-        try (Session session = connector.openSession()) {
+//		CassandraConnector connector = CassandraConnector.apply(sc.getConf());
+//
+//        // Prepare the schema
+//        try (Session session = connector.openSession()) {
             session.execute("DROP KEYSPACE IF EXISTS batch_views");
             
             session.execute("CREATE KEYSPACE batch_views WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
@@ -33,7 +38,7 @@ public class TablesGenerator {
 								"event_time TIMESTAMP," +
 								
 								"PRIMARY KEY((year, month, day, hour), id)," +
-								") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
+								") WITH CLUSTERING ORDER BY (id DESC);"
             		);
             
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
@@ -48,7 +53,7 @@ public class TablesGenerator {
 								"event_time TIMESTAMP," +
 								
 								"PRIMARY KEY((year, month, day, hour), id)," +
-								") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
+								") WITH CLUSTERING ORDER BY (id DESC);"
             		);
            
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
@@ -63,7 +68,7 @@ public class TablesGenerator {
 								"event_time TIMESTAMP," +
 								
 								"PRIMARY KEY((year, month, day, hour), id)," +
-								") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
+								") WITH CLUSTERING ORDER BY (id DESC);"
             		);
             
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
@@ -78,7 +83,7 @@ public class TablesGenerator {
 								"event_time TIMESTAMP," +
 								
 								"PRIMARY KEY((year, month, day, hour), id)," +
-								") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
+								") WITH CLUSTERING ORDER BY (id DESC);"
             		);
             
 //            session.execute("CREATE TABLE IF NOT EXISTS batch_views.absolute_values (" +
@@ -113,9 +118,9 @@ public class TablesGenerator {
 					"event_time TIMESTAMP," +
 					
 					"PRIMARY KEY((year, month, day, hour), id)," +
-					") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
+					") WITH CLUSTERING ORDER BY (id DESC);"
 		);
             
-        }
+//        }
 	}
 }

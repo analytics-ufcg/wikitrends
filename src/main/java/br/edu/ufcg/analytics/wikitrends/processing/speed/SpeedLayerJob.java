@@ -16,16 +16,16 @@ import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
-import br.edu.ufcg.analytics.wikitrends.processing.LambdaLayer;
-import br.edu.ufcg.analytics.wikitrends.processing.SparkJob;
+import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
+import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
 import scala.Tuple2;
 
 /**
- * {@link SparkJob} implementation when a {@link LambdaLayer#BATCH} is chosen. 
+ * {@link WikiTrendsProcess} implementation when a {@link WikiTrendsCommands#BATCH} is chosen. 
  * 
  * @author Ricardo Ara&eacute;jo Santos - ricoaraujosantos@gmail.com
  */
-public class SpeedLayerJob implements SparkJob {
+public class SpeedLayerJob implements WikiTrendsProcess {
 
 	/**
 	 * 
