@@ -16,8 +16,9 @@ import io.socket.SocketIO;
 import io.socket.SocketIOException;
 
 /**
- * TODO comment me!
- * @author Felipe
+ * Conversion between a RCStream pipeline and a Kafka Producer
+ * 
+ * @author Felipe Vieira - felipe29vieira@gmail.com
  */
 public class Ingestor implements WikiTrendsProcess {
 

@@ -9,9 +9,9 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 /**
+ * Implementation of a simple Kafka producer
  *
- * @author Felipe TODO comment me!
- *
+ * @author Felipe Vieira - felipe29vieira@gmail.com
  */
 public class KafkaStreamProducer implements StreamProducer {
 
