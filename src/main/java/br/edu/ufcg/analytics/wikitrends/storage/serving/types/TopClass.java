@@ -6,6 +6,9 @@ import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.http.annotation.Obsolete;
+
+@Obsolete
 public class TopClass implements Serializable {
 		private static final long serialVersionUID = 2644747318393169105L;
 		

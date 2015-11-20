@@ -4,6 +4,9 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
 
+import org.apache.http.annotation.Obsolete;
+
+@Obsolete
 public class AbsoluteValuesShot implements Serializable {
 	private static final long serialVersionUID = -6188817936589241852L;
 
