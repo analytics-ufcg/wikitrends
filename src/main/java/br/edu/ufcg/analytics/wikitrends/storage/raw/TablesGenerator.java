@@ -57,7 +57,8 @@ public class TablesGenerator {
 		// to types 'edit' and 'external'
 		session.execute("CREATE TABLE IF NOT EXISTS master_dataset." +
 				"edits" +
-				"(edit_uuid UUID," + 
+				"("+ 
+//				"edit_uuid UUID," + 
 				"edit_id INT," +
 				"edit_minor BOOLEAN," +
 				"edit_patrolled BOOLEAN," +
@@ -82,7 +83,7 @@ public class TablesGenerator {
 				"hour INT," +
 				"event_time TIMESTAMP," +
 
-				"PRIMARY KEY((edit_uuid), year, month, day, hour)," +
+				"PRIMARY KEY((edit_id), year, month, day, hour)," +
 				") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
 			);
 	}

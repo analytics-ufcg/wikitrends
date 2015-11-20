@@ -17,7 +17,7 @@ function show_help (){
 
 WIKITRENDS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 JAR_FILE=wikitrends-0.1.jar
-MAIN_CLASS=br.edu.ufcg.analytics.wikitrends.processing.Main
+MAIN_CLASS=br.edu.ufcg.analytics.wikitrends.WikiTrends
 
 # default values
 MASTER_ADDRESS=spark://master:7077
@@ -60,7 +60,7 @@ ingestor)
 	start)
 	    echo "Starting data ingestor"
 		source ${ENV_VAR_FILE}
-		nohup java -cp "${WIKITRENDS_HOME}/lib/*" br.edu.ufcg.analytics.wikitrends.processing.Main INGESTOR &
+		nohup java -cp "${WIKITRENDS_HOME}/lib/*" ${MAIN_CLASS} INGESTOR &
 	    echo "Data ingestor is up!"
 		;;
 	stop)
@@ -98,7 +98,7 @@ web)
     start)
 	    echo "Starting web application"
 	    cp ${WIKITRENDS_HOME}/wikitrends-0.1-jar-with-dependencies.jar ${WIKITRENDS_HOME}/static/
-	    nohup java -cp "${WIKITRENDS_HOME}/lib/*" br.edu.ufcg.analytics.wikitrends.view.api.WikiTrendsAPI &
+	    nohup java -cp "${WIKITRENDS_HOME}/lib/*" ${MAIN_CLASS} WEB &
         ;;
     stop)
 	    echo "Attempting to stop web application"

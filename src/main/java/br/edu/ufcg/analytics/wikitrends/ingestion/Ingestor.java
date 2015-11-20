@@ -1,43 +1,62 @@
 package br.edu.ufcg.analytics.wikitrends.ingestion;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.util.concurrent.ExecutionException;
+import java.net.URL;
 import java.util.logging.Logger;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
 
 import com.google.gson.JsonElement;
 
+import br.edu.ufcg.analytics.wikitrends.WikiTrendsConfigurationException;
+import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
 import io.socket.IOAcknowledge;
 import io.socket.IOCallback;
 import io.socket.SocketIO;
 import io.socket.SocketIOException;
 
-public class Ingestor {
+/**
+ * Conversion between a RCStream pipeline and a Kafka Producer
+ * 
+ * @author Felipe Vieira - felipe29vieira@gmail.com
+ */
+public class Ingestor implements WikiTrendsProcess {
 
-	private SocketIO wikimediaSocket;
-	private CustomKafkaProducer kafkaProducer;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1133137012061009751L;
 	
-	private transient Configuration configuration;
+	private StreamProducer producer;
+	
+	private SocketIO dataSource;
 
-	public Ingestor(Configuration configuration) throws IOException {
-		this.wikimediaSocket = new SocketIO("http://stream.wikimedia.org:80/rc");
-		this.kafkaProducer = new CustomKafkaProducer(configuration);
-		this.configuration = configuration;
+	/**
+	 * Default constructor
+	 * 
+	 * @param configuration
+	 */
+	public Ingestor(Configuration configuration){
+		this.producer = new KafkaStreamProducer(configuration);
+		try {
+			dataSource = new SocketIO(new URL(configuration.getString("wikitrends.ingestion.wikimedia.stream")));
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+			throw new WikiTrendsConfigurationException(e);
+		}
 	}
 
-	public void start() throws MalformedURLException, InterruptedException, ExecutionException {
+	/* (non-Javadoc)
+	 * @see br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess#run()
+	 */
+	@Override
+	public void run(){
 		// Avoiding logs
+		// FIXME is there a way of doing this for the whole application?
 		Logger l0 = Logger.getLogger("");
 		l0.removeHandler(l0.getHandlers()[0]);
 		 
-		kafkaProducer.initializeKafkaProducer();
-		
-		wikimediaSocket.connect(new IOCallback() {
+		dataSource.connect(new IOCallback() {
 			@Override
 			public void onMessage(String data, IOAcknowledge ack) {
 				System.out.println("Server said: " + data);
@@ -61,27 +80,14 @@ public class Ingestor {
 
 			@Override
 			public void onConnect() {
-				wikimediaSocket.emit("subscribe", "*");
+				dataSource.emit("subscribe", "*");
 				System.out.println("Connection established");
 			}
 
 			@Override
-			public void on(String arg0, IOAcknowledge arg1, JsonElement... arg2) {
-				try {
-					kafkaProducer.sendMessage(arg2[0].toString());
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				} catch (ExecutionException e) {
-					e.printStackTrace();
-				}
+			public void on(String eventName, IOAcknowledge eventAcknowledge, JsonElement... eventArguments) {
+				producer.sendMessage(eventArguments[0].toString());
 			}			
 		});
-	}
-
-	public static void main(String[] args) throws URISyntaxException, IOException, InterruptedException, ExecutionException, ConfigurationException {
-		Configuration configuration = new PropertiesConfiguration(args.length == 2? args[1]: "wikitrends.properties");
-		
-		Ingestor ingestor = new Ingestor(configuration);
-		ingestor.start();
 	}
 }

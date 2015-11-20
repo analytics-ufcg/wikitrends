@@ -181,22 +181,22 @@
 	</build>
 	<repositories>
 		<repository>
-		  <id>keytwo.net</id>
-		  <name>Keytwo.net Repository</name>
-		  <url>http://audiobox.keytwo.net</url>
+			<id>keytwo.net</id>
+			<name>Keytwo.net Repository</name>
+			<url>http://audiobox.keytwo.net</url>
 		</repository>
 	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-core_2.10</artifactId>
-			<version>1.5.0</version>
+			<version>1.5.1</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-streaming_2.10</artifactId>
-			<version>1.5.0</version>
+			<version>1.5.1</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -232,14 +232,14 @@
 			<version>1.10</version>
 		</dependency>
 		<dependency>
-		  <groupId>io.socket</groupId>
-		  <artifactId>socket.io-client</artifactId>
-		  <version>0.2.1</version> <!-- the desidered version -->
+			<groupId>io.socket</groupId>
+			<artifactId>socket.io-client</artifactId>
+			<version>0.2.1</version> <!-- the desidered version -->
 		</dependency>
 		<dependency>
-		    <groupId>org.apache.kafka</groupId>
-		    <artifactId>kafka-clients</artifactId>
-		    <version>0.8.2.0</version>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-clients</artifactId>
+			<version>0.8.2.0</version>
 		</dependency>
 	</dependencies>
 </project>

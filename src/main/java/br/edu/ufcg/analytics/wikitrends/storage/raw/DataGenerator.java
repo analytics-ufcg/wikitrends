@@ -167,7 +167,7 @@ public class DataGenerator implements Serializable{
 			JavaRDD<EditType> edits = oldMasterDataset
 			.filter(change -> {
 				String type = change.get("type").getAsString();
-				return "edit".equals(type) || "new".equals(type);
+				return Boolean.valueOf("edit".equals(type) || "new".equals(type));
 			})
 			.map(change -> parseEdit(change));
 			

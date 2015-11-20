@@ -6,20 +6,23 @@ package br.edu.ufcg.analytics.wikitrends.view.api;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
+
 /**
  * 
  * @author Ricardo Araújo Santos - ricardo@copin.ufcg.edu.br
  */
 @SpringBootApplication
-public class WikiTrendsAPI {
+public class WikiTrendsRESTServer implements WikiTrendsProcess {
 
 	/**
-	 * WikiTrends API entry point
 	 * 
-	 * @param args CLI arguments
 	 */
-	public static void main(String[] args) {
-		SpringApplication.run(WikiTrendsAPI.class, args);
+	private static final long serialVersionUID = 2379312688542770552L;
+
+	@Override
+	public void run() {
+		SpringApplication.run(WikiTrendsRESTServer.class);
 	}
 
 }
