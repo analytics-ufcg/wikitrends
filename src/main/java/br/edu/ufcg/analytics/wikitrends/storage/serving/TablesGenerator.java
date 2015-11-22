@@ -3,7 +3,6 @@ package br.edu.ufcg.analytics.wikitrends.storage.serving;
 import org.apache.spark.api.java.JavaSparkContext;
 
 import com.datastax.driver.core.Session;
-import com.datastax.spark.connector.cql.CassandraConnector;
 
 public class TablesGenerator {
 	protected JavaSparkContext sc;
