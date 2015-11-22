@@ -78,7 +78,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.19</version>
 				<configuration>
-					<skipTests>false</skipTests>
+					<skipTests>true</skipTests>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -136,7 +136,7 @@
 				<artifactId>maven-thrift-plugin</artifactId>
 				<version>0.1.11</version>
 				<configuration>
-					<thriftExecutable>${THRIFT_PATH}</thriftExecutable>
+					<thriftExecutable>${env.THRIFT_PATH}</thriftExecutable>
 				</configuration>
 				<executions>
 					<execution>
@@ -164,8 +164,8 @@
 				<artifactId>cassandra-maven-plugin</artifactId>
 				<version>2.1.7-1</version>
 				<configuration>
-					<listenAddress>tomato</listenAddress>
-					<rpcAddress>tomato</rpcAddress>
+					<listenAddress>localhost</listenAddress>
+					<rpcAddress>localhost</rpcAddress>
 					<rpcPort>9042</rpcPort>
 				</configuration>
 				<executions>
