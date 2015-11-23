@@ -1,23 +1,16 @@
 package br.edu.ufcg.analytics.wikitrends.storage.serving;
 
-import org.apache.spark.api.java.JavaSparkContext;
+import java.io.Serializable;
 
+import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 
-public class TablesGenerator {
-	protected JavaSparkContext sc;
-	private Session session;
+public class CassandraServingLayerManager implements Serializable {
 	
-	public TablesGenerator(JavaSparkContext sc2) {
-		this.sc = sc2;
-	}
-	
-	public TablesGenerator(Session session) {
-		this.session = session;
-	}
-	
+	private static final long serialVersionUID = -6109094054314874995L;
+
 	// Prepare the schema
-	public void generateTables() {
+	public void createTables(Session session) {
             session.execute("DROP KEYSPACE IF EXISTS batch_views");
             
             session.execute("CREATE KEYSPACE batch_views WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
@@ -48,7 +41,7 @@ public class TablesGenerator {
 								"hour INT," +
 								"event_time TIMESTAMP," +
 								
-								"PRIMARY KEY((id), year, month, day, hour), id)," +
+								"PRIMARY KEY((year, month, day, hour), id)," +
 								") WITH CLUSTERING ORDER BY (id DESC);"
             		);
            
@@ -63,7 +56,7 @@ public class TablesGenerator {
 								"hour INT," +
 								"event_time TIMESTAMP," +
 								
-								"PRIMARY KEY((id), year, month, day, hour)," +
+								"PRIMARY KEY((year, month, day, hour), id)," +
 								") WITH CLUSTERING ORDER BY (id DESC);"
             		);
             
@@ -78,7 +71,7 @@ public class TablesGenerator {
 								"hour INT," +
 								"event_time TIMESTAMP," +
 								
-								"PRIMARY KEY((id), year, month, day, hour)," +
+								"PRIMARY KEY((year, month, day, hour), id)," +
 								") WITH CLUSTERING ORDER BY (id DESC);"
             		);
             
@@ -103,5 +96,43 @@ public class TablesGenerator {
 								") WITH CLUSTERING ORDER BY (id DESC);"
 					);
             
+	}
+	
+	
+	
+	/**
+	 * Entry point
+	 * 
+	 * @param args
+	 *            cassandra seed node address.
+	 */
+	public static void main(String[] args) {
+
+//		if (args.length < 3) {
+//			System.err.println(
+//					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.serving.CassandraServingLayerManager OPERATION <seed_address>");
+//			System.exit(1);
+//		}
+
+//		String operation = args[0];
+//		String seedNode = args[1];
+		
+		String operation = "CREATE";
+		String seedNode = "localhost";
+		
+		CassandraServingLayerManager manager = new CassandraServingLayerManager();
+		
+		switch (operation) {
+		case "CREATE":
+			try (Cluster cluster = Cluster.builder().addContactPoints(seedNode).build();
+					Session session = cluster.newSession();) {
+				manager.createTables(session);
+			}
+			break;
+		default:
+			System.err.println("Unsupported operation. Choose CREATE as operation.");
+			break;
+		}
+
 	}
 }

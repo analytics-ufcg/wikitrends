@@ -12,6 +12,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.http.annotation.Obsolete;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
@@ -20,6 +21,7 @@ import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import br.edu.ufcg.analytics.wikitrends.storage.serving.types.AbsoluteValuesShot;
 import br.edu.ufcg.analytics.wikitrends.storage.serving.types.TopClass;
 
+@Obsolete
 public class DataGenerator {
 	
 	private JavaSparkContext sc;

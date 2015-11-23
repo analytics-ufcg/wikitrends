@@ -11,6 +11,7 @@ import org.apache.commons.configuration.PropertiesConfiguration;
  * Entry point for both batch and speed layer Apache Spark jobs.
  * 
  * @author Ricardo Araújo Santos - ricardo@copin.ufcg.edu.br
+ * @author Guilherme Gadelha
  */
 public class WikiTrends {
 

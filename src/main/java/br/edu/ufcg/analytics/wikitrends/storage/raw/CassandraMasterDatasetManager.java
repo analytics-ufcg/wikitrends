@@ -22,9 +22,6 @@ import br.edu.ufcg.analytics.wikitrends.storage.raw.types.LogType;
 
 public class CassandraMasterDatasetManager implements Serializable {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 6066687152165846375L;
 
 	public void createTables(Session session) {
@@ -36,35 +33,58 @@ public class CassandraMasterDatasetManager implements Serializable {
 
 		session.execute(
 				"CREATE TABLE IF NOT EXISTS master_dataset." + "logs" + "(log_uuid UUID," + "id INT," + "log_id INT,"
-						+ "log_action TEXT," + "log_type TEXT," + "log_params TEXT," + "log_action_comment TEXT," +
-
-		"common_server_url TEXT," + "common_server_name TEXT," + "common_server_script_path TEXT,"
-						+ "common_server_wiki TEXT," +
-
-		"common_event_type TEXT," + "common_event_namespace INT," + "common_event_user TEXT,"
-						+ "common_event_bot BOOLEAN," + "common_event_comment TEXT," + "common_event_title TEXT," +
-
-		"year INT," + "month INT," + "day INT," + "hour INT," + "event_time TIMESTAMP," +
-
-		"PRIMARY KEY((log_uuid), year, month, day, hour),"
+						+ "log_action TEXT," 
+						+ "log_type TEXT," 
+						+ "log_params TEXT," 
+						+ "log_action_comment TEXT," 
+						
+						+ "common_server_url TEXT," 
+						+ "common_server_name TEXT," 
+						+ "common_server_script_path TEXT,"
+						+ "common_server_wiki TEXT," 
+						
+						+ "common_event_type TEXT," 
+						+ "common_event_namespace INT," 
+						+ "common_event_user TEXT,"
+						+ "common_event_bot BOOLEAN," 
+						+ "common_event_comment TEXT," 
+						+ "common_event_title TEXT," 
+						
+						+ "year INT," 
+						+ "month INT,"
+						+ "day INT," 
+						+ "hour INT,"
+						
+						+ "event_time TIMESTAMP," 
+						
+						+ "PRIMARY KEY((log_uuid), year, month, day, hour),"
 						+ ") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);");
 
 		// to types 'edit' and 'external'
-		session.execute("CREATE TABLE IF NOT EXISTS master_dataset." + "edits" + "(" +
-				// "edit_uuid UUID," +
-				"edit_id INT," + "edit_minor BOOLEAN," + "edit_patrolled BOOLEAN," + "edit_length MAP<TEXT, INT>,"
-				+ "edit_revision MAP<TEXT, INT>," +
+		session.execute("CREATE TABLE IF NOT EXISTS master_dataset." + "edits" + "(" 
+							// "edit_uuid UUID," +
+							 + "edit_id INT," 
+							 + "edit_minor BOOLEAN,"
+							 + "edit_patrolled BOOLEAN,"
+							 + "edit_length MAP<TEXT, INT>,"
+							 + "edit_revision MAP<TEXT, INT>,"
+							 
+							 + "common_server_url TEXT,"
+							 + "common_server_name TEXT,"
+							 + "common_server_script_path TEXT,"
+							 + "common_server_wiki TEXT,"
 
-		"common_server_url TEXT," + "common_server_name TEXT," + "common_server_script_path TEXT,"
-				+ "common_server_wiki TEXT," +
+						 	 + "common_event_type TEXT,"
+						 	 + "common_event_namespace INT,"
+						 	 + "common_event_user TEXT,"
+						 	 + "common_event_bot BOOLEAN,"
+						 	 + "common_event_comment TEXT,"
+						 	 + "common_event_title TEXT,"
 
-		"common_event_type TEXT," + "common_event_namespace INT," + "common_event_user TEXT,"
-				+ "common_event_bot BOOLEAN," + "common_event_comment TEXT," + "common_event_title TEXT," +
-
-		"year INT," + "month INT," + "day INT," + "hour INT," + "event_time TIMESTAMP," +
-
-		"PRIMARY KEY((edit_id), year, month, day, hour),"
-				+ ") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);");
+ 							 + "year INT," + "month INT," + "day INT," + "hour INT," + "event_time TIMESTAMP,"
+ 							 
+ 							 + "PRIMARY KEY((edit_id), year, month, day, hour),"
+ 							 + ") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);");
 	}
 
 	public void populateFrom(String cassandraSeedHostname, String inputFile) {
@@ -155,7 +175,7 @@ public class CassandraMasterDatasetManager implements Serializable {
 
 		if (args.length < 3) {
 			System.err.println(
-					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.raw.MasterDatasetManager OPERATION <seed_address> <arg>");
+					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager OPERATION <seed_address> <arg>");
 			System.exit(1);
 		}
 
