@@ -1,8 +1,10 @@
 package br.edu.ufcg.analytics.wikitrends.processing.batch;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.SparkConf;
@@ -21,6 +23,7 @@ import scala.Tuple2;
 /**
  * {@link WikiTrendsProcess} implementation when a {@link WikiTrendsCommands#BATCH} is chosen. 
  * 
+ * @author Guilherme Gadelha
  * @author Ricardo Ara&eacute;jo Santos - ricoaraujosantos@gmail.com
  */
 public abstract class BatchLayerJob implements WikiTrendsProcess {
@@ -170,20 +173,20 @@ public abstract class BatchLayerJob implements WikiTrendsProcess {
 		return result.reduce((a, b) -> a+b) / result.count();
 	}
 
-	protected Long distinctPages(JavaRDD<EditType> wikipediaEdits) {
-		return wikipediaEdits.map(edit -> edit.getCommon_event_title()).distinct().count();
+	protected Set<String> distinctPages(JavaRDD<EditType> wikipediaEdits) {
+		return new HashSet<String>(wikipediaEdits.map(edit -> edit.getCommon_event_title()).distinct().collect());
 	}
 
-	protected Long distinctServers(JavaRDD<EditType> wikipediaEdits) {
-		return wikipediaEdits.map(edit -> edit.getCommon_server_name()).distinct().count();
+	protected Set<String> distinctServers(JavaRDD<EditType> wikipediaEdits) {
+		return new HashSet<String>(wikipediaEdits.map(edit -> edit.getCommon_server_name()).distinct().collect());
 	}
 
-	protected Long distinctEditors(JavaRDD<EditType> wikipediaEdits) {
-		return wikipediaEdits
-				.filter(edit -> {
+	protected Set<String> distinctEditors(JavaRDD<EditType> wikipediaEdits) {
+		return new HashSet<String>(
+				wikipediaEdits.filter(edit -> {
 					return edit.getCommon_event_bot() != null && !edit.getCommon_event_bot();
 				})
-				.map(edit -> edit.getCommon_event_user()).distinct().count();
+				.map(edit -> edit.getCommon_event_user()).distinct().collect());
 	}
 
 	protected Long getOrigin(JavaRDD<EditType> wikipediaEdits) {

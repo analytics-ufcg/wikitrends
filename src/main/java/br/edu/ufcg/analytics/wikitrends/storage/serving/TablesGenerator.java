@@ -3,7 +3,6 @@ package br.edu.ufcg.analytics.wikitrends.storage.serving;
 import org.apache.spark.api.java.JavaSparkContext;
 
 import com.datastax.driver.core.Session;
-import com.datastax.spark.connector.cql.CassandraConnector;
 
 public class TablesGenerator {
 	protected JavaSparkContext sc;
@@ -17,11 +16,8 @@ public class TablesGenerator {
 		this.session = session;
 	}
 	
+	// Prepare the schema
 	public void generateTables() {
-//		CassandraConnector connector = CassandraConnector.apply(sc.getConf());
-//
-//        // Prepare the schema
-//        try (Session session = connector.openSession()) {
             session.execute("DROP KEYSPACE IF EXISTS batch_views");
             
             session.execute("CREATE KEYSPACE batch_views WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
@@ -89,7 +85,13 @@ public class TablesGenerator {
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
 					            "absolute_values" +
 								"(id UUID," +
-								"data MAP<TEXT,TEXT>," +
+								"edits_data MAP<TEXT,BIGINT>," +
+								
+								"distincts_pages_set SET<TEXT>," +
+								"distincts_editors_set SET<TEXT>," +
+								"distincts_servers_set SET<TEXT>," +
+								
+								"smaller_origin BIGINT," +
 					
 								"year INT," +
 								"month INT," +
@@ -101,6 +103,5 @@ public class TablesGenerator {
 								") WITH CLUSTERING ORDER BY (id DESC);"
 					);
             
-//        }
 	}
 }

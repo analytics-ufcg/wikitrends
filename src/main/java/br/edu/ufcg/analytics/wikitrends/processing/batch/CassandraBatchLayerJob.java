@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.api.java.JavaRDD;
@@ -22,10 +23,8 @@ import br.edu.ufcg.analytics.wikitrends.storage.serving.types.TopClass2;
 
 public class CassandraBatchLayerJob extends BatchLayerJob {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -1876586531051844584L;
+
 	private String batchViewsKeyspace;
 	private String pagesTable;
 	private String contentPagesTable;
@@ -135,27 +134,29 @@ public class CassandraBatchLayerJob extends BatchLayerJob {
 		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
 			.writerBuilder(batchViewsKeyspace, usersTable, mapToRow(TopClass2.class))
 			.saveToCassandra();
-		
-
 	}
 
 	@Override
 	protected void processStatistics(JavaSparkContext sc, JavaRDD<EditType> wikipediaEdits) {
-		Map<String, String> statistics = new HashMap<String, String>();
-		statistics.put("all_edits", countAllEdits(wikipediaEdits).toString());
-		statistics.put("minor_edits", countMinorEdits(wikipediaEdits).toString());
-		statistics.put("average_size", calcAverageEditLength(wikipediaEdits).toString());
-		statistics.put("distinct_pages", distinctPages(wikipediaEdits).toString());
-		statistics.put("distinct_editors", distinctEditors(wikipediaEdits).toString());
-		statistics.put("distinct_servers", distinctServers(wikipediaEdits).toString());
-		statistics.put("origin", getOrigin(wikipediaEdits).toString());
+		Map<String, Long> edits_data = new HashMap<String, Long>();
+		edits_data.put("all_edits", countAllEdits(wikipediaEdits));
+		edits_data.put("minor_edits", countMinorEdits(wikipediaEdits));
+		edits_data.put("average_size", calcAverageEditLength(wikipediaEdits));
 		
-		List<AbsoluteValueShot2> output = Arrays.asList(new AbsoluteValueShot2(statistics));
+		Set<String> distincts_pages_set = distinctPages(wikipediaEdits);
+		Set<String> distincts_editors_set = distinctEditors(wikipediaEdits);
+		Set<String> distincts_servers_set = distinctServers(wikipediaEdits);
+		
+		Long smaller_origin = getOrigin(wikipediaEdits); 
+		
+		List<AbsoluteValueShot2> output = Arrays.asList(new AbsoluteValueShot2(edits_data, 
+																				distincts_pages_set,
+																				distincts_editors_set,
+																				distincts_servers_set,
+																				smaller_origin));
 		
 		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
 			.writerBuilder(batchViewsKeyspace, absoluteValuesTable, mapToRow(AbsoluteValueShot2.class))
 			.saveToCassandra();
 	}
-
-
 }
