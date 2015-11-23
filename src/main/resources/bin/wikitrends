@@ -18,7 +18,7 @@ function show_help (){
 WIKITRENDS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 JAR_FILE=wikitrends-0.1.jar
 MAIN_CLASS=br.edu.ufcg.analytics.wikitrends.WikiTrends
-
+JAR_ADDRESS=http://analytics.ufcg.edu.br/wikitrends/wikitrends-0.1-jar-with-dependencies.jar
 # default values
 MASTER_ADDRESS=spark://master:7077
 TOTAL_EXECUTOR_CORES=2
@@ -26,13 +26,15 @@ ENV_VAR_FILE=${HOME}/.profile
 
 OPTIND=1         # Reset in case getopts has been used previously in the shell.
 
-while getopts "h?e:m:w:" opt; do
+while getopts "h?e:j:m:w:" opt; do
     case "$opt" in
     h|\?)
         show_help
         exit 0
         ;;
     e)  ENV_VAR_FILE=$OPTARG
+        ;;
+    j)  JAR_ADDRESS=$OPTARG
         ;;
     m)  MASTER_ADDRESS=$OPTARG
         ;;
@@ -52,7 +54,7 @@ case "$1" in
 batch)
     echo "Submitting batch layer job"
 	source ${ENV_VAR_FILE}
-	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} http://analytics.ufcg.edu.br/wikitrends/wikitrends-0.1-jar-with-dependencies.jar BATCH
+	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${JAR_ADDRESS} BATCH
     echo "Finished executing batch layer job"
     ;;
 ingestor)
@@ -70,14 +72,28 @@ ingestor)
 	    ;;
     esac
     ;;
-		
+master)
+	case $2 in
+	createschema)
+	    echo "Creating master dataset schema"
+		source ${ENV_VAR_FILE}
+		java -cp "${WIKITRENDS_HOME}/lib/*" br.edu.ufcg.analytics.wikitrends.storage.raw.CreateCassandraSchema $3
+	    echo "OK!"
+		;;
+	migrate)
+	    echo "Attempting to migrate master dataset from JSON file"
+		spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class br.edu.ufcg.analytics.wikitrends.storage.raw.MigrateMasterDataset ${JAR_ADDRESS} $3 $4
+		echo "OK!"
+	    ;;
+    esac
+    ;;
 speed)
 	MASTER_ADDRESS=${MASTER_ADDRESS%:*}:6066
     case $2 in
     start)
 	    echo "Submitting speed layer job"
 		source ${ENV_VAR_FILE}
-		spark-submit --supervise --deploy-mode cluster --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} http://analytics.ufcg.edu.br/wikitrends/wikitrends-0.1-jar-with-dependencies.jar SPEED
+		spark-submit --supervise --deploy-mode cluster --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${JAR_ADDRESS} SPEED
 	    echo "Finished submitting speed layer job"
         ;;
     stop)

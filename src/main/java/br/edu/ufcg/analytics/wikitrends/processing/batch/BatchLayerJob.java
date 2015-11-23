@@ -17,7 +17,6 @@ import com.google.gson.JsonObject;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
-import br.edu.ufcg.analytics.wikitrends.thrift.WikiMediaChange;
 import scala.Tuple2;
 
 /**
@@ -125,7 +124,7 @@ public abstract class BatchLayerJob implements WikiTrendsProcess {
 	protected abstract JavaRDD<EditType> readRDD(JavaSparkContext sc);
 
 	/**
-	 * Processes {@link WikiMediaChange}s currently modeled as {@link JsonObject}s and generates a ranking based on given key.
+	 * Processes WikiMedia database changes currently modeled as {@link JsonObject}s and generates a ranking based on given key.
 	 *    
 	 * @param sc {@link JavaSparkContext}
 	 * @param pairRDD input as a {@link JavaRDD}
