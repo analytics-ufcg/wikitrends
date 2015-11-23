@@ -18,8 +18,8 @@ union PagePropertyValue {
 	1: i32 rc_namespace,
 }
 struct PageProperty {
-	1: required UserID id,
-	2: required UserPropertyValue property,
+	1: required PageID id,
+	2: required PagePropertyValue property,
 }
 
 union ServerID {
@@ -72,7 +72,7 @@ union DataUnit {
 	5: LogEdge log,
 	6: ExternalEdge external,
 }
-struct Pedigree {
+union Pedigree {
 	1: required i32 true_as_of_secs,
 }
 struct Data {
