@@ -60,7 +60,7 @@ public class CassandraBatchLayerJob extends BatchLayerJob {
 						edit.setCommon_event_user(v1.getString("common_event_user"));
 						edit.setCommon_event_namespace(v1.getInt("common_event_namespace"));
 						edit.setCommon_server_name(v1.getString("common_server_name"));
-						edit.setEdit_minor(v1.getBoolean("edit_minor"));
+						edit.setEditMinor(v1.getBoolean("edit_minor"));
 						edit.setEdit_length(v1.getMap("edit_length", CassandraJavaUtil.typeConverter(String.class), CassandraJavaUtil.typeConverter(Long.class)));
 						return edit;
 					}

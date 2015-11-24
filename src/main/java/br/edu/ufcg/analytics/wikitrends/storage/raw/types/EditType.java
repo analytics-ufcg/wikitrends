@@ -10,7 +10,7 @@ public class EditType extends AbstractType implements Serializable {
 	
 	private UUID edit_uuid; 
 	private Integer edit_id;
-	private Boolean edit_minor;
+	private Boolean editMinor;
 	private Boolean edit_patrolled;
 	private Map<String, Long> edit_length;
 	private Map<String, Long> edit_revision;
@@ -29,7 +29,7 @@ public class EditType extends AbstractType implements Serializable {
 				event_time);
 		this.edit_uuid = edit_uuid;
 		this.edit_id = edit_id;
-		this.edit_minor = edit_minor;
+		this.editMinor = edit_minor;
 		this.edit_patrolled = edit_patrolled;
 		this.edit_length = edit_length;
 		this.edit_revision = edit_revision;
@@ -51,12 +51,12 @@ public class EditType extends AbstractType implements Serializable {
 		this.edit_id = edit_id;
 	}
 
-	public Boolean getEdit_minor() {
-		return edit_minor;
+	public Boolean getEditMinor() {
+		return editMinor;
 	}
 
-	public void setEdit_minor(Boolean edit_minor) {
-		this.edit_minor = edit_minor;
+	public void setEditMinor(Boolean edit_minor) {
+		this.editMinor = edit_minor;
 	}
 
 	public Boolean getEdit_patrolled() {
@@ -85,7 +85,7 @@ public class EditType extends AbstractType implements Serializable {
 
 	@Override
 	public String toString() {
-		return "EditType [edit_uuid=" + edit_uuid + ", edit_id=" + edit_id + ", edit_minor=" + edit_minor
+		return "EditType [edit_uuid=" + edit_uuid + ", edit_id=" + edit_id + ", edit_minor=" + editMinor
 				+ ", edit_patrolled=" + edit_patrolled + ", edit_length=" + edit_length + ", edit_revision="
 				+ edit_revision + ", toString()=" + super.toString() + "]";
 	}

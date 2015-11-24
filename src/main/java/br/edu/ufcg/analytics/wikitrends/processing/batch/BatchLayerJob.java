@@ -165,7 +165,7 @@ public abstract class BatchLayerJob implements WikiTrendsProcess {
 
 	protected Long countMinorEdits(JavaRDD<EditType> wikipediaEdits) {
 		return wikipediaEdits.filter(edit -> {
-			return edit.getEdit_minor() != null && edit.getEdit_minor();
+			return edit.getEditMinor() != null && edit.getEditMinor();
 		}).count();
 	}
 

@@ -1,6 +1,7 @@
 package br.edu.ufcg.analytics.wikitrends.storage.raw;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -16,6 +17,7 @@ import com.datastax.driver.core.Session;
 public class CassandraMasterDatasetManagerTest {
 	
 	private static String seedNode = "localhost";
+	private static String inputFile = "src/test/resources/small_test_data.json";
 
 	/**
 	 * 
@@ -64,14 +66,18 @@ public class CassandraMasterDatasetManagerTest {
 		String[] testHosts = seedNode.split(",");
 		try(Cluster cluster = Cluster.builder().addContactPoints(testHosts).build();){
 			
+			CassandraMasterDatasetManager manager = new CassandraMasterDatasetManager();
+			
 			try(Session session = cluster.newSession();){
-				new CassandraMasterDatasetManager().createTables(session);
+				manager.createTables(session);
 			}
+			
+			manager.populateFrom(seedNode, inputFile);
 			
 			try(Session session = cluster.newSession();){
 				session.execute("USE master_dataset;");
 				ResultSet resultSet = session.execute("SELECT * FROM edits;");
-				assertTrue(resultSet.all().isEmpty());
+				assertFalse(resultSet.all().isEmpty());
 			}
 			
 		}

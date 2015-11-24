@@ -65,6 +65,35 @@ public class CassandraMasterDatasetManager implements Serializable {
 				);
 
 		// to types 'edit' and 'external'
+//		session.execute("CREATE TABLE IF NOT EXISTS master_dataset.edits("+ 
+//				//				"edit_uuid UUID," + 
+//				"id uuid," +
+//				"minor boolean," +
+//				"patrolled boolean," +
+//				"length map<text, int>," +
+//				"revision map<text, int>," +
+//
+//	            "server_url text," +
+//	            "server_name text," +
+//	            "server_script_path text," +
+//	            "server_wiki text," +
+//
+//				"event_type text," +
+//				"event_namespace int," +
+//				"event_user text," +
+//				"event_bot boolean," +
+//				"event_comment text," +
+//				"event_title text," +
+//
+//				"year int," +
+//				"month int," +
+//				"day int," +
+//				"hour int," +
+//				"event_time timestamp," +
+//
+//				"PRIMARY KEY((edit_id), year, month, day, hour)," +
+//				") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
+//				);
 		session.execute("CREATE TABLE IF NOT EXISTS master_dataset.edits("+ 
 				//				"edit_uuid UUID," + 
 				"edit_id INT," +
@@ -99,6 +128,7 @@ public class CassandraMasterDatasetManager implements Serializable {
 
 	public void populateFrom(String cassandraSeedHostname, String inputFile) {
 		SparkConf conf = new SparkConf();
+		conf.setMaster("spark://tomato:7077");
 		conf.setAppName("wikitrends-migrate-master");
 		conf.set("spark.cassandra.connection.host", cassandraSeedHostname);
 
