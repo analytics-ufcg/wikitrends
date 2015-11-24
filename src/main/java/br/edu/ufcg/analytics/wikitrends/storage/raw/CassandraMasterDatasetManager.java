@@ -27,6 +27,9 @@ public class CassandraMasterDatasetManager implements Serializable {
 	 */
 	private static final long serialVersionUID = 6066687152165846375L;
 
+	/**
+	 * @param session Opened {@link Session} to a cassandra DB.
+	 */
 	public void createTables(Session session) {
 
 		session.execute("DROP KEYSPACE IF EXISTS master_dataset");
@@ -139,19 +142,20 @@ public class CassandraMasterDatasetManager implements Serializable {
 
 			JavaRDD<EditType> edits = oldMasterDataset.filter(change -> {
 				String type = change.get("type").getAsString();
-				return Boolean.valueOf("edit".equals(type) || "new".equals(type));
+				return "edit".equals(type) || "new".equals(type);
 			}).map(change -> parseEditFromJSON(change));
 
 			CassandraJavaUtil.javaFunctions(edits).writerBuilder("master_dataset", "edits", mapToRow(EditType.class))
 					.saveToCassandra();
 
-			// JavaRDD<LogType> logs = oldMasterDataset
-			// .filter(change -> "log".equals(change.get("type").getAsString()))
-			// .map(change -> parseLog(change));
-			//
-			// CassandraJavaUtil.javaFunctions(logs)
-			// .writerBuilder("master_dataset", "logs", mapToRow(LogType.class))
-			// .saveToCassandra();
+			 JavaRDD<LogType> logs = oldMasterDataset.filter(change -> {
+					String type = change.get("type").getAsString();
+					return "log".equals(type);
+				}).map(change -> parseLogFromJSON(change));
+			 
+			 CassandraJavaUtil.javaFunctions(logs)
+			 .writerBuilder("master_dataset", "logs", mapToRow(LogType.class))
+			 .saveToCassandra();
 		}
 	}
 
@@ -213,15 +217,14 @@ public class CassandraMasterDatasetManager implements Serializable {
 	 */
 	public static void main(String[] args) {
 
-		if (args.length < 3) {
+		if (args.length < 2) {
 			System.err.println(
-					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager OPERATION <seed_address> <arg>");
+					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager CREATE|POPULATE <seed_address>");
 			System.exit(1);
 		}
 
 		String operation = args[0];
 		String seedNode = args[1];
-		String inputFile = args[2];
 
 		CassandraMasterDatasetManager manager = new CassandraMasterDatasetManager();
 		
@@ -233,6 +236,12 @@ public class CassandraMasterDatasetManager implements Serializable {
 			}
 			break;
 		case "POPULATE":
+			if (args.length < 2) {
+				System.err.println(
+						"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager POPULATE <seed_address> <input_file>");
+				System.exit(1);
+			}
+			String inputFile = args[2];
 			manager.populateFrom(seedNode, inputFile);
 			break;
 		default:

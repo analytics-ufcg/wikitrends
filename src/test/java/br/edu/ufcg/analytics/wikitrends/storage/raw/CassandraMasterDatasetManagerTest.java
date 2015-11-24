@@ -20,7 +20,7 @@ public class CassandraMasterDatasetManagerTest {
 	private static String inputFile = "src/test/resources/small_test_data.json";
 
 	/**
-	 * 
+	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager#createTables(Session)}.
 	 */
 	@Test
 	public void testEmptyEditsTableCreation() {
@@ -41,27 +41,31 @@ public class CassandraMasterDatasetManagerTest {
 	}
 
 	/**
-	 * 
+	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager#createTables(Session)}.
 	 */
 	@Test
-	@Ignore
 	public void testEmptyLogsTableCreation() {
 		String[] testHosts = seedNode.split(",");
-//		new CreateCassandraSchema().create(testHosts);
-		
-		try(
-				Cluster cluster = Cluster.builder().addContactPoints(testHosts).build();
-				Session session = cluster.newSession();){
-			session.execute("USE master_dataset;");
-			ResultSet resultSet = session.execute("SELECT * FROM logs;");
-			assertTrue(resultSet.all().isEmpty());
+		try(Cluster cluster = Cluster.builder().addContactPoints(testHosts).build();){
+			
+			try(Session session = cluster.newSession();){
+				new CassandraMasterDatasetManager().createTables(session);
+			}
+			
+			try(Session session = cluster.newSession();){
+				session.execute("USE master_dataset;");
+				ResultSet resultSet = session.execute("SELECT * FROM logs;");
+				assertTrue(resultSet.all().isEmpty());
+			}
+			
 		}
 	}
 	
 	/**
-	 * 
+	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager#populateFrom(String, String)}.
 	 */
 	@Test
+	@Ignore("cannot access spark without spark-submit")
 	public void testPopulateEdits() {
 		String[] testHosts = seedNode.split(",");
 		try(Cluster cluster = Cluster.builder().addContactPoints(testHosts).build();){

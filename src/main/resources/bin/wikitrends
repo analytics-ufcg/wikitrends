@@ -1,25 +1,27 @@
 #!/bin/bash
 
 function show_help (){
+    echo -e "WikiTrends Application Manager\n"
     echo "usage: wikitrends [-e env_var_file] [-m master_address]"
     echo "                  [-w number_of_executor_workers]"
     echo -e "             <subcommand>\n"
-    echo -e "Manage WikiTrends batch and speed layers\n"
-    echo "Positional arguments:"
-    echo "   <subcommand>"
-    echo "   batch                                Runs batch layer job"
-    echo "   speed <start|status|stop>"
-    echo "             start                      Submits speed layer job"
-    echo "             status <submission_id>     Gets status of given job"
-    echo "             stop   <submission_id>     Kills given job"
-
+    echo -e "Subcommands:\n"
+    echo "   batch														Runs batch layer job"
+    echo "   ingestor	start|stop										Starts or stops ingestor"
+    echo "   master		create	<cassandra_host>						Creates tables at cassandra master database"
+    echo "   master		migrate	<cassandra_host> <json_input_file>		Migrate data from JSON to cassandra master database"
+    echo "   serving	create	<cassandra_host>						Creates tables at cassandra serving database"
+    echo "   serving	migrate	<cassandra_host> <json_input_file>		Migrate data from JSON to cassandra serving database"
+    echo "   speed		start											Submits speed layer job"
+    echo "   speed		status|stop <submission_id>						Gets status or stops speed layer job identified by given id"
+    echo "   web		start|stop										Starts or stops web application (launch with sudo if PORT < 1000)"
 }
 
 WIKITRENDS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-JAR_FILE=wikitrends-0.1.jar
+JAR_FILE=wikitrends-2.0.jar
 MAIN_CLASS=br.edu.ufcg.analytics.wikitrends.WikiTrends
-JAR_ADDRESS=http://analytics.ufcg.edu.br/wikitrends/wikitrends-0.1-jar-with-dependencies.jar
-LOCAL_JAR_ADDRESS=${WIKITRENDS_HOME}/wikitrends-0.1-jar-with-dependencies.jar
+JAR_ADDRESS=http://analytics.ufcg.edu.br/wikitrends/wikitrends-2.0-jar-with-dependencies.jar
+LOCAL_JAR_ADDRESS=${WIKITRENDS_HOME}/wikitrends-2.0-jar-with-dependencies.jar
 # default values
 MASTER_ADDRESS=spark://master:7077
 TOTAL_EXECUTOR_CORES=2
@@ -71,21 +73,28 @@ ingestor)
 	    kill `ps aux | grep INGESTOR | awk '{print $2}'`
 		echo "Interrupted wikitrends ingestor"
 	    ;;
+	*)
+		show_help
+		;;    
     esac
     ;;
 master)
+	MASTER_DATASET_MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager
 	case $2 in
 	createschema)
 	    echo "Creating master dataset schema"
 		source ${ENV_VAR_FILE}
-		java -cp "${WIKITRENDS_HOME}/lib/*" br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager CREATE $3 $4
+		java -cp "${WIKITRENDS_HOME}/lib/*" ${MASTER_DATASET_MANAGER_CLASS} CREATE $3 $4
 	    echo "OK!"
 		;;
 	migrate)
 	    echo "Attempting to migrate master dataset from JSON file"
-		spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager ${LOCAL_JAR_ADDRESS} POPULATE $3 $4
+		spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MASTER_DATASET_MANAGER_CLASS} ${LOCAL_JAR_ADDRESS} POPULATE $3 $4
 		echo "OK!"
 	    ;;
+	*)
+		show_help
+		;;    
     esac
     ;;
 serving)
@@ -101,6 +110,9 @@ serving)
 		spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class br.edu.ufcg.analytics.wikitrends.storage.CassandraServingLayerManager ${JAR_ADDRESS} $3 $4
 		echo "OK!"
 	    ;;
+	*)
+		show_help
+		;;    
     esac
     ;;
 speed)
@@ -123,13 +135,16 @@ speed)
 		source ${ENV_VAR_FILE}
 		spark-submit --status $3 --master ${MASTER_ADDRESS}
         ;;
+	*)
+		show_help
+		;;    
     esac
     ;;
 web)
     case $2 in
     start)
 	    echo "Starting web application"
-	    cp ${WIKITRENDS_HOME}/wikitrends-0.1-jar-with-dependencies.jar ${WIKITRENDS_HOME}/static/
+	    cp ${LOCAL_JAR_ADDRESS} ${WIKITRENDS_HOME}/static/
 	    nohup java -cp "${WIKITRENDS_HOME}/lib/*" ${MAIN_CLASS} WEB &
         ;;
     stop)
@@ -137,6 +152,9 @@ web)
 	    kill `ps aux | grep WikiTrendsAPI | awk '{print $2}'`
 		echo "Finished speed layer job"
         ;;
+	*)
+		show_help
+		;;    
     esac
     ;;
 *)
