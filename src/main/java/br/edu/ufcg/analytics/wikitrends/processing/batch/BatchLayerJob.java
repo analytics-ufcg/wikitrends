@@ -49,12 +49,6 @@ public abstract class BatchLayerJob implements WikiTrendsProcess {
 
 		SparkConf conf = new SparkConf();
 		conf.setAppName(configuration.getString("wikitrends.batch.id"));
-//		conf.setMaster("spark://guilhermemg-laptop:7077");
-//		conf.setSparkHome("/spark-14.0-bin-hadoop2.6");
-//		conf.set("spark.driver.host", "127.0.0.1");
-//		String[] l = new String[10];
-//		l[0] = "target/wikitrends-0.1-jar-with-dependencies.jar";
-//		conf.setJars(l);
 		
 		Iterator<String> keys = configuration.getKeys();
 		while (keys.hasNext()) {
