@@ -3,6 +3,7 @@ package br.edu.ufcg.analytics.wikitrends.processing.batch;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +20,7 @@ import com.datastax.spark.connector.japi.CassandraRow;
 
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
 import br.edu.ufcg.analytics.wikitrends.storage.serving.types.AbsoluteValuesShot;
+import br.edu.ufcg.analytics.wikitrends.storage.serving.types.ServerRanking;
 import br.edu.ufcg.analytics.wikitrends.storage.serving.types.TopClass;
 
 public class CassandraBatchLayerJob extends BatchLayerJob {
