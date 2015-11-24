@@ -18,8 +18,8 @@ import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.datastax.spark.connector.japi.CassandraRow;
 
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
-import br.edu.ufcg.analytics.wikitrends.storage.serving.types.AbsoluteValueShot2;
-import br.edu.ufcg.analytics.wikitrends.storage.serving.types.TopClass2;
+import br.edu.ufcg.analytics.wikitrends.storage.serving.types.AbsoluteValuesShot;
+import br.edu.ufcg.analytics.wikitrends.storage.serving.types.TopClass;
 
 public class CassandraBatchLayerJob extends BatchLayerJob {
 
@@ -78,10 +78,10 @@ public class CassandraBatchLayerJob extends BatchLayerJob {
 			data.put(t.getKey(), t.getValue());
 		}
 		
-		List<TopClass2> output = Arrays.asList(new TopClass2(data));
+		List<TopClass> output = Arrays.asList(new TopClass(data));
 		
 		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
-			.writerBuilder(batchViewsKeyspace, pagesTable, mapToRow(TopClass2.class))
+			.writerBuilder(batchViewsKeyspace, pagesTable, mapToRow(TopClass.class))
 			.saveToCassandra();
 		
 	}
@@ -95,10 +95,10 @@ public class CassandraBatchLayerJob extends BatchLayerJob {
 			data.put(t.getKey(), t.getValue());
 		}
 		
-		List<TopClass2> output = Arrays.asList(new TopClass2(data));
+		List<TopClass> output = Arrays.asList(new TopClass(data));
 		
 		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
-			.writerBuilder(batchViewsKeyspace, contentPagesTable, mapToRow(TopClass2.class))
+			.writerBuilder(batchViewsKeyspace, contentPagesTable, mapToRow(TopClass.class))
 			.saveToCassandra();
 		
 	}
@@ -112,10 +112,10 @@ public class CassandraBatchLayerJob extends BatchLayerJob {
 			data.put(t.getKey(), t.getValue());
 		}
 		
-		List<TopClass2> output = Arrays.asList(new TopClass2(data));
+		List<TopClass> output = Arrays.asList(new TopClass(data));
 		
 		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
-			.writerBuilder(batchViewsKeyspace, serversTable, mapToRow(TopClass2.class))
+			.writerBuilder(batchViewsKeyspace, serversTable, mapToRow(TopClass.class))
 			.saveToCassandra();
 		
 	}
@@ -129,10 +129,10 @@ public class CassandraBatchLayerJob extends BatchLayerJob {
 			data.put(t.getKey(), t.getValue());
 		}
 		
-		List<TopClass2> output = Arrays.asList(new TopClass2(data));
+		List<TopClass> output = Arrays.asList(new TopClass(data));
 		
 		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
-			.writerBuilder(batchViewsKeyspace, usersTable, mapToRow(TopClass2.class))
+			.writerBuilder(batchViewsKeyspace, usersTable, mapToRow(TopClass.class))
 			.saveToCassandra();
 	}
 
@@ -149,14 +149,14 @@ public class CassandraBatchLayerJob extends BatchLayerJob {
 		
 		Long smaller_origin = getOrigin(wikipediaEdits); 
 		
-		List<AbsoluteValueShot2> output = Arrays.asList(new AbsoluteValueShot2(edits_data, 
+		List<AbsoluteValuesShot> output = Arrays.asList(new AbsoluteValuesShot(edits_data, 
 																				distincts_pages_set,
 																				distincts_editors_set,
 																				distincts_servers_set,
 																				smaller_origin));
 		
 		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
-			.writerBuilder(batchViewsKeyspace, absoluteValuesTable, mapToRow(AbsoluteValueShot2.class))
+			.writerBuilder(batchViewsKeyspace, absoluteValuesTable, mapToRow(AbsoluteValuesShot.class))
 			.saveToCassandra();
 	}
 }

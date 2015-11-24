@@ -2,172 +2,160 @@ package br.edu.ufcg.analytics.wikitrends.storage.serving.types;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
-import org.apache.http.annotation.Obsolete;
+import org.joda.time.DateTime;
 
-@Obsolete
+/**
+ * 
+ * Class that represents a stored value into the serving layer.
+ * 
+ * @author Guilherme Gadelha
+ *
+ */
 public class AbsoluteValuesShot implements Serializable {
-	private static final long serialVersionUID = -6188817936589241852L;
+		private static final long serialVersionUID = 2644747318393169105L;
+		
+		private UUID id;
+		private Integer hour;
+    	private Integer day;
+    	private Integer month;
+    	private Integer year;
+        private Date event_time;
+        
+        private Map<String, Long> edits_data;
 
-	private UUID id;
-	private String date;
-	private Integer all_edits;
-	private Integer minor_edits;
-	private Integer average_size;
-	private Integer distinct_pages;
-	private Integer distinct_editors;
-	private Integer distinct_servers;
-	private Long origin;
-	private Long batch_elapsed_time;
-	private Integer total_executor_cores;
-	private Long input_size;
-	private String hour;
-	private Date event_time;
+        private Set<String> distincts_pages_set;
+		private Set<String> distincts_editors_set;
+		private Set<String> distincts_servers_set;
 
-    public AbsoluteValuesShot() { }
+		private Long smaller_origin;
 
-    public AbsoluteValuesShot(UUID id, String date, String hour, Integer all_edits, Integer minor_edits,
-    		Integer average_size, Integer distinct_pages, 
-    		Integer distinct_editors, Integer distinct_servers,
-    		Long origin, Long batch_elapsed_time,
-    		Integer total_executor_cores, Long input_size,
-    		Date event_time) {
-        this.id = id;
-    	this.date = date;
-    	this.hour = hour;
-    	this.all_edits = all_edits;
-        this.minor_edits =	minor_edits;
-        this.average_size = average_size;
-        this.distinct_pages = distinct_pages;
-        this.distinct_editors = distinct_editors;
-        this.distinct_servers = distinct_servers;
-        this.origin = origin; // in milliseconds (?)
-        this.batch_elapsed_time = batch_elapsed_time; // in milliseconds (?)
-        this.total_executor_cores = total_executor_cores;
-        this.input_size = input_size; // in bytes (?)
-        this.event_time = event_time;
+		public AbsoluteValuesShot(Map<String, Long> edits_data, 
+        							Set<String> distincts_pages_set, 
+        							Set<String> distincts_editors_set, 
+        							Set<String> distincts_servers_set, 
+        							Long smaller_origin) {
+            
+        	this.id = UUID.randomUUID();
+            this.edits_data = edits_data;
+            this.distincts_pages_set = distincts_pages_set;
+            this.distincts_editors_set = distincts_editors_set;
+            this.distincts_servers_set = distincts_servers_set;
+            this.smaller_origin = smaller_origin;
+            
+            DateTime date = new DateTime();
+            setEvent_time(date.toDate());
+            
+    		setYear(date.getYear());
+    		setMonth(date.getMonthOfYear());
+    		setDay(date.getDayOfMonth());
+    		setHour(date.getHourOfDay());
+        }
+        
+		public void setid(UUID id) {
+        	this.id = id;
+        }
+        
+        public UUID getid() {
+        	return id;
+        }
+
+		public Integer getDay() {
+			return day;
+		}
+
+		public void setDay(Integer day) {
+			this.day = day;
+		}
+
+		public Integer getMonth() {
+			return month;
+		}
+
+		public void setMonth(Integer month) {
+			this.month = month;
+		}
+
+		public Integer getYear() {
+			return year;
+		}
+
+		public void setYear(Integer year) {
+			this.year = year;
+		}
+
+		public Integer getHour() {
+			return hour;
+		}
+
+		public void setHour(Integer hour) {
+			this.hour = hour;
+		}
+		
+		public Date getEvent_time() {
+			return event_time;
+		}
+
+		public void setEvent_time(Date event_time) {
+			this.event_time = event_time;
+			
+			DateTime date = new DateTime(event_time);
+			setYear(date.getYear());
+    		setMonth(date.getMonthOfYear());
+    		setDay(date.getDayOfMonth());
+    		setHour(date.getHourOfDay());
+		}
+
+		public Set<String> getDistincts_pages_set() {
+			return distincts_pages_set;
+		}
+
+		public void setDistincts_pages_set(Set<String> distincts_pages_set) {
+			this.distincts_pages_set = distincts_pages_set;
+		}
+
+		public Set<String> getDistincts_editors_set() {
+			return distincts_editors_set;
+		}
+
+		public void setDistincts_editors_set(Set<String> distincts_editors_set) {
+			this.distincts_editors_set = distincts_editors_set;
+		}
+
+		public Set<String> getDistincts_servers_set() {
+			return distincts_servers_set;
+		}
+
+		public void setDistincts_servers_set(Set<String> distincts_servers_set) {
+			this.distincts_servers_set = distincts_servers_set;
+		}
+
+		public Map<String, Long> getEdits_data() {
+			return edits_data;
+		}
+
+		public void setEdits_data(Map<String, Long> edits_data) {
+			this.edits_data = edits_data;
+		}
+
+		public Long getSmaller_origin() {
+			return smaller_origin;
+		}
+
+		public void setSmaller_origin(Long smaller_origin) {
+			this.smaller_origin = smaller_origin;
+		}
+
+		@Override
+		public String toString() {
+			return "AbsoluteValueShot2 [id=" + id + ", hour=" + hour + ", day=" + day + ", month=" + month + ", year="
+					+ year + ", event_time=" + event_time + ", edits_data=" + edits_data + ", distincts_pages_set="
+					+ distincts_pages_set + ", distincts_editors_set=" + distincts_editors_set
+					+ ", distincts_servers_set=" + distincts_servers_set + ", smaller_origin=" + smaller_origin
+					+ ", toString()=" + super.toString() + "]";
+		}
+
     }
-    
-    public UUID getid() {
-		return id;
-	}
-
-	public void setid(UUID id) {
-		this.id = id;
-	}
-
-	public String getDate() {
-		return date;
-	}
-
-	public void setDate(String date) {
-		this.date = date;
-	}
-
-	public Integer getAll_edits() {
-		return all_edits;
-	}
-
-	public void setAll_edits(Integer all_edits) {
-		this.all_edits = all_edits;
-	}
-
-	public Integer getMinor_edits() {
-		return minor_edits;
-	}
-
-	public void setMinor_edits(Integer minor_edits) {
-		this.minor_edits = minor_edits;
-	}
-
-	public Integer getAverage_size() {
-		return average_size;
-	}
-
-	public void setAverage_size(Integer average_size) {
-		this.average_size = average_size;
-	}
-
-	public Integer getDistinct_pages() {
-		return distinct_pages;
-	}
-
-	public void setDistinct_pages(Integer distinct_pages) {
-		this.distinct_pages = distinct_pages;
-	}
-
-	public Integer getDistinct_editors() {
-		return distinct_editors;
-	}
-
-	public void setDistinct_editors(Integer distinct_editors) {
-		this.distinct_editors = distinct_editors;
-	}
-
-	public Integer getDistinct_servers() {
-		return distinct_servers;
-	}
-
-	public void setDistinct_servers(Integer distinct_servers) {
-		this.distinct_servers = distinct_servers;
-	}
-
-	public Long getOrigin() {
-		return origin;
-	}
-
-	public void setOrigin(Long origin) {
-		this.origin = origin;
-	}
-
-	public Long getBatch_elapsed_time() {
-		return batch_elapsed_time;
-	}
-
-	public void setBatch_elapsed_time(Long batch_elapsed_time) {
-		this.batch_elapsed_time = batch_elapsed_time;
-	}
-
-	public Integer getTotal_executor_cores() {
-		return total_executor_cores;
-	}
-
-	public void setTotal_executor_cores(Integer total_executor_cores) {
-		this.total_executor_cores = total_executor_cores;
-	}
-
-	public Long getInput_size() {
-		return input_size;
-	}
-
-	public void setInput_size(Long input_size) {
-		this.input_size = input_size;
-	}
-
-	public String getHour() {
-		return hour;
-	}
-
-	public void setHour(String hour) {
-		this.hour = hour;
-	}
-
-	public Date getEvent_time() {
-		return event_time;
-	}
-
-	public void setEvent_time(Date event_time) {
-		this.event_time = event_time;
-	}
-
-	@Override
-	public String toString() {
-		return "AbsoluteValuesShot [id=" + id + ", date=" + date + ", all_edits=" + all_edits + ", minor_edits="
-				+ minor_edits + ", average_size=" + average_size + ", distinct_pages=" + distinct_pages
-				+ ", distinct_editors=" + distinct_editors + ", distinct_servers=" + distinct_servers + ", origin="
-				+ origin + ", batch_elapsed_time=" + batch_elapsed_time + ", total_executor_cores="
-				+ total_executor_cores + ", input_size=" + input_size + ", hour=" + hour + ", event_time="
-				+ event_time + "]";
-	}
-}

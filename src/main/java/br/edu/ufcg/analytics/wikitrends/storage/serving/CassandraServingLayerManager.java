@@ -108,17 +108,14 @@ public class CassandraServingLayerManager implements Serializable {
 	 */
 	public static void main(String[] args) {
 
-//		if (args.length < 3) {
-//			System.err.println(
-//					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.serving.CassandraServingLayerManager OPERATION <seed_address>");
-//			System.exit(1);
-//		}
+		if (args.length < 3) {
+			System.err.println(
+					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.serving.CassandraServingLayerManager OPERATION <seed_address>");
+			System.exit(1);
+		}
 
-//		String operation = args[0];
-//		String seedNode = args[1];
-		
-		String operation = "CREATE";
-		String seedNode = "localhost";
+		String operation = args[0];
+		String seedNode = args[1];
 		
 		CassandraServingLayerManager manager = new CassandraServingLayerManager();
 		

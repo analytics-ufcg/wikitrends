@@ -1,31 +1,34 @@
 package br.edu.ufcg.analytics.wikitrends.storage.serving.types;
 
 import java.io.Serializable;
-import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
-import org.apache.http.annotation.Obsolete;
+import org.joda.time.DateTime;
 
-@Obsolete
 public class TopClass implements Serializable {
 		private static final long serialVersionUID = 2644747318393169105L;
 		
 		private UUID id;
-    	private Date date_event;
-        private Integer hour;
+		private Integer hour;
+    	private Integer day;
+    	private Integer month;
+    	private Integer year;
         private Date event_time;
         private Map<String, Integer> data;
 
-        public TopClass() { }
-
-        public TopClass(UUID id, Date date_event, Integer hour, Date event_time, Map<String, Integer> data) {
-            this.id = id;
-        	this.date_event = date_event;
-            this.hour = hour;
-            this.event_time = event_time;
+        public TopClass(Map<String, Integer> data) {
+        	this.id = UUID.randomUUID();
             this.data = data;
+
+            DateTime date = new DateTime();
+            setEvent_time(date.toDate());
+    		
+            setYear(date.getYear());
+    		setMonth(date.getMonthOfYear());
+    		setDay(date.getDayOfMonth());
+    		setHour(date.getHourOfDay());
         }
         
         public void setid(UUID id) {
@@ -36,6 +39,38 @@ public class TopClass implements Serializable {
         	return id;
         }
 
+		public UUID getId() {
+			return id;
+		}
+
+		public void setId(UUID id) {
+			this.id = id;
+		}
+
+		public Integer getDay() {
+			return day;
+		}
+
+		public void setDay(Integer day) {
+			this.day = day;
+		}
+
+		public Integer getMonth() {
+			return month;
+		}
+
+		public void setMonth(Integer month) {
+			this.month = month;
+		}
+
+		public Integer getYear() {
+			return year;
+		}
+
+		public void setYear(Integer year) {
+			this.year = year;
+		}
+
 		public Integer getHour() {
 			return hour;
 		}
@@ -44,21 +79,18 @@ public class TopClass implements Serializable {
 			this.hour = hour;
 		}
 		
-		public Date getDate_event() {
-			return date_event;
-		}
-		
-		public void setDate_event(Date date_event) {
-			this.date_event = date_event;
-		}
-
-		
 		public Date getEvent_time() {
 			return event_time;
 		}
 
 		public void setEvent_time(Date event_time) {
 			this.event_time = event_time;
+			
+			DateTime date = new DateTime(event_time);
+			setYear(date.getYear());
+    		setMonth(date.getMonthOfYear());
+    		setDay(date.getDayOfMonth());
+    		setHour(date.getHourOfDay());
 		}
 
 		public Map<String, Integer> getData() {
@@ -70,7 +102,8 @@ public class TopClass implements Serializable {
 		}
 		
 		@Override
-        public String toString() {
-            return MessageFormat.format("TopClass: '{'ID={0},Hour={1},Data={2},Date={3},EventTime={4}'}'", id, hour, data, date_event, event_time);
-        }
+		public String toString() {
+			return "TopClass2 [id=" + id + ", hour=" + hour + ", day=" + day + ", month=" + month + ", year=" + year
+					+ ", event_time=" + event_time + ", data=" + data + "]";
+		}
     }
