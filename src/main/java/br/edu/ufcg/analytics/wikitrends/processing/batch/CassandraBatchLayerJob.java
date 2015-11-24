@@ -29,20 +29,30 @@ public class CassandraBatchLayerJob extends BatchLayerJob {
 	private String pagesTable;
 	private String contentPagesTable;
 	private String serversTable;
+	private String serversRankingTable;
 	private String usersTable;
 	private String absoluteValuesTable;
 
+	/**
+	 * Default constructor
+	 * 
+	 * @param configuration
+	 */
 	public CassandraBatchLayerJob(Configuration configuration) {
 		super(configuration);
 		batchViewsKeyspace = configuration.getString("wikitrends.batch.cassandra.keyspace");
 		pagesTable = configuration.getString("wikitrends.batch.cassandra.table.pages");
 		contentPagesTable = configuration.getString("wikitrends.batch.cassandra.table.contentpages");
 		serversTable = configuration.getString("wikitrends.batch.cassandra.table.servers");
+		serversRankingTable = configuration.getString("wikitrends.batch.cassandra.table.serversranking");
 		usersTable = configuration.getString("wikitrends.batch.cassandra.table.users");
 		absoluteValuesTable = configuration.getString("wikitrends.batch.cassandra.table.absolutevalues");
 		
 	}
 
+	/* (non-Javadoc)
+	 * @see br.edu.ufcg.analytics.wikitrends.processing.batch.BatchLayerJob#readRDD(org.apache.spark.api.java.JavaSparkContext)
+	 */
 	@Override
 	protected JavaRDD<EditType> readRDD(JavaSparkContext sc) {
 		JavaRDD<EditType> wikipediaEdits = javaFunctions(sc).cassandraTable("master_dataset", "edits")
@@ -103,9 +113,20 @@ public class CassandraBatchLayerJob extends BatchLayerJob {
 		
 	}
 
+	/* (non-Javadoc)
+	 * @see br.edu.ufcg.analytics.wikitrends.processing.batch.BatchLayerJob#saveServerRanking(org.apache.spark.api.java.JavaSparkContext, org.apache.spark.api.java.JavaRDD)
+	 */
 	@Override
 	protected void saveServerRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput<Integer>> serverRanking) {
-		List<BatchLayerOutput<Integer>> allPages = serverRanking.collect(); // data map
+		
+		LocalDateTime now = LocalDateTime.now();
+		CassandraJavaUtil
+				.javaFunctions(serverRanking.map(entry -> new ServerRanking(now, entry.getKey(), entry.getValue())))
+				.writerBuilder(batchViewsKeyspace, serversRankingTable, mapToRow(ServerRanking.class))
+				.saveToCassandra();
+
+		
+		List<BatchLayerOutput<Integer>> allPages = serverRanking.collect();
 		
 		Map<String, Integer> data = new HashMap<String, Integer>();
 		for(BatchLayerOutput<Integer> t  : allPages) {
@@ -120,6 +141,9 @@ public class CassandraBatchLayerJob extends BatchLayerJob {
 		
 	}
 
+	/* (non-Javadoc)
+	 * @see br.edu.ufcg.analytics.wikitrends.processing.batch.BatchLayerJob#saveUserRanking(org.apache.spark.api.java.JavaSparkContext, org.apache.spark.api.java.JavaRDD)
+	 */
 	@Override
 	protected void saveUserRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput<Integer>> userRanking) {
 		List<BatchLayerOutput<Integer>> allPages = userRanking.take(100);
@@ -136,6 +160,9 @@ public class CassandraBatchLayerJob extends BatchLayerJob {
 			.saveToCassandra();
 	}
 
+	/* (non-Javadoc)
+	 * @see br.edu.ufcg.analytics.wikitrends.processing.batch.BatchLayerJob#processStatistics(org.apache.spark.api.java.JavaSparkContext, org.apache.spark.api.java.JavaRDD)
+	 */
 	@Override
 	protected void processStatistics(JavaSparkContext sc, JavaRDD<EditType> wikipediaEdits) {
 		Map<String, Long> edits_data = new HashMap<String, Long>();

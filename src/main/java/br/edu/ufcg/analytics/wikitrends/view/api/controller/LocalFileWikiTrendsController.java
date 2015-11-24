@@ -23,7 +23,7 @@ public class LocalFileWikiTrendsController implements WikiTrendsController {
 	 * @see br.edu.ufcg.analytics.wikitrends.api.controller.WikiController#statistics()
 	 */
 	@Override
-	@RequestMapping("/statistics")
+	@RequestMapping("/v1/statistics")
 	public RankingRow[] statistics() {
 		String source = "/var/www/wikitrends/data/absolute.tsv";
 		
@@ -34,7 +34,7 @@ public class LocalFileWikiTrendsController implements WikiTrendsController {
 	 * @see br.edu.ufcg.analytics.wikitrends.api.controller.WikiController#editors(java.lang.String)
 	 */
 	@Override
-	@RequestMapping("/editors")
+	@RequestMapping("/v1/editors")
 	public RankingRow[] editors(@RequestParam(value="size", defaultValue="20") String size) {
 		String source = "/var/www/wikitrends/data/editors.tsv";
 		int numberOfResults = Integer.valueOf(size);
@@ -46,7 +46,7 @@ public class LocalFileWikiTrendsController implements WikiTrendsController {
 	 * @see br.edu.ufcg.analytics.wikitrends.api.controller.WikiController#idioms(java.lang.String)
 	 */
 	@Override
-	@RequestMapping("/idioms")
+	@RequestMapping("/v1/idioms")
 	public RankingRow[] idioms(@RequestParam(value="size", defaultValue="20") String size) {
 		String source = "/var/www/wikitrends/data/idioms.tsv";
 		int numberOfResults = Integer.valueOf(size);
@@ -58,7 +58,7 @@ public class LocalFileWikiTrendsController implements WikiTrendsController {
 	 * @see br.edu.ufcg.analytics.wikitrends.api.controller.WikiController#pages(java.lang.String)
 	 */
 	@Override
-	@RequestMapping("/pages")
+	@RequestMapping("/v1/pages")
 	public RankingRow[] pages(@RequestParam(value="size", defaultValue="20") String size, @RequestParam(value="contentonly", defaultValue="false") String contentOnly) {
 		int numberOfResults = Integer.valueOf(size);
 		boolean contentOnlyPages = Boolean.valueOf(contentOnly);

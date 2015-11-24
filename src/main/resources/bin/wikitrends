@@ -149,7 +149,7 @@ web)
         ;;
     stop)
 	    echo "Attempting to stop web application"
-	    kill `ps aux | grep WikiTrendsAPI | awk '{print $2}'`
+	    kill `ps aux | grep WikiTrends | awk '{print $2}'`
 		echo "Finished speed layer job"
         ;;
 	*)

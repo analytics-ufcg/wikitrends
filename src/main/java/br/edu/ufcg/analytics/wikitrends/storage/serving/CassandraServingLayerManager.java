@@ -45,6 +45,17 @@ public class CassandraServingLayerManager implements Serializable {
 								") WITH CLUSTERING ORDER BY (id DESC);"
             		);
            
+            session.execute("CREATE TABLE IF NOT EXISTS batch_views.servers_ranking (" + 
+            		"year int," +
+            		"month int," +
+            		"day int," +
+            		"hour int," +
+            		"server_name text," +
+            		"number_of_access int," +
+            		"PRIMARY KEY((year, month, day, hour), number_of_access)) " + 
+            		"WITH CLUSTERING ORDER BY (number_of_access DESC);"
+            		);
+           
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
 								"top_pages" +
 								"(id UUID," +
