@@ -15,19 +15,19 @@ public class ServerRanking implements Serializable {
 	private int month;
 	private int year;
 	private String serverName;
-	private int numberOfAccess;
+	private int numberOfChanges;
 	
 	public ServerRanking() {
 		
 	}
 
-	public ServerRanking(int year, int month, int day, int hour, String serverName, int numberOfAccess) {
+	public ServerRanking(int year, int month, int day, int hour, String serverName, int numberOfChanges) {
 		this.hour = hour;
 		this.day = day;
 		this.month = month;
 		this.year = year;
 		this.serverName = serverName;
-		this.numberOfAccess = numberOfAccess;
+		this.numberOfChanges = numberOfChanges;
 	}
 
 	public ServerRanking(LocalDateTime time, String serverName, int numberOfAccess) {
@@ -103,19 +103,19 @@ public class ServerRanking implements Serializable {
 	public void setServerName(String serverName) {
 		this.serverName = serverName;
 	}
-
+	
 	/**
-	 * @return the numberOfAccess
+	 * @return the numberOfChanges
 	 */
-	public int getNumberOfAccess() {
-		return numberOfAccess;
+	public int getNumberOfChanges() {
+		return numberOfChanges;
 	}
 
 	/**
-	 * @param numberOfAccess the numberOfAccess to set
+	 * @param numberOfChanges the numberOfChanges to set
 	 */
-	public void setNumberOfAccess(int numberOfAccess) {
-		this.numberOfAccess = numberOfAccess;
+	public void setNumberOfChanges(int numberOfChanges) {
+		this.numberOfChanges = numberOfChanges;
 	}
 
 	/* (non-Javadoc)
@@ -124,7 +124,7 @@ public class ServerRanking implements Serializable {
 	@Override
 	public String toString() {
 		return "ServerRanking [hour=" + hour + ", day=" + day + ", month=" + month + ", year=" + year + ", serverName="
-				+ serverName + ", numberOfAccess=" + numberOfAccess + "]";
+				+ serverName + ", numberOfChanges=" + numberOfChanges + "]";
 	}
 
 }

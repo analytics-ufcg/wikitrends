@@ -51,9 +51,9 @@ public class CassandraServingLayerManager implements Serializable {
             		"day int," +
             		"hour int," +
             		"server_name text," +
-            		"number_of_access int," +
-            		"PRIMARY KEY((year, month, day, hour), number_of_access)) " + 
-            		"WITH CLUSTERING ORDER BY (number_of_access DESC);"
+            		"number_of_changes int," +
+            		"PRIMARY KEY((year, month, day, hour), server_name, number_of_changes)) " + 
+            		"WITH CLUSTERING ORDER BY (number_of_changes DESC);"
             		);
            
             session.execute("CREATE TABLE IF NOT EXISTS batch_views.status (" + 
