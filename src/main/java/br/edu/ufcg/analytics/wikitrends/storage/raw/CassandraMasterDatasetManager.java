@@ -131,7 +131,6 @@ public class CassandraMasterDatasetManager implements Serializable {
 
 	public void populateFrom(String cassandraSeedHostname, String inputFile) {
 		SparkConf conf = new SparkConf();
-		conf.setMaster("spark://tomato:7077");
 		conf.setAppName("wikitrends-migrate-master");
 		conf.set("spark.cassandra.connection.host", cassandraSeedHostname);
 

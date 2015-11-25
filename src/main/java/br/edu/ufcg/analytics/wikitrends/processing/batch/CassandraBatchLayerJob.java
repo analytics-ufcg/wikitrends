@@ -28,11 +28,11 @@ public class CassandraBatchLayerJob extends BatchLayerJob {
 
 	private static final long serialVersionUID = -1876586531051844584L;
 
-	private String batchViewsKeyspace;
+	protected String batchViewsKeyspace;
 	private String pagesTable;
 	private String contentPagesTable;
 	private String serversTable;
-	private String serversRankingTable;
+	protected String serversRankingTable;
 	private String usersTable;
 	private String absoluteValuesTable;
 

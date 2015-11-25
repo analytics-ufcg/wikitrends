@@ -62,35 +62,32 @@ public abstract class BatchLayerJob implements WikiTrendsProcess {
 					.filter(edit -> edit.getCommon_server_name().endsWith("wikipedia.org"))
 					.cache();
 			
-			System.out.println(wikipediaEdits.count());
-			System.out.println(wikipediaEdits.partitions().size());
-			
-			JavaPairRDD<String, Integer> titleRDD = wikipediaEdits
-			.mapPartitionsToPair( iterator -> {
-				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
-				while(iterator.hasNext()){
-					EditType edit = iterator.next();
-					pairs.add(new Tuple2<String, Integer>(edit.getCommon_event_title(), 1));
-				}
-				return pairs;
-			});
-			JavaRDD<BatchLayerOutput<Integer>> titleRanking = processRanking(sc, titleRDD);
-			
-			saveTitleRanking(sc, titleRanking);
-
-			JavaPairRDD<String, Integer> contentTitleRDD = wikipediaEdits
-			.filter(edits -> "0".equals(edits.getCommon_event_namespace()))
-			.mapPartitionsToPair( iterator -> {
-				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
-				while(iterator.hasNext()){
-					EditType edit = iterator.next();
-					pairs.add(new Tuple2<String, Integer>(edit.getCommon_event_title(), 1));
-				}
-				return pairs;
-			});
-			JavaRDD<BatchLayerOutput<Integer>> contentTitleRanking = processRanking(sc, contentTitleRDD);
-			
-			saveContentTitleRanking(sc, contentTitleRanking);
+//			JavaPairRDD<String, Integer> titleRDD = wikipediaEdits
+//			.mapPartitionsToPair( iterator -> {
+//				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
+//				while(iterator.hasNext()){
+//					EditType edit = iterator.next();
+//					pairs.add(new Tuple2<String, Integer>(edit.getCommon_event_title(), 1));
+//				}
+//				return pairs;
+//			});
+//			JavaRDD<BatchLayerOutput<Integer>> titleRanking = processRanking(sc, titleRDD);
+//			
+//			saveTitleRanking(sc, titleRanking);
+//
+//			JavaPairRDD<String, Integer> contentTitleRDD = wikipediaEdits
+//			.filter(edits -> "0".equals(edits.getCommon_event_namespace()))
+//			.mapPartitionsToPair( iterator -> {
+//				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
+//				while(iterator.hasNext()){
+//					EditType edit = iterator.next();
+//					pairs.add(new Tuple2<String, Integer>(edit.getCommon_event_title(), 1));
+//				}
+//				return pairs;
+//			});
+//			JavaRDD<BatchLayerOutput<Integer>> contentTitleRanking = processRanking(sc, contentTitleRDD);
+//			
+//			saveContentTitleRanking(sc, contentTitleRanking);
 
 			JavaPairRDD<String, Integer> serverRDD = wikipediaEdits
 			.mapPartitionsToPair( iterator -> {
@@ -104,19 +101,19 @@ public abstract class BatchLayerJob implements WikiTrendsProcess {
 			JavaRDD<BatchLayerOutput<Integer>> serverRanking = processRanking(sc, serverRDD);
 			saveServerRanking(sc, serverRanking);
 			
-			JavaPairRDD<String, Integer> userRDD = wikipediaEdits
-			.mapPartitionsToPair( iterator -> {
-				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
-				while(iterator.hasNext()){
-					EditType edit = iterator.next();
-					pairs.add(new Tuple2<String, Integer>(edit.getCommon_event_user(), 1));
-				}
-				return pairs;
-			});
-			JavaRDD<BatchLayerOutput<Integer>> userRanking = processRanking(sc, userRDD);
-			saveUserRanking(sc, userRanking);
-
-			processStatistics(sc, wikipediaEdits);
+//			JavaPairRDD<String, Integer> userRDD = wikipediaEdits
+//			.mapPartitionsToPair( iterator -> {
+//				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
+//				while(iterator.hasNext()){
+//					EditType edit = iterator.next();
+//					pairs.add(new Tuple2<String, Integer>(edit.getCommon_event_user(), 1));
+//				}
+//				return pairs;
+//			});
+//			JavaRDD<BatchLayerOutput<Integer>> userRanking = processRanking(sc, userRDD);
+//			saveUserRanking(sc, userRanking);
+//
+//			processStatistics(sc, wikipediaEdits);
 		}	
 	}
 	
