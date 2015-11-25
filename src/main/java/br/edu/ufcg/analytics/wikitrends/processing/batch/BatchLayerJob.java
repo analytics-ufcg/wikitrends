@@ -31,7 +31,7 @@ public abstract class BatchLayerJob implements WikiTrendsProcess {
 	 * 
 	 */
 	private static final long serialVersionUID = 833872580572610849L;
-	private transient Configuration configuration;
+	protected transient Configuration configuration;
 
 	/**
 	 * Default constructor
