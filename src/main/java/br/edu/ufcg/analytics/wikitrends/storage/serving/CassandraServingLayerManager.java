@@ -119,7 +119,7 @@ public class CassandraServingLayerManager implements Serializable {
 	 */
 	public static void main(String[] args) {
 
-		if (args.length < 3) {
+		if (args.length < 2) {
 			System.err.println(
 					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.serving.CassandraServingLayerManager OPERATION <seed_address>");
 			System.exit(1);

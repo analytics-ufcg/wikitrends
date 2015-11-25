@@ -79,17 +79,17 @@ ingestor)
     esac
     ;;
 master)
-	MASTER_DATASET_MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager
+	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager
 	case $2 in
 	createschema)
 	    echo "Creating master dataset schema"
 		source ${ENV_VAR_FILE}
-		java -cp "${WIKITRENDS_HOME}/lib/*" ${MASTER_DATASET_MANAGER_CLASS} CREATE $3 $4
+		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3
 	    echo "OK!"
 		;;
 	migrate)
 	    echo "Attempting to migrate master dataset from JSON file"
-		spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MASTER_DATASET_MANAGER_CLASS} ${LOCAL_JAR_ADDRESS} POPULATE $3 $4
+		spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MANAGER_CLASS} ${LOCAL_JAR_ADDRESS} POPULATE $3 $4
 		echo "OK!"
 	    ;;
 	*)
@@ -98,18 +98,14 @@ master)
     esac
     ;;
 serving)
+	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.serving.CassandraServingLayerManager
 	case $2 in
 	createschema)
 	    echo "Creating serving schema"
 		source ${ENV_VAR_FILE}
-		java -cp "${WIKITRENDS_HOME}/lib/*" br.edu.ufcg.analytics.wikitrends.storage.serving.CreateCassandraServingSchema $3
+		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3
 	    echo "OK!"
 		;;
-	migrate)
-	    echo "Attempting to migrate serving layer schema"
-		spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class br.edu.ufcg.analytics.wikitrends.storage.CassandraServingLayerManager ${JAR_ADDRESS} $3 $4
-		echo "OK!"
-	    ;;
 	*)
 		show_help
 		;;    
