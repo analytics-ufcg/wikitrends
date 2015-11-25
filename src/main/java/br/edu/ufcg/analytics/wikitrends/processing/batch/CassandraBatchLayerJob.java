@@ -6,6 +6,7 @@ import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -171,11 +172,20 @@ public class CassandraBatchLayerJob extends BatchLayerJob {
 		edits_data.put("all_edits", countAllEdits(wikipediaEdits));
 		edits_data.put("minor_edits", countMinorEdits(wikipediaEdits));
 		edits_data.put("average_size", calcAverageEditLength(wikipediaEdits));
+
 		
-		Set<String> distincts_pages_set = distinctPages(wikipediaEdits);
-		Set<String> distincts_editors_set = distinctEditors(wikipediaEdits);
-		Set<String> distincts_servers_set = distinctServers(wikipediaEdits);
+		Set<String> distincts_pages_set = new HashSet<>();
+		Set<String> distincts_editors_set = new HashSet<>();
+		Set<String> distincts_servers_set = new HashSet<>();
+
+//		Set<String> distincts_pages_set = distinctPages(wikipediaEdits);
+//		Set<String> distincts_editors_set = distinctEditors(wikipediaEdits);
+//		Set<String> distincts_servers_set = distinctServers(wikipediaEdits);
 		
+//		System.out.println(distincts_pages_set.size()); // 359185
+//		System.out.println(distincts_editors_set.size()); // 57978
+//		System.out.println(distincts_servers_set.size()); // 215
+
 		Long smaller_origin = getOrigin(wikipediaEdits); 
 		
 		List<AbsoluteValuesShot> output = Arrays.asList(new AbsoluteValuesShot(edits_data, 
@@ -183,7 +193,6 @@ public class CassandraBatchLayerJob extends BatchLayerJob {
 																				distincts_editors_set,
 																				distincts_servers_set,
 																				smaller_origin));
-		
 		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
 			.writerBuilder(batchViewsKeyspace, absoluteValuesTable, mapToRow(AbsoluteValuesShot.class))
 			.saveToCassandra();
