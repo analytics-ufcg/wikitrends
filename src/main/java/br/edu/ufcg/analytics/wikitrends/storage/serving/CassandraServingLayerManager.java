@@ -7,7 +7,12 @@ import com.datastax.driver.core.Session;
 
 public class CassandraServingLayerManager implements Serializable {
 	
-	private static final long serialVersionUID = -6109094054314874995L;
+	/**
+	 * SerialVersionUID for CassandraServingLayerManager
+	 * 
+	 *  @since November 26, 2015
+	 */
+	private static final long serialVersionUID = -1017103087942947022L;
 
 	// Prepare the schema
 	public void createTables(Session session) {

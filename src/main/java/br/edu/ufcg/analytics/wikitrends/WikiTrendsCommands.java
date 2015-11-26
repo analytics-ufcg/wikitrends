@@ -12,6 +12,7 @@ import org.apache.commons.configuration.Configuration;
 public enum WikiTrendsCommands {
 	
 	BATCH ("wikitrends.batch.class"),
+	SERVING ("wikitrends.serving.class"),
 	INGESTOR ("wikitrends.ingestion.class"),
 	SPEED ("wikitrends.speed.class"),
 	WEB ("wikitrends.view.class");

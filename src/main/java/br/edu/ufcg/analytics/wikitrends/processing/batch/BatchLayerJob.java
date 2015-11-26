@@ -16,6 +16,7 @@ import com.google.gson.JsonObject;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
+import br.edu.ufcg.analytics.wikitrends.processing.batch.BatchLayerOutput;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
 import scala.Tuple2;
 
