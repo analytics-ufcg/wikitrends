@@ -2,6 +2,7 @@ package br.edu.ufcg.analytics.wikitrends.ingestion;
 
 import java.util.Properties;
 
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -30,9 +31,7 @@ public class KafkaStreamProducer implements StreamProducer {
 
 		Properties producerConfiguration = new Properties();
 		
-		producerConfiguration.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
-				String.format("%s:%s", configuration.getString("wikitrends.ingestion.kafka.host"),
-						configuration.getString("wikitrends.ingestion.kafka.port")));
+		producerConfiguration.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getString("wikitrends.ingestion.kafka.servers"));
 		producerConfiguration.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 		producerConfiguration.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 
