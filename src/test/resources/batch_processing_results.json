@@ -1,0 +1,28 @@
+{
+  "top_editors" : {
+			"":3,
+			"":234
+		},
+
+  "top_pages": {
+		
+		},
+
+  "top_content_pages": {
+
+		},
+
+  "top_idioms": {
+
+		},
+
+  "absolute_values": {
+			"distinct_editors_count": ?,
+ 		        "distinct_idioms_count": ?,
+			"distinct_pages_count": ?,
+			"all_edits": 1000,
+			"minor_edits": ?,
+			"average_size": ?,
+			"origin": ?
+		}
+}

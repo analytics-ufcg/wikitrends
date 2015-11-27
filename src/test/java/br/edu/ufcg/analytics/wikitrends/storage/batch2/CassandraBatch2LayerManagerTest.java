@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.storage.results;
+package br.edu.ufcg.analytics.wikitrends.storage.batch2;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -14,17 +14,19 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
+import br.edu.ufcg.analytics.wikitrends.storage.serving2.CassandraServingLayer2Manager;
+
 /**
  * @author Ricardo Araújo Santos - ricardo@copin.ufcg.edu.br
  * @author Guilherme Gadelha
  *
  */
-public class CassandraResultsLayerManagerTest {
+public class CassandraBatch2LayerManagerTest {
 	
 	private JavaSparkContext sc;
 	private Cluster cluster;
 	private Session session;
-	private ResultsDataGenerator dataGen;
+	private BatchViews2DataGenerator dataGen;
 	
 	@Before
 	public void setup() {
@@ -42,10 +44,10 @@ public class CassandraResultsLayerManagerTest {
         cluster = Cluster.builder().addContactPoints(testHosts).build();
         session = cluster.newSession();
         
-        new CassandraResultsLayerManager().createTables(session);
+        new CassandraServingLayer2Manager().createTables(session);
         session.execute("USE results;");
         
-        dataGen = new ResultsDataGenerator(sc);
+        dataGen = new BatchViews2DataGenerator(sc);
 	}
 	
 	@Test

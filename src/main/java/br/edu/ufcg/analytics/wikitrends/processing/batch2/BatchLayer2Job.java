@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.processing.serving;
+package br.edu.ufcg.analytics.wikitrends.processing.batch2;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -9,7 +9,7 @@ import org.apache.spark.api.java.JavaSparkContext;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
-import br.edu.ufcg.analytics.wikitrends.storage.results.types.ResultAbsoluteValuesShot;
+import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultAbsoluteValuesShot;
 
 /**
  * {@link WikiTrendsProcess} implementation when a {@link WikiTrendsCommands#BATCH} is chosen. 
@@ -17,11 +17,11 @@ import br.edu.ufcg.analytics.wikitrends.storage.results.types.ResultAbsoluteValu
  * @author Guilherme Gadelha
  * @author Ricardo Ara&eacute;jo Santos - ricoaraujosantos@gmail.com
  */
-public abstract class ServingLayerJob implements WikiTrendsProcess {
+public abstract class BatchLayer2Job implements WikiTrendsProcess {
 
 	
 	/**
-	 * SerialVersionUID for ServingLayerJob
+	 * SerialVersionUID for BatchLayer2Job
 	 * 
 	 * @since November 26, 2015
 	 */
@@ -34,7 +34,7 @@ public abstract class ServingLayerJob implements WikiTrendsProcess {
 	 * Default constructor
 	 * @param configuration 
 	 */
-	public ServingLayerJob(Configuration configuration) {
+	public BatchLayer2Job(Configuration configuration) {
 		this.configuration = configuration;
 	}
 

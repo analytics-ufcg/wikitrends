@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.storage.serving;
+package br.edu.ufcg.analytics.wikitrends.storage.batch1;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
@@ -16,14 +16,14 @@ import org.joda.time.DateTime;
 
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
-import br.edu.ufcg.analytics.wikitrends.storage.serving.types.AbsoluteValuesShot;
-import br.edu.ufcg.analytics.wikitrends.storage.serving.types.TopClass;
+import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.AbsoluteValuesShot;
+import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
 
-public class ServingDataGenerator {
+public class BatchViewsDataGenerator {
 	
 	private JavaSparkContext sc;
 	
-	public ServingDataGenerator(JavaSparkContext sc) {
+	public BatchViewsDataGenerator(JavaSparkContext sc) {
 		this.sc = sc;
 	}
 	

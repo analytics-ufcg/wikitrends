@@ -1,43 +1,32 @@
-package br.edu.ufcg.analytics.wikitrends.processing.serving;
+package br.edu.ufcg.analytics.wikitrends.processing.batch2;
 
-import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.spark.connector.cql.CassandraConnector;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
-import com.datastax.spark.connector.japi.CassandraRow;
 
-import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
-import br.edu.ufcg.analytics.wikitrends.storage.results.types.ResultAbsoluteValuesShot;
-import br.edu.ufcg.analytics.wikitrends.storage.results.types.ResultTopContentPage;
-import br.edu.ufcg.analytics.wikitrends.storage.results.types.ResultTopEditor;
-import br.edu.ufcg.analytics.wikitrends.storage.results.types.ResultTopIdiom;
-import br.edu.ufcg.analytics.wikitrends.storage.results.types.ResultTopPage;
-import br.edu.ufcg.analytics.wikitrends.storage.serving.types.AbsoluteValuesShot;
-import br.edu.ufcg.analytics.wikitrends.storage.serving.types.ServerRanking;
+import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultAbsoluteValuesShot;
+import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopContentPage;
+import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopEditor;
+import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopIdiom;
+import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopPage;
 
-public class CassandraServingLayerJob extends ServingLayerJob {
+public class CassandraBatchLayer2Job extends BatchLayer2Job {
 
 	/**
-	 * SerialVersionUID for CassandraServingLayerJob
+	 * SerialVersionUID for CassandraBatchLayer2Job
 	 * 
 	 *  @since November 26, 2015
 	 */
@@ -57,7 +46,7 @@ public class CassandraServingLayerJob extends ServingLayerJob {
 	 * 
 	 * @param configuration
 	 */
-	public CassandraServingLayerJob(Configuration configuration) {
+	public CassandraBatchLayer2Job(Configuration configuration) {
 		super(configuration);
 		servingKeyspace = configuration.getString("wikitrends.serving.cassandra.keyspace");
 		topPagesTable = configuration.getString("wikitrends.serving.cassandra.table.toppages");
@@ -131,31 +120,6 @@ public class CassandraServingLayerJob extends ServingLayerJob {
 		CassandraJavaUtil.javaFunctions(sc.parallelize(list))
 								.writerBuilder(servingKeyspace, absoluteValuesTable, mapToRow(ResultAbsoluteValuesShot.class))
 								.saveToCassandra();
-	}
-
-	/* (non-Javadoc)
-	 * @see br.edu.ufcg.analytics.wikitrends.processing.batch.BatchLayerJob#processStatistics(org.apache.spark.api.java.JavaSparkContext, org.apache.spark.api.java.JavaRDD)
-	 */
-	protected ResultAbsoluteValuesShot computeStatistics() {
-		Map<String, Long> edits_data = computeEditsData();
-
-		Long distinct_pages_count = computeDistinctPagesCount();
-		Integer distincts_editors_count = computeDistinctEditorsCount();
-		Integer distincts_servers_count = computeDistinctServersCount();
-		
-//		System.out.println(distincts_pages_set.size()); // 359185
-//		System.out.println(distincts_editors_set.size()); // 57978
-//		System.out.println(distincts_servers_set.size()); // 215
-
-		Long smaller_origin = getSmallerOrigin(); 
-		
-		return new ResultAbsoluteValuesShot(edits_data.get("all_edits"),
-											edits_data.get("minor_edits"),
-											edits_data.get("average_size"),
-											distinct_pages_count,
-											distincts_editors_count,
-											distincts_servers_count,
-											smaller_origin);
 	}
 
 	/**
@@ -360,8 +324,25 @@ public class CassandraServingLayerJob extends ServingLayerJob {
 
 	@Override
 	protected ResultAbsoluteValuesShot computeResultAbsoluteValues() {
-		//TODO
-		return null;
+		Map<String, Long> edits_data = computeEditsData();
+
+		Long distinct_pages_count = computeDistinctPagesCount();
+		Integer distincts_editors_count = computeDistinctEditorsCount();
+		Integer distincts_servers_count = computeDistinctServersCount();
+		
+//		System.out.println(distincts_pages_set.size()); // 359185
+//		System.out.println(distincts_editors_set.size()); // 57978
+//		System.out.println(distincts_servers_set.size()); // 215
+
+		Long smaller_origin = getSmallerOrigin(); 
+		
+		return new ResultAbsoluteValuesShot(edits_data.get("all_edits"),
+											edits_data.get("minor_edits"),
+											edits_data.get("average_size"),
+											distinct_pages_count,
+											distincts_editors_count,
+											distincts_servers_count,
+											smaller_origin);
 	}
 
 	@Override
@@ -383,4 +364,5 @@ public class CassandraServingLayerJob extends ServingLayerJob {
 	protected Map<String, Integer> computeMapContentPagesToCount() {
 		return computeTopClassIntegerTypeData("top_content_pages");
 	}
+	
 }

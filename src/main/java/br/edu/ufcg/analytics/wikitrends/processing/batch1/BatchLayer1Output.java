@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.processing.batch;
+package br.edu.ufcg.analytics.wikitrends.processing.batch1;
 
 import java.io.Serializable;
 
@@ -10,7 +10,7 @@ import java.io.Serializable;
  * 
  * @param <T> : type of value (String or Number)
  */
-public class BatchLayerOutput<T> implements Serializable {
+public class BatchLayer1Output<T> implements Serializable {
 
 	private static final long serialVersionUID = 1595860019246486013L;
 	
@@ -22,7 +22,7 @@ public class BatchLayerOutput<T> implements Serializable {
 	 * @param key
 	 * @param value
 	 */
-	public BatchLayerOutput(String key, T value) {
+	public BatchLayer1Output(String key, T value) {
 		this.key = key;
 		this.value = value;
 	}

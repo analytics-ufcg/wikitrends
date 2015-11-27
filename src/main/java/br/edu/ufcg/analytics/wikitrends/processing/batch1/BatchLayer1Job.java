@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.processing.batch;
+package br.edu.ufcg.analytics.wikitrends.processing.batch1;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -16,7 +16,6 @@ import com.google.gson.JsonObject;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
-import br.edu.ufcg.analytics.wikitrends.processing.batch.BatchLayerOutput;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
 import scala.Tuple2;
 
@@ -26,7 +25,7 @@ import scala.Tuple2;
  * @author Guilherme Gadelha
  * @author Ricardo Ara&eacute;jo Santos - ricoaraujosantos@gmail.com
  */
-public abstract class BatchLayerJob implements WikiTrendsProcess {
+public abstract class BatchLayer1Job implements WikiTrendsProcess {
 
 	/**
 	 * 
@@ -38,7 +37,7 @@ public abstract class BatchLayerJob implements WikiTrendsProcess {
 	 * Default constructor
 	 * @param configuration 
 	 */
-	public BatchLayerJob(Configuration configuration) {
+	public BatchLayer1Job(Configuration configuration) {
 		this.configuration = configuration;
 	}
 
@@ -72,7 +71,7 @@ public abstract class BatchLayerJob implements WikiTrendsProcess {
 //				}
 //				return pairs;
 //			});
-//			JavaRDD<BatchLayerOutput<Integer>> titleRanking = processRanking(sc, titleRDD);
+//			JavaRDD<BatchLayer1Output<Integer>> titleRanking = processRanking(sc, titleRDD);
 //			
 //			saveTitleRanking(sc, titleRanking);
 //
@@ -86,7 +85,7 @@ public abstract class BatchLayerJob implements WikiTrendsProcess {
 //				}
 //				return pairs;
 //			});
-//			JavaRDD<BatchLayerOutput<Integer>> contentTitleRanking = processRanking(sc, contentTitleRDD);
+//			JavaRDD<BatchLayer1Output<Integer>> contentTitleRanking = processRanking(sc, contentTitleRDD);
 //			
 //			saveContentTitleRanking(sc, contentTitleRanking);
 
@@ -99,7 +98,8 @@ public abstract class BatchLayerJob implements WikiTrendsProcess {
 				}
 				return pairs;
 			});
-			JavaRDD<BatchLayerOutput<Integer>> serverRanking = processRanking(sc, serverRDD);
+			
+			JavaRDD<BatchLayer1Output<Integer>> serverRanking = processRanking(sc, serverRDD);
 			saveServerRanking(sc, serverRanking);
 			
 //			JavaPairRDD<String, Integer> userRDD = wikipediaEdits
@@ -111,7 +111,7 @@ public abstract class BatchLayerJob implements WikiTrendsProcess {
 //				}
 //				return pairs;
 //			});
-//			JavaRDD<BatchLayerOutput<Integer>> userRanking = processRanking(sc, userRDD);
+//			JavaRDD<BatchLayer1Output<Integer>> userRanking = processRanking(sc, userRDD);
 //			saveUserRanking(sc, userRanking);
 //
 //			processStatistics(sc, wikipediaEdits);
@@ -131,23 +131,23 @@ public abstract class BatchLayerJob implements WikiTrendsProcess {
 	 * @param path HDFS output path.
 	 * @return 
 	 */
-	private JavaRDD<BatchLayerOutput<Integer>> processRanking(JavaSparkContext sc, JavaPairRDD<String,Integer> pairRDD) {
-		JavaRDD<BatchLayerOutput<Integer>> result = pairRDD
+	private JavaRDD<BatchLayer1Output<Integer>> processRanking(JavaSparkContext sc, JavaPairRDD<String,Integer> pairRDD) {
+		JavaRDD<BatchLayer1Output<Integer>> result = pairRDD
 				.reduceByKey( (a,b) -> a+b )
 				.mapToPair( edit -> edit.swap() )
 				.sortByKey(false)
-				.map( edit -> new BatchLayerOutput<Integer>(edit._2, edit._1) );
+				.map( edit -> new BatchLayer1Output<Integer>(edit._2, edit._1) );
 		
 		return result;
 	}
 
-	protected abstract void saveTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput<Integer>> titleRanking);
+	protected abstract void saveTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayer1Output<Integer>> titleRanking);
 
-	protected abstract void saveContentTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput<Integer>> contentTitleRanking);
+	protected abstract void saveContentTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayer1Output<Integer>> contentTitleRanking);
 
-	protected abstract void saveServerRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput<Integer>> serverRanking);
+	protected abstract void saveServerRanking(JavaSparkContext sc, JavaRDD<BatchLayer1Output<Integer>> serverRanking);
 	
-	protected abstract void saveUserRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput<Integer>> userRanking);
+	protected abstract void saveUserRanking(JavaSparkContext sc, JavaRDD<BatchLayer1Output<Integer>> userRanking);
 
 	protected abstract void processStatistics(JavaSparkContext sc, JavaRDD<EditType> wikipediaEdits);
 

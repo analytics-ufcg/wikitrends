@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.processing.batch;
+package br.edu.ufcg.analytics.wikitrends.processing.batch1;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
@@ -6,11 +6,9 @@ import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
@@ -19,14 +17,13 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-import com.datastax.driver.core.Statement;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.datastax.spark.connector.japi.CassandraRow;
 
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
-import br.edu.ufcg.analytics.wikitrends.storage.serving.types.ServerRanking;
+import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.ServerRanking;
 
-public class CassandraIncrementalBatchLayerJob extends CassandraBatchLayerJob{
+public class CassandraIncrementalBatchLayer1Job extends CassandraBatchLayer1Job{
 	
 	/**
 	 * 
@@ -41,7 +38,7 @@ public class CassandraIncrementalBatchLayerJob extends CassandraBatchLayerJob{
 	 * 
 	 * @param configuration
 	 */
-	public CassandraIncrementalBatchLayerJob(Configuration configuration) {
+	public CassandraIncrementalBatchLayer1Job(Configuration configuration) {
 		super(configuration);
 		
 		seeds = configuration.getStringArray("spark.cassandra.connection.host");
@@ -54,12 +51,13 @@ public class CassandraIncrementalBatchLayerJob extends CassandraBatchLayerJob{
 				Row row = all.get(0);
 				start = LocalDateTime.of(row.getInt("year"), row.getInt("month"), row.getInt("day"), row.getInt("hour"), 0).plusHours(1) ;
 			}else{
-				start = LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.start") * 1000), ZoneId.systemDefault());
+				start = LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.starttime") * 1000), ZoneId.systemDefault());
 			}
 		}
 
 //		now = LocalDateTime.ofInstant(Instant.ofEpochMilli((System.currentTimeMillis() / 3600000) * 3600000), ZoneId.systemDefault());
-		now = LocalDateTime.of(2015, 11, 9, 12, 0) ;
+//		now = LocalDateTime.of(2015, 11, 9, 12, 0) ;
+		now = LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.stoptime") * 1000), ZoneId.systemDefault());
 	}
 	
 	@Override
@@ -103,7 +101,7 @@ public class CassandraIncrementalBatchLayerJob extends CassandraBatchLayerJob{
 	}
 	
 	@Override
-	protected void saveServerRanking(JavaSparkContext sc, JavaRDD<BatchLayerOutput<Integer>> serverRanking) {
+	protected void saveServerRanking(JavaSparkContext sc, JavaRDD<BatchLayer1Output<Integer>> serverRanking) {
 		CassandraJavaUtil
 				.javaFunctions(serverRanking.map(entry -> new ServerRanking(start, entry.getKey(), entry.getValue())))
 				.writerBuilder(batchViewsKeyspace, serversRankingTable, mapToRow(ServerRanking.class))

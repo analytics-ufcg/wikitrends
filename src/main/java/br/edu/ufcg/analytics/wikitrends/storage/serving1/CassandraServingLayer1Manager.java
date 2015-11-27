@@ -1,11 +1,11 @@
-package br.edu.ufcg.analytics.wikitrends.storage.serving;
+package br.edu.ufcg.analytics.wikitrends.storage.serving1;
 
 import java.io.Serializable;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 
-public class CassandraServingLayerManager implements Serializable {
+public class CassandraServingLayer1Manager implements Serializable {
 	
 	/**
 	 * SerialVersionUID for CassandraServingLayerManager
@@ -62,11 +62,11 @@ public class CassandraServingLayerManager implements Serializable {
             		);
            
             session.execute("CREATE TABLE IF NOT EXISTS batch_views.status (" + 
-            		"id text," +
-            		"year int," +
-            		"month int," +
-            		"day int," +
-            		"hour int," +
+            		"id TEXT," +
+            		"year INT," +
+            		"month INT," +
+            		"day INT," +
+            		"hour INT," +
             		"PRIMARY KEY((id), year, month, day, hour)) " + 
             		"WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
             		);
@@ -136,14 +136,14 @@ public class CassandraServingLayerManager implements Serializable {
 
 		if (args.length < 2) {
 			System.err.println(
-					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.serving.CassandraServingLayerManager OPERATION <seed_address>");
+					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.batch1.CassandraServingLayer1Manager OPERATION <seed_address>");
 			System.exit(1);
 		}
 
 		String operation = args[0];
 		String seedNode = args[1];
 		
-		CassandraServingLayerManager manager = new CassandraServingLayerManager();
+		CassandraServingLayer1Manager manager = new CassandraServingLayer1Manager();
 		
 		switch (operation) {
 		case "CREATE":
@@ -156,6 +156,5 @@ public class CassandraServingLayerManager implements Serializable {
 			System.err.println("Unsupported operation. Choose CREATE as operation.");
 			break;
 		}
-
 	}
 }

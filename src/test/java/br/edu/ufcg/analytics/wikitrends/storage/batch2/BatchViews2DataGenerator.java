@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.storage.results;
+package br.edu.ufcg.analytics.wikitrends.storage.batch2;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
@@ -11,17 +11,17 @@ import org.apache.spark.api.java.JavaSparkContext;
 
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
-import br.edu.ufcg.analytics.wikitrends.storage.results.types.ResultAbsoluteValuesShot;
-import br.edu.ufcg.analytics.wikitrends.storage.results.types.ResultTopContentPage;
-import br.edu.ufcg.analytics.wikitrends.storage.results.types.ResultTopEditor;
-import br.edu.ufcg.analytics.wikitrends.storage.results.types.ResultTopIdiom;
-import br.edu.ufcg.analytics.wikitrends.storage.results.types.ResultTopPage;
+import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultAbsoluteValuesShot;
+import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopContentPage;
+import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopEditor;
+import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopIdiom;
+import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopPage;
 
-public class ResultsDataGenerator {
+public class BatchViews2DataGenerator {
 	
 	private JavaSparkContext sc;
 	
-	public ResultsDataGenerator(JavaSparkContext sc) {
+	public BatchViews2DataGenerator(JavaSparkContext sc) {
 		this.sc = sc;
 	}
 	

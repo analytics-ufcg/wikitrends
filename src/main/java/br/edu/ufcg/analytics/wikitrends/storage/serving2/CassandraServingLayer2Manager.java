@@ -1,11 +1,11 @@
-package br.edu.ufcg.analytics.wikitrends.storage.results;
+package br.edu.ufcg.analytics.wikitrends.storage.serving2;
 
 import java.io.Serializable;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 
-public class CassandraResultsLayerManager implements Serializable {
+public class CassandraServingLayer2Manager implements Serializable {
 	
 
 	/**
@@ -91,14 +91,14 @@ public class CassandraResultsLayerManager implements Serializable {
 
 		if (args.length < 2) {
 			System.err.println(
-					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.serving.CassandraServingLayerManager OPERATION <seed_address>");
+					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.batch1.CassandraServingLayerManager OPERATION <seed_address>");
 			System.exit(1);
 		}
 
 		String operation = args[0];
 		String seedNode = args[1];
 		
-		CassandraResultsLayerManager manager = new CassandraResultsLayerManager();
+		CassandraServingLayer2Manager manager = new CassandraServingLayer2Manager();
 		
 		switch (operation) {
 		case "CREATE":

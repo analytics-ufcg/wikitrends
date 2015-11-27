@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.storage.serving;
+package br.edu.ufcg.analytics.wikitrends.storage.batch1;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -17,17 +17,19 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
+import br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager;
+
 /**
  * @author Ricardo Araújo Santos - ricardo@copin.ufcg.edu.br
  * @author Guilherme Gadelha
  *
  */
-public class CassandraServingLayerManagerTest {
+public class CassandraBatchLayerManagerTest {
 	
 	private JavaSparkContext sc;
 	private Cluster cluster;
 	private Session session;
-	private ServingDataGenerator dataGen;
+	private BatchViewsDataGenerator dataGen;
 	
 	@Before
 	public void setup() {
@@ -45,10 +47,10 @@ public class CassandraServingLayerManagerTest {
         cluster = Cluster.builder().addContactPoints(testHosts).build();
         session = cluster.newSession();
         
-        new CassandraServingLayerManager().createTables(session);
+        new CassandraServingLayer1Manager().createTables(session);
         session.execute("USE batch_views;");
         
-        dataGen = new ServingDataGenerator(sc);
+        dataGen = new BatchViewsDataGenerator(sc);
 	}
 	
 	@Test

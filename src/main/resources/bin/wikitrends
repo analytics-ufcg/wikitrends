@@ -8,10 +8,11 @@ function show_help (){
     echo -e "Subcommands:\n"
     echo "   batch														Runs batch layer job"
     echo "   ingestor	start|stop										Starts or stops ingestor"
-    echo "   master		create	<cassandra_host>						Creates tables at cassandra master database"
-    echo "   master		migrate	<cassandra_host> <json_input_file>		Migrate data from JSON to cassandra master database"
-    echo "   serving	create	<cassandra_host>						Creates tables at cassandra serving database"
-    echo "   serving	migrate	<cassandra_host> <json_input_file>		Migrate data from JSON to cassandra serving database"
+    echo "   master_dataset		createschema	<cassandra_host>				Creates tables at cassandra master database"
+    echo "   master_dataset		migrate	<cassandra_host> <json_input_file>		Migrate data from JSON to cassandra master database"
+    echo "   serving_1	createschema	<cassandra_host>						Creates tables at cassandra serving layer 1 database"
+    echo "   serving_2	createschema	<cassandra_host>						Creates tables at cassandra serving layer 2 database"
+    echo "   serving_1	migrate	<cassandra_host> <json_input_file>		Migrate data from JSON to cassandra serving database"
     echo "   speed		start											Submits speed layer job"
     echo "   speed		status|stop <submission_id>						Gets status or stops speed layer job identified by given id"
     echo "   web		start|stop										Starts or stops web application (launch with sudo if PORT < 1000)"
@@ -54,12 +55,6 @@ shift $((OPTIND-1))
 
 
 case "$1" in
-batch)
-    echo "Submitting batch layer job"
-	source ${ENV_VAR_FILE}
-	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} BATCH
-    echo "Finished executing batch layer job"
-    ;;
 ingestor)
 	case $2 in
 	start)
@@ -78,33 +73,53 @@ ingestor)
 		;;    
     esac
     ;;
-master)
+master_dataset)
 	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager
 	case $2 in
 	createschema)
 	    echo "Creating master dataset schema"
 		source ${ENV_VAR_FILE}
 		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3
-	    echo "OK!"
+	    echo "Master dataset created with success!"
 		;;
 	migrate)
 	    echo "Attempting to migrate master dataset from JSON file"
 		spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MANAGER_CLASS} ${LOCAL_JAR_ADDRESS} POPULATE $3 $4
-		echo "OK!"
+		echo "Migration finished with success!"
 	    ;;
 	*)
 		show_help
 		;;    
     esac
     ;;
-serving)
-	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.serving.CassandraServingLayerManager
+batch)
+    echo "Submitting batch layer job"
+	source ${ENV_VAR_FILE}
+	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} BATCH
+    echo "Finished executing batch layer job!"
+    ;;
+serving_1)
+	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager
 	case $2 in
 	createschema)
 	    echo "Creating serving schema"
 		source ${ENV_VAR_FILE}
 		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3
-	    echo "OK!"
+	    echo "Serving layer schema created with success!"
+		;;
+	*)
+		show_help
+		;;    
+    esac
+    ;;
+serving_2)
+	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.serving2.CassandraServingLayer2Manager
+	case $2 in
+	createschema)
+	    echo "Creating serving layer 2 schema"
+		source ${ENV_VAR_FILE}
+		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3
+	    echo "Serving layer 2 schema created with success!"
 		;;
 	*)
 		show_help

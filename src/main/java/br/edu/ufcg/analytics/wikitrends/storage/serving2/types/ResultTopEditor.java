@@ -1,24 +1,24 @@
-package br.edu.ufcg.analytics.wikitrends.storage.results.types;
+package br.edu.ufcg.analytics.wikitrends.storage.serving2.types;
 
 import java.io.Serializable;
 import java.util.UUID;
 
-public class ResultTopContentPage implements Serializable {
+public class ResultTopEditor implements Serializable {
 		
 	/**
-	 *  SerialVersionUID to class ResultTopContentPages
+	 *  SerialVersionUID to class ResultTopEditors
 	 *  
 	 *  @since November 25, 2015
 	 */
-	private static final long serialVersionUID = -229445761214486100L;
+	private static final long serialVersionUID = 9168875187154281613L;
 		
 		private UUID id;
-        private String content_page;
+        private String editor;
         private Integer count;
 
-        public ResultTopContentPage(String content_page, Integer count) {
+        public ResultTopEditor(String editor, Integer count) {
         	this.id = UUID.randomUUID();
-            this.content_page = content_page;
+            this.editor = editor;
             this.count = count;
         }
         
@@ -38,12 +38,12 @@ public class ResultTopContentPage implements Serializable {
 			this.id = id;
 		}
 
-		public String getContentPage() {
-			return content_page;
+		public String getEditor() {
+			return editor;
 		}
 
-		public void setContentPage(String content_page) {
-			this.content_page = content_page;
+		public void setEditor(String editor) {
+			this.editor = editor;
 		}
 
 		public Integer getCount() {
@@ -56,7 +56,7 @@ public class ResultTopContentPage implements Serializable {
 
 		@Override
 		public String toString() {
-			return "ResultTopContentPages [id=" + id + ", content_page=" + content_page + ", count=" + count + "]";
+			return "ResultTopClass [id=" + id + ", editor=" + editor + ", count=" + count + "]";
 		}
 
     }

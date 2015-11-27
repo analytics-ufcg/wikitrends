@@ -1,24 +1,24 @@
-package br.edu.ufcg.analytics.wikitrends.storage.results.types;
+package br.edu.ufcg.analytics.wikitrends.storage.serving2.types;
 
 import java.io.Serializable;
 import java.util.UUID;
 
-public class ResultTopIdiom implements Serializable {
+public class ResultTopPage implements Serializable {
 		
 	/**
-	 *  SerialVersionUID to class ResultTopIdioms
+	 *  SerialVersionUID to class ResultTopPages
 	 *  
 	 *  @since November 25, 2015
 	 */
-	private static final long serialVersionUID = -1144718268764679141L;
+	private static final long serialVersionUID = 8569971358215494608L;
 		
 		private UUID id;
-        private String idiom;
+        private String page;
         private Integer count;
 
-        public ResultTopIdiom(String idiom, Integer count) {
+        public ResultTopPage(String page, Integer count) {
         	this.id = UUID.randomUUID();
-            this.idiom = idiom;
+            this.page = page;
             this.count = count;
         }
         
@@ -38,12 +38,12 @@ public class ResultTopIdiom implements Serializable {
 			this.id = id;
 		}
 
-		public String getIdiom() {
-			return idiom;
+		public String getPage() {
+			return page;
 		}
 
-		public void setIdiom(String idiom) {
-			this.idiom = idiom;
+		public void setPage(String page) {
+			this.page = page;
 		}
 
 		public Integer getCount() {
@@ -56,7 +56,7 @@ public class ResultTopIdiom implements Serializable {
 
 		@Override
 		public String toString() {
-			return "ResultTopIdioms [id=" + id + ", idiom=" + idiom + ", count=" + count + "]";
+			return "ResultTopPages [id=" + id + ", page=" + page + ", count=" + count + "]";
 		}
 
     }
