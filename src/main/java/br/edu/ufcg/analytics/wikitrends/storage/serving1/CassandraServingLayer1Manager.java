@@ -22,23 +22,23 @@ public class CassandraServingLayer1Manager implements Serializable {
             
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
 								"top_editors" +
-							    "(id UUID," +
-								"data MAP<TEXT,INT>," +
+								
+								"(name TEXT," +
+								"count BIGINT," +
 								
 								"year INT," +
 								"month INT," +
 								"day INT," +
 								"hour INT," +
-								"event_time TIMESTAMP," +
 								
-								"PRIMARY KEY((year, month, day, hour), id)," +
-								") WITH CLUSTERING ORDER BY (id DESC);"
+								"PRIMARY KEY((year, month, day, hour), count)," +
+								") WITH CLUSTERING ORDER BY (count ASC);"
             		);
             
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
 								"top_idioms" +
-								"(id UUID," +
-								"data MAP<TEXT,INT>," +
+								"(name TEXT," +
+								"count BIGINT," +
 								
 								"year INT," +
 								"month INT," +
@@ -46,36 +46,39 @@ public class CassandraServingLayer1Manager implements Serializable {
 								"hour INT," +
 								"event_time TIMESTAMP," +
 								
-								"PRIMARY KEY((year, month, day, hour), id)," +
-								") WITH CLUSTERING ORDER BY (id DESC);"
+								"PRIMARY KEY((year, month, day, hour), count)," +
+								") WITH CLUSTERING ORDER BY (count ASC);"
             		);
            
             session.execute("CREATE TABLE IF NOT EXISTS batch_views.servers_ranking (" + 
-            		"year int," +
-            		"month int," +
-            		"day int," +
-            		"hour int," +
-            		"position bigint," +
-            		"server_name text," +
-            		"number_of_changes int," +
-            		"PRIMARY KEY((year, month, day, hour), position)) " + 
-            		"WITH CLUSTERING ORDER BY (position ASC);"
-            		);
-           
-            session.execute("CREATE TABLE IF NOT EXISTS batch_views.status (" + 
-            		"id TEXT," +
             		"year INT," +
             		"month INT," +
             		"day INT," +
             		"hour INT," +
+            		
+            		"server_name TEXT," +
+            		"number_of_changes INT," +
+            		
+            		"PRIMARY KEY((year, month, day, hour), number_of_changes, server_name)) " + 
+            		"WITH CLUSTERING ORDER BY (number_of_changes DESC, server_name ASC);"
+            		);
+           
+            session.execute("CREATE TABLE IF NOT EXISTS batch_views.status (" + 
+            		"id TEXT," +
+            		
+            		"year INT," +
+            		"month INT," +
+            		"day INT," +
+            		"hour INT," +
+            		
             		"PRIMARY KEY((id), year, month, day, hour)) " + 
             		"WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
             		);
            
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
 								"top_pages" +
-								"(id UUID," +
-								"data MAP<TEXT,INT>," +
+								"(name TEXT," +
+								"count BIGINT" +
 								
 								"year INT," +
 								"month INT," +
@@ -89,17 +92,16 @@ public class CassandraServingLayer1Manager implements Serializable {
             
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
 								"top_content_pages" +
-								"(id UUID," +
-								"data MAP<TEXT,INT>," +
+								"(name TEXT," +
+								"count BIGINT," +
 								
 								"year INT," +
 								"month INT," +
 								"day INT," +
 								"hour INT," +
-								"event_time TIMESTAMP," +
 								
-								"PRIMARY KEY((year, month, day, hour), id)," +
-								") WITH CLUSTERING ORDER BY (id DESC);"
+								"PRIMARY KEY((year, month, day, hour), count)," +
+								") WITH CLUSTERING ORDER BY (count ASC);"
             		);
             
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +

@@ -73,7 +73,7 @@ public class BatchViewsDataGenerator {
     }
 	
 	public void generateTopEditorsData() {
-        final Map<String, Integer> m1;
+		final Map<String, Integer> m1;
         {
         	m1 = new HashMap<String, Integer>();
         	m1.put("john_1", 2);
@@ -115,21 +115,18 @@ public class BatchViewsDataGenerator {
         DateTime dt23 = new DateTime(2013, 4, 4, 7, 0);
         DateTime dt24 = new DateTime(2013, 4, 4, 8, 0);
         
-        TopClass te1 = new TopClass(m1);
-        te1.setEvent_time(dt21.toDate());
-        
-        TopClass te2 = new TopClass(m2);
-        te2.setEvent_time(dt22.toDate());
-        
-        TopClass te3 = new TopClass(m3);
-        te1.setEvent_time(dt23.toDate());
-        
-        TopClass te4 = new TopClass(m4);
-        te4.setEvent_time(dt24.toDate());
-        
-        List<TopClass> topEditors = Arrays.asList(
-                te1, te2, te3, te4
-        );
+        List<TopClass> topEditors = new ArrayList<TopClass>();
+		for(int i=0; i < 5; i++) {
+	        TopClass ti1 = new TopClass(m1.keySet().toArray()[0].toString(), (long)m1.get(m1.keySet().toArray()[0]), dt21.getYear(), dt21.getMonthOfYear(), dt21.getDayOfWeek(), dt21.getHourOfDay());
+	        
+	        TopClass ti2 = new TopClass(m2.keySet().toArray()[0].toString(), (long)m2.get(m2.keySet().toArray()[0]), dt22.getYear(), dt22.getMonthOfYear(), dt22.getDayOfWeek(), dt22.getHourOfDay());
+	        
+	        TopClass ti3 = new TopClass(m3.keySet().toArray()[0].toString(), (long)m3.get(m3.keySet().toArray()[0]), dt23.getYear(), dt23.getMonthOfYear(), dt23.getDayOfWeek(), dt23.getHourOfDay());
+	        
+	        TopClass ti4 = new TopClass(m4.keySet().toArray()[0].toString(), (long)m4.get(m4.keySet().toArray()[0]), dt24.getYear(), dt24.getMonthOfYear(), dt24.getDayOfWeek(), dt24.getHourOfDay());
+	        
+	        topEditors.addAll(Arrays.asList(ti1, ti2, ti3, ti4));
+        }
 
         JavaRDD<TopClass> topEditorsRDD = sc.parallelize(topEditors);
 
@@ -182,21 +179,18 @@ public class BatchViewsDataGenerator {
         DateTime dt23 = new DateTime(2013, 4, 4, 7, 0);
         DateTime dt24 = new DateTime(2013, 4, 4, 8, 0);
         
-        TopClass ti1 = new TopClass(m1);
-        ti1.setEvent_time(dt21.toDate());
-        
-        TopClass ti2 = new TopClass(m2);
-        ti2.setEvent_time(dt22.toDate());
-        
-        TopClass ti3 = new TopClass(m3);
-        ti1.setEvent_time(dt23.toDate());
-        
-        TopClass ti4 = new TopClass(m4);
-        ti4.setEvent_time(dt24.toDate());
-        
-        List<TopClass> topIdioms = Arrays.asList(
-                ti1, ti2, ti3, ti4
-        );
+        List<TopClass> topIdioms = new ArrayList<TopClass>();
+		for(int i=0; i < 5; i++) {
+	        TopClass ti1 = new TopClass(m1.keySet().toArray()[0].toString(), (long)m1.get(m1.keySet().toArray()[0]), dt21.getYear(), dt21.getMonthOfYear(), dt21.getDayOfWeek(), dt21.getHourOfDay());
+	        
+	        TopClass ti2 = new TopClass(m2.keySet().toArray()[0].toString(), (long)m2.get(m2.keySet().toArray()[0]), dt22.getYear(), dt22.getMonthOfYear(), dt22.getDayOfWeek(), dt22.getHourOfDay());
+	        
+	        TopClass ti3 = new TopClass(m3.keySet().toArray()[0].toString(), (long)m3.get(m3.keySet().toArray()[0]), dt23.getYear(), dt23.getMonthOfYear(), dt23.getDayOfWeek(), dt23.getHourOfDay());
+	        
+	        TopClass ti4 = new TopClass(m4.keySet().toArray()[0].toString(), (long)m4.get(m4.keySet().toArray()[0]), dt24.getYear(), dt24.getMonthOfYear(), dt24.getDayOfWeek(), dt24.getHourOfDay());
+	        
+	        topIdioms.addAll(Arrays.asList(ti1, ti2, ti3, ti4));
+        }
 
         JavaRDD<TopClass> topIdiomsRDD = sc.parallelize(topIdioms);
         
@@ -249,21 +243,19 @@ public class BatchViewsDataGenerator {
         DateTime dt23 = new DateTime(2013, 4, 4, 7, 0);
         DateTime dt24 = new DateTime(2013, 4, 4, 8, 0);
         
-        TopClass tp1 = new TopClass(m1);
-        tp1.setEvent_time(dt21.toDate());
+        List<TopClass> topPages = new ArrayList<TopClass>();
+		for(int i=0; i < 5; i++) {
+	        TopClass ti1 = new TopClass(m1.keySet().toArray()[0].toString(), (long)m1.get(m1.keySet().toArray()[0]), dt21.getYear(), dt21.getMonthOfYear(), dt21.getDayOfWeek(), dt21.getHourOfDay());
+	        
+	        TopClass ti2 = new TopClass(m2.keySet().toArray()[0].toString(), (long)m2.get(m2.keySet().toArray()[0]), dt22.getYear(), dt22.getMonthOfYear(), dt22.getDayOfWeek(), dt22.getHourOfDay());
+	        
+	        TopClass ti3 = new TopClass(m3.keySet().toArray()[0].toString(), (long)m3.get(m3.keySet().toArray()[0]), dt23.getYear(), dt23.getMonthOfYear(), dt23.getDayOfWeek(), dt23.getHourOfDay());
+	        
+	        TopClass ti4 = new TopClass(m4.keySet().toArray()[0].toString(), (long)m4.get(m4.keySet().toArray()[0]), dt24.getYear(), dt24.getMonthOfYear(), dt24.getDayOfWeek(), dt24.getHourOfDay());
+	        
+	        topPages.addAll(Arrays.asList(ti1, ti2, ti3, ti4));
+        }
         
-        TopClass tp2 = new TopClass(m2);
-        tp2.setEvent_time(dt22.toDate());
-        
-        TopClass tp3 = new TopClass(m3);
-        tp1.setEvent_time(dt23.toDate());
-        
-        TopClass tp4 = new TopClass(m4);
-        tp4.setEvent_time(dt24.toDate());
-        
-        List<TopClass> topPages = Arrays.asList(
-                tp1, tp2, tp3, tp4
-        );
 
         JavaRDD<TopClass> topPagesRDD = sc.parallelize(topPages);
         
@@ -315,21 +307,18 @@ public class BatchViewsDataGenerator {
         DateTime dt23 = new DateTime(2013, 4, 4, 7, 0);
         DateTime dt24 = new DateTime(2013, 4, 4, 8, 0);
         
-        TopClass tcp1 = new TopClass(m1);
-        tcp1.setEvent_time(dt21.toDate());
-        
-        TopClass tcp2 = new TopClass(m2);
-        tcp2.setEvent_time(dt22.toDate());
-        
-        TopClass tcp3 = new TopClass(m3);
-        tcp1.setEvent_time(dt23.toDate());
-        
-        TopClass tcp4 = new TopClass(m4);
-        tcp4.setEvent_time(dt24.toDate());
-        
-        List<TopClass> topContentPages = Arrays.asList(
-                tcp1, tcp2, tcp3, tcp4
-        );
+        List<TopClass> topContentPages = new ArrayList<TopClass>();
+		for(int i=0; i < 5; i++) {
+	        TopClass ti1 = new TopClass(m1.keySet().toArray()[0].toString(), (long)m1.get(m1.keySet().toArray()[0]), dt21.getYear(), dt21.getMonthOfYear(), dt21.getDayOfWeek(), dt21.getHourOfDay());
+	        
+	        TopClass ti2 = new TopClass(m2.keySet().toArray()[0].toString(), (long)m2.get(m2.keySet().toArray()[0]), dt22.getYear(), dt22.getMonthOfYear(), dt22.getDayOfWeek(), dt22.getHourOfDay());
+	        
+	        TopClass ti3 = new TopClass(m3.keySet().toArray()[0].toString(), (long)m3.get(m3.keySet().toArray()[0]), dt23.getYear(), dt23.getMonthOfYear(), dt23.getDayOfWeek(), dt23.getHourOfDay());
+	        
+	        TopClass ti4 = new TopClass(m4.keySet().toArray()[0].toString(), (long)m4.get(m4.keySet().toArray()[0]), dt24.getYear(), dt24.getMonthOfYear(), dt24.getDayOfWeek(), dt24.getHourOfDay());
+	        
+	        topContentPages.addAll(Arrays.asList(ti1, ti2, ti3, ti4));
+        }
 
         JavaRDD<TopClass> topContentPagesRDD = sc.parallelize(topContentPages);
         
