@@ -14,24 +14,27 @@ public class ServerRanking implements Serializable {
 	private int day;
 	private int month;
 	private int year;
+	private long position;
 	private String serverName;
 	private int numberOfChanges;
+
 	
 	public ServerRanking() {
 		
 	}
 
-	public ServerRanking(int year, int month, int day, int hour, String serverName, int numberOfChanges) {
+	public ServerRanking(int year, int month, int day, int hour, long position, String serverName, int numberOfChanges) {
 		this.hour = hour;
 		this.day = day;
 		this.month = month;
 		this.year = year;
+		this.position = position;
 		this.serverName = serverName;
 		this.numberOfChanges = numberOfChanges;
 	}
 
-	public ServerRanking(LocalDateTime time, String serverName, int numberOfAccess) {
-		this(time.getYear(), time.getMonthValue(), time.getDayOfMonth(), time.getHour(), serverName, numberOfAccess);
+	public ServerRanking(LocalDateTime time, long position, String serverName, int numberOfAccess) {
+		this(time.getYear(), time.getMonthValue(), time.getDayOfMonth(), time.getHour(), position, serverName, numberOfAccess);
 	}
 
 	/**
@@ -88,6 +91,20 @@ public class ServerRanking implements Serializable {
 	 */
 	public void setYear(int year) {
 		this.year = year;
+	}
+	
+	/**
+	 * @return the position
+	 */
+	public long getPosition() {
+		return position;
+	}
+
+	/**
+	 * @param position the position to set
+	 */
+	public void setPosition(long position) {
+		this.position = position;
 	}
 
 	/**

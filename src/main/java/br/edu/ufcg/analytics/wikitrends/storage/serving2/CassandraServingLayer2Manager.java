@@ -41,6 +41,15 @@ public class CassandraServingLayer2Manager implements Serializable {
 								") WITH CLUSTERING ORDER BY (count DESC);"
 					);
            
+            session.execute("CREATE TABLE IF NOT EXISTS results.servers_ranking" +
+								"(id text," +
+								"position bigint," +
+								"server_name TEXT," +
+								"count INT," +
+								"PRIMARY KEY((id), position)" +
+								") WITH CLUSTERING ORDER BY (position ASC);"
+					);
+           
             session.execute("CREATE TABLE IF NOT EXISTS results." +
 								"top_page" +
 								"(id UUID," +

@@ -55,7 +55,7 @@ public class CassandraBatchLayer2Job extends BatchLayer2Job {
 		topEditorsTable = configuration.getString("wikitrends.serving.cassandra.table.topeditors");
 		absoluteValuesTable = configuration.getString("wikitrends.serving.cassandra.table.absolutevalues");
 
-		//serversRankingTable = configuration.getString("wikitrends.serving.cassandra.table.serversranking");
+		//r = configuration.getString("wikitrends.serving.cassandra.table.serversranking");
 	}
 
 	@Override

@@ -23,14 +23,18 @@ import com.datastax.spark.connector.japi.CassandraRow;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.ServerRanking;
 
+/**
+ * 
+ * @author Ricardo Araújo Santos - ricoaraujosantos@gmail.com
+ */
 public class CassandraIncrementalBatchLayer1Job extends CassandraBatchLayer1Job{
 	
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 7386905244759035777L;
-	private LocalDateTime start;
 	private LocalDateTime now;
+	private LocalDateTime end;
 	private String[] seeds;
 
 	/**
@@ -49,15 +53,15 @@ public class CassandraIncrementalBatchLayer1Job extends CassandraBatchLayer1Job{
 			List<Row> all = resultSet.all();
 			if(!all.isEmpty()){
 				Row row = all.get(0);
-				start = LocalDateTime.of(row.getInt("year"), row.getInt("month"), row.getInt("day"), row.getInt("hour"), 0).plusHours(1) ;
+				now = LocalDateTime.of(row.getInt("year"), row.getInt("month"), row.getInt("day"), row.getInt("hour"), 0).plusHours(1) ;
 			}else{
-				start = LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.starttime") * 1000), ZoneId.systemDefault());
+				now = LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.starttime") * 1000), ZoneId.systemDefault());
 			}
 		}
 
-//		now = LocalDateTime.ofInstant(Instant.ofEpochMilli((System.currentTimeMillis() / 3600000) * 3600000), ZoneId.systemDefault());
-//		now = LocalDateTime.of(2015, 11, 9, 12, 0) ;
-		now = LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.stoptime") * 1000), ZoneId.systemDefault());
+//		end = LocalDateTime.ofInstant(Instant.ofEpochMilli((System.currentTimeMillis() / 3600000) * 3600000), ZoneId.systemDefault());
+//		end = LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.stoptime") * 1000), ZoneId.systemDefault());
+		end = LocalDateTime.of(2015, 11, 9, 12, 0) ;
 	}
 	
 	@Override
@@ -65,10 +69,10 @@ public class CassandraIncrementalBatchLayer1Job extends CassandraBatchLayer1Job{
 		try (Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
 				Session session = cluster.newSession();) {
 			
-			while(start.isBefore(now)){
+			while(now.isBefore(end)){
 				super.run();
-				session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", "servers_ranking", start.getYear(), start.getMonthValue(), start.getDayOfMonth(), start.getHour());
-				start = start.plusHours(1);
+				session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", "servers_ranking", now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour());
+				now = now.plusHours(1);
 			}
 		}
 	}
@@ -78,7 +82,7 @@ public class CassandraIncrementalBatchLayer1Job extends CassandraBatchLayer1Job{
 		JavaRDD<EditType> wikipediaEdits = javaFunctions(sc).cassandraTable("master_dataset", "edits")
 				.select("event_time", "common_event_bot", "common_event_title", "common_server_name", "common_event_user",
 						"common_event_namespace", "edit_minor", "edit_length")
-				.where("year = ? and month = ? and day = ? and hour = ?", start.getYear(), start.getMonthValue(), start.getDayOfMonth(), start.getHour())
+				.where("year = ? and month = ? and day = ? and hour = ?", now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour())
 				.map(new Function<CassandraRow, EditType>() {
 					private static final long serialVersionUID = 1L;
 
@@ -103,7 +107,7 @@ public class CassandraIncrementalBatchLayer1Job extends CassandraBatchLayer1Job{
 	@Override
 	protected void saveServerRanking(JavaSparkContext sc, JavaRDD<BatchLayer1Output<Integer>> serverRanking) {
 		CassandraJavaUtil
-				.javaFunctions(serverRanking.map(entry -> new ServerRanking(start, entry.getKey(), entry.getValue())))
+				.javaFunctions(serverRanking.zipWithIndex().map(entry -> new ServerRanking(now, entry._2, entry._1.getKey(), entry._1.getValue())))
 				.writerBuilder(batchViewsKeyspace, serversRankingTable, mapToRow(ServerRanking.class))
 				.saveToCassandra();
 	}

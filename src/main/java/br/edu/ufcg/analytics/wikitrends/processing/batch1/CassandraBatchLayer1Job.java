@@ -3,10 +3,8 @@ package br.edu.ufcg.analytics.wikitrends.processing.batch1;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,7 +19,6 @@ import com.datastax.spark.connector.japi.CassandraRow;
 
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.AbsoluteValuesShot;
-import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.ServerRanking;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
 
 public class CassandraBatchLayer1Job extends BatchLayer1Job {
@@ -121,13 +118,6 @@ public class CassandraBatchLayer1Job extends BatchLayer1Job {
 	 */
 	@Override
 	protected void saveServerRanking(JavaSparkContext sc, JavaRDD<BatchLayer1Output<Integer>> serverRanking) {
-		
-		LocalDateTime now = LocalDateTime.now();
-		CassandraJavaUtil
-				.javaFunctions(serverRanking.map(entry -> new ServerRanking(now, entry.getKey(), entry.getValue())))
-				.writerBuilder(batchViewsKeyspace, serversRankingTable, mapToRow(ServerRanking.class))
-				.saveToCassandra();
-
 		
 		List<BatchLayer1Output<Integer>> allPages = serverRanking.collect();
 		
