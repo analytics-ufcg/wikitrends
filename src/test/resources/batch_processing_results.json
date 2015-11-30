@@ -18,7 +18,7 @@
 
   "absolute_values": {
 			"distinct_editors_count": ?,
- 		        "distinct_idioms_count": ?,
+ 		    "distinct_idioms_count": ?,
 			"distinct_pages_count": ?,
 			"all_edits": 1000,
 			"minor_edits": ?,
