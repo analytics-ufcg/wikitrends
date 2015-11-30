@@ -30,7 +30,7 @@ public class CassandraBatchLayer1Job extends BatchLayer1Job {
 	private String contentPagesTable;
 	private String serversTable;
 	protected String serversRankingTable;
-	private String usersTable;
+	protected String usersTable;
 	private String absoluteValuesTable;
 
 	/**

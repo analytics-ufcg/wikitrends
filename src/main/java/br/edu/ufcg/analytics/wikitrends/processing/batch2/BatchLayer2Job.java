@@ -1,14 +1,22 @@
 package br.edu.ufcg.analytics.wikitrends.processing.batch2;
 
+import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
+
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+
+import com.datastax.spark.connector.japi.CassandraJavaUtil;
+import com.datastax.spark.connector.japi.CassandraRow;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
+import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultAbsoluteValuesShot;
 
 /**
@@ -55,12 +63,17 @@ public abstract class BatchLayer2Job implements WikiTrendsProcess {
 
 		this.sc = new JavaSparkContext(conf);
 		
-		saveResultTopEditors(computeMapEditorToCount());
-		saveResultTopContentPages(computeMapContentPagesToCount());
-		saveResultTopIdioms(computeMapIdiomsToCount());
-		saveResultTopPages(computeMapPagesToCount());
+		CassandraRow lastBatchExecutionStatus = CassandraJavaUtil.javaFunctions(sc).cassandraTable("batch_views", "status")
+				.select("id", "year", "month", "day", "hour")
+				.limit(1L).collect().get(0);
 		
-		saveResultAbsoluteValues(computeResultAbsoluteValues());
+				
+		saveResultTopEditors(computeMapEditorToCount());
+//		saveResultTopContentPages(computeMapContentPagesToCount());
+//		saveResultTopIdioms(computeMapIdiomsToCount());
+//		saveResultTopPages(computeMapPagesToCount());
+//		
+//		saveResultAbsoluteValues(computeResultAbsoluteValues());
 		
 	}
 	

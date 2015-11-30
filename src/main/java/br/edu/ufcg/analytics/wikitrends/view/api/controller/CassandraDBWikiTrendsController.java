@@ -73,13 +73,13 @@ public class CassandraDBWikiTrendsController implements WikiTrendsController {
 		
 		RankingRow[] results;
 		try (Session session = cluster.newSession();) {
-			ResultSet resultSet = session.execute("SELECT * FROM batch_views.servers_ranking LIMIT ?", numberOfResults);
+			ResultSet resultSet = session.execute("SELECT * FROM results.servers_ranking LIMIT ?", numberOfResults);
 			List<Row> all = resultSet.all();
 			results = new RankingRow[all.size()];
 
 			for (int i = 0; i < results.length; i++) {
 				Row row = all.get(i);
-				results[i] = new RankingRow(row.getString("server_name"), Integer.toString(row.getInt("number_of_access")));
+				results[i] = new RankingRow(row.getString("server_name"), Integer.toString(row.getInt("count")));
 			}
 		}
 		

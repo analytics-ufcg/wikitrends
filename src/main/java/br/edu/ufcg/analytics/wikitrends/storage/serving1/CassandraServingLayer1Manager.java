@@ -6,7 +6,7 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 
 public class CassandraServingLayer1Manager implements Serializable {
-	
+
 	/**
 	 * SerialVersionUID for CassandraServingLayerManager
 	 * 
@@ -14,10 +14,7 @@ public class CassandraServingLayer1Manager implements Serializable {
 	 */
 	private static final long serialVersionUID = -1017103087942947022L;
 
-	// Prepare the schema
 	public void createTables(Session session) {
-            session.execute("DROP KEYSPACE IF EXISTS batch_views");
-            
             session.execute("CREATE KEYSPACE batch_views WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
             
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
@@ -25,7 +22,6 @@ public class CassandraServingLayer1Manager implements Serializable {
 								
 								"(name TEXT," +
 								"count BIGINT," +
-								
 								"year INT," +
 								"month INT," +
 								"day INT," +
@@ -85,7 +81,7 @@ public class CassandraServingLayer1Manager implements Serializable {
 								"day INT," +
 								"hour INT," +
 								"event_time TIMESTAMP," +
-								
+
 								"PRIMARY KEY((year, month, day, hour), id)," +
 								") WITH CLUSTERING ORDER BY (id DESC);"
             		);
@@ -112,23 +108,33 @@ public class CassandraServingLayer1Manager implements Serializable {
 								"distincts_pages_set SET<TEXT>," +
 								"distincts_editors_set SET<TEXT>," +
 								"distincts_servers_set SET<TEXT>," +
-								
+
 								"smaller_origin BIGINT," +
-					
+
 								"year INT," +
 								"month INT," +
 								"day INT," +
 								"hour INT," +
 								"event_time TIMESTAMP," +
-					
+
 								"PRIMARY KEY((year, month, day, hour), id)," +
 								") WITH CLUSTERING ORDER BY (id DESC);"
-					);
-            
+				);
+
 	}
+
+
+
+	/**
+	 * Prepare the schema
+	 * 
+	 * @param session
+	 */
+	public void dropTables(Session session) {
 	
-	
-	
+		session.execute("DROP KEYSPACE IF EXISTS batch_views");
+	}
+
 	/**
 	 * Entry point
 	 * 
@@ -145,14 +151,20 @@ public class CassandraServingLayer1Manager implements Serializable {
 
 		String operation = args[0];
 		String seedNode = args[1];
-		
+
 		CassandraServingLayer1Manager manager = new CassandraServingLayer1Manager();
-		
+
 		switch (operation) {
 		case "CREATE":
 			try (Cluster cluster = Cluster.builder().addContactPoints(seedNode).build();
 					Session session = cluster.newSession();) {
 				manager.createTables(session);
+			}
+			break;
+		case "DROP":
+			try (Cluster cluster = Cluster.builder().addContactPoints(seedNode).build();
+					Session session = cluster.newSession();) {
+				manager.dropTables(session);
 			}
 			break;
 		default:

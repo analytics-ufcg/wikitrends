@@ -96,6 +96,7 @@ batch)
     echo "Submitting batch layer job"
 	source ${ENV_VAR_FILE}
 	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} BATCH
+	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} SERVING
     echo "Finished executing batch layer job!"
     ;;
 serving_1)

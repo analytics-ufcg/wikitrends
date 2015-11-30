@@ -32,9 +32,7 @@ public class CassandraMasterDatasetManager implements Serializable {
 	 */
 	public void createTables(Session session) {
 
-		session.execute("DROP KEYSPACE IF EXISTS master_dataset");
-
-		session.execute("CREATE KEYSPACE master_dataset WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
+		session.execute("CREATE KEYSPACE IF NOT EXISTS master_dataset WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
 
 		session.execute("CREATE TABLE IF NOT EXISTS master_dataset.logs(" +
 				"log_uuid UUID," +
@@ -68,35 +66,35 @@ public class CassandraMasterDatasetManager implements Serializable {
 				);
 
 		// to types 'edit' and 'external'
-//		session.execute("CREATE TABLE IF NOT EXISTS master_dataset.edits("+ 
-//				//				"edit_uuid UUID," + 
-//				"id uuid," +
-//				"minor boolean," +
-//				"patrolled boolean," +
-//				"length map<text, int>," +
-//				"revision map<text, int>," +
-//
-//	            "server_url text," +
-//	            "server_name text," +
-//	            "server_script_path text," +
-//	            "server_wiki text," +
-//
-//				"event_type text," +
-//				"event_namespace int," +
-//				"event_user text," +
-//				"event_bot boolean," +
-//				"event_comment text," +
-//				"event_title text," +
-//
-//				"year int," +
-//				"month int," +
-//				"day int," +
-//				"hour int," +
-//				"event_time timestamp," +
-//
-//				"PRIMARY KEY((edit_id), year, month, day, hour)," +
-//				") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
-//				);
+		//		session.execute("CREATE TABLE IF NOT EXISTS master_dataset.edits("+ 
+		//				//				"edit_uuid UUID," + 
+		//				"id uuid," +
+		//				"minor boolean," +
+		//				"patrolled boolean," +
+		//				"length map<text, int>," +
+		//				"revision map<text, int>," +
+		//
+		//	            "server_url text," +
+		//	            "server_name text," +
+		//	            "server_script_path text," +
+		//	            "server_wiki text," +
+		//
+		//				"event_type text," +
+		//				"event_namespace int," +
+		//				"event_user text," +
+		//				"event_bot boolean," +
+		//				"event_comment text," +
+		//				"event_title text," +
+		//
+		//				"year int," +
+		//				"month int," +
+		//				"day int," +
+		//				"hour int," +
+		//				"event_time timestamp," +
+		//
+		//				"PRIMARY KEY((edit_id), year, month, day, hour)," +
+		//				") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
+		//				);
 		session.execute("CREATE TABLE IF NOT EXISTS master_dataset.edits("+ 
 				//				"edit_uuid UUID," + 
 				"edit_id INT," +
@@ -129,7 +127,16 @@ public class CassandraMasterDatasetManager implements Serializable {
 
 	}
 
+	/**
+	 * @param session Opened {@link Session} to a cassandra DB.
+	 */
+	public void dropTables(Session session) {
+
+		session.execute("DROP KEYSPACE IF EXISTS master_dataset");
+	}
+
 	public void populateFrom(String cassandraSeedHostname, String inputFile) {
+
 		SparkConf conf = new SparkConf();
 		conf.setAppName("wikitrends-migrate-master");
 		conf.set("spark.cassandra.connection.host", cassandraSeedHostname);
@@ -145,16 +152,16 @@ public class CassandraMasterDatasetManager implements Serializable {
 			}).map(change -> parseEditFromJSON(change));
 
 			CassandraJavaUtil.javaFunctions(edits).writerBuilder("master_dataset", "edits", mapToRow(EditType.class))
-					.saveToCassandra();
+			.saveToCassandra();
 
-			 JavaRDD<LogType> logs = oldMasterDataset.filter(change -> {
-					String type = change.get("type").getAsString();
-					return "log".equals(type);
-				}).map(change -> parseLogFromJSON(change));
-			 
-			 CassandraJavaUtil.javaFunctions(logs)
-			 .writerBuilder("master_dataset", "logs", mapToRow(LogType.class))
-			 .saveToCassandra();
+			JavaRDD<LogType> logs = oldMasterDataset.filter(change -> {
+				String type = change.get("type").getAsString();
+				return "log".equals(type);
+			}).map(change -> parseLogFromJSON(change));
+
+			CassandraJavaUtil.javaFunctions(logs)
+			.writerBuilder("master_dataset", "logs", mapToRow(LogType.class))
+			.saveToCassandra();
 		}
 	}
 
@@ -200,12 +207,12 @@ public class CassandraMasterDatasetManager implements Serializable {
 		Boolean patrolled = obj.has("patrolled") && !obj.get("patrolled").isJsonNull()
 				? obj.get("patrolled").getAsBoolean() : null;
 
-		return new EditType(obj.get("server_url").getAsString(), obj.get("server_name").getAsString(),
-				obj.get("server_script_path").getAsString(), obj.get("wiki").getAsString(),
-				obj.get("type").getAsString(), obj.get("namespace").getAsInt(), obj.get("user").getAsString(),
-				obj.get("bot").getAsBoolean(), obj.get("comment").getAsString(), obj.get("title").getAsString(),
-				new DateTime(obj.get("timestamp").getAsLong() * 1000L).toDate(), UUID.randomUUID(),
-				obj.get("id").getAsInt(), obj.get("minor").getAsBoolean(), patrolled, lengthMap, revisionMap);
+				return new EditType(obj.get("server_url").getAsString(), obj.get("server_name").getAsString(),
+						obj.get("server_script_path").getAsString(), obj.get("wiki").getAsString(),
+						obj.get("type").getAsString(), obj.get("namespace").getAsInt(), obj.get("user").getAsString(),
+						obj.get("bot").getAsBoolean(), obj.get("comment").getAsString(), obj.get("title").getAsString(),
+						new DateTime(obj.get("timestamp").getAsLong() * 1000L).toDate(), UUID.randomUUID(),
+						obj.get("id").getAsInt(), obj.get("minor").getAsBoolean(), patrolled, lengthMap, revisionMap);
 	}
 
 	/**
@@ -226,12 +233,18 @@ public class CassandraMasterDatasetManager implements Serializable {
 		String seedNode = args[1];
 
 		CassandraMasterDatasetManager manager = new CassandraMasterDatasetManager();
-		
+
 		switch (operation) {
 		case "CREATE":
 			try (Cluster cluster = Cluster.builder().addContactPoints(seedNode).build();
 					Session session = cluster.newSession();) {
 				manager.createTables(session);
+			}
+			break;
+		case "DROP":
+			try (Cluster cluster = Cluster.builder().addContactPoints(seedNode).build();
+					Session session = cluster.newSession();) {
+				manager.dropTables(session);
 			}
 			break;
 		case "POPULATE":

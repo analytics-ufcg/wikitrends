@@ -43,11 +43,10 @@ public class CassandraServingLayer2Manager implements Serializable {
            
             session.execute("CREATE TABLE IF NOT EXISTS results.servers_ranking" +
 								"(id text," +
-								"position bigint," +
 								"server_name TEXT," +
 								"count INT," +
-								"PRIMARY KEY((id), position)" +
-								") WITH CLUSTERING ORDER BY (position ASC);"
+								"PRIMARY KEY((id), server_name, count)" +
+								") WITH CLUSTERING ORDER BY (count DESC, server_name ASC);"
 					);
            
             session.execute("CREATE TABLE IF NOT EXISTS results." +

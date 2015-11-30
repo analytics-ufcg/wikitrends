@@ -102,17 +102,17 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 			JavaRDD<BatchLayer1Output<Integer>> serverRanking = processRanking(sc, serverRDD);
 			saveServerRanking(sc, serverRanking);
 			
-//			JavaPairRDD<String, Integer> userRDD = wikipediaEdits
-//			.mapPartitionsToPair( iterator -> {
-//				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
-//				while(iterator.hasNext()){
-//					EditType edit = iterator.next();
-//					pairs.add(new Tuple2<String, Integer>(edit.getCommon_event_user(), 1));
-//				}
-//				return pairs;
-//			});
-//			JavaRDD<BatchLayer1Output<Integer>> userRanking = processRanking(sc, userRDD);
-//			saveUserRanking(sc, userRanking);
+			JavaPairRDD<String, Integer> userRDD = wikipediaEdits
+			.mapPartitionsToPair( iterator -> {
+				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
+				while(iterator.hasNext()){
+					EditType edit = iterator.next();
+					pairs.add(new Tuple2<String, Integer>(edit.getCommon_event_user(), 1));
+				}
+				return pairs;
+			});
+			JavaRDD<BatchLayer1Output<Integer>> userRanking = processRanking(sc, userRDD);
+			saveUserRanking(sc, userRanking);
 //
 //			processStatistics(sc, wikipediaEdits);
 		}	

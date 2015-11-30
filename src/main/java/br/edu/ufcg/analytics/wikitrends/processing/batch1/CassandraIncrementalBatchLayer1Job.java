@@ -6,7 +6,15 @@ import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalField;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.api.java.JavaRDD;
@@ -21,7 +29,8 @@ import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.datastax.spark.connector.japi.CassandraRow;
 
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
-import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.ServerRanking;
+import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.HourlyRanking;
+import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
 
 /**
  * 
@@ -107,10 +116,18 @@ public class CassandraIncrementalBatchLayer1Job extends CassandraBatchLayer1Job{
 	@Override
 	protected void saveServerRanking(JavaSparkContext sc, JavaRDD<BatchLayer1Output<Integer>> serverRanking) {
 		CassandraJavaUtil
-				.javaFunctions(serverRanking.zipWithIndex().map(entry -> new ServerRanking(now, entry._2, entry._1.getKey(), entry._1.getValue())))
-				.writerBuilder(batchViewsKeyspace, serversRankingTable, mapToRow(ServerRanking.class))
+				.javaFunctions(serverRanking.map(entry -> new HourlyRanking(now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour(), entry.getKey(), entry.getValue())))
+				.writerBuilder(batchViewsKeyspace, serversRankingTable, mapToRow(HourlyRanking.class))
 				.saveToCassandra();
 	}
+	
+	@Override
+	protected void saveUserRanking(JavaSparkContext sc, JavaRDD<BatchLayer1Output<Integer>> userRanking) {
+		CassandraJavaUtil.javaFunctions(userRanking.map(entry -> new HourlyRanking(now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour(), entry.getKey(), entry.getValue())))
+		.writerBuilder(batchViewsKeyspace, usersTable, mapToRow(HourlyRanking.class))
+		.saveToCassandra();
+	}
+
 
 
 

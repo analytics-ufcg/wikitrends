@@ -1,5 +1,6 @@
 package br.edu.ufcg.analytics.wikitrends.processing.batch2;
 
+import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.configuration.Configuration;
+import org.apache.spark.api.java.JavaRDD;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
@@ -17,6 +19,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.spark.connector.cql.CassandraConnector;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
+import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultAbsoluteValuesShot;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopContentPage;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopEditor;
@@ -49,11 +52,11 @@ public class CassandraBatchLayer2Job extends BatchLayer2Job {
 	public CassandraBatchLayer2Job(Configuration configuration) {
 		super(configuration);
 		servingKeyspace = configuration.getString("wikitrends.serving.cassandra.keyspace");
-		topPagesTable = configuration.getString("wikitrends.serving.cassandra.table.toppages");
-		topContentPagesTable = configuration.getString("wikitrends.serving.cassandra.table.topcontentpages");
-		topIdiomsTable = configuration.getString("wikitrends.serving.cassandra.table.topidioms");
-		topEditorsTable = configuration.getString("wikitrends.serving.cassandra.table.topeditors");
-		absoluteValuesTable = configuration.getString("wikitrends.serving.cassandra.table.absolutevalues");
+		topPagesTable = configuration.getString("wikitrends.serving.cassandra.table.toppage");
+		topContentPagesTable = configuration.getString("wikitrends.serving.cassandra.table.topcontentpage");
+		topIdiomsTable = configuration.getString("wikitrends.serving.cassandra.table.topidiom");
+		topEditorsTable = configuration.getString("wikitrends.serving.cassandra.table.topeditor");
+		absoluteValuesTable = configuration.getString("wikitrends.serving.cassandra.table.absolutevalue");
 
 		//r = configuration.getString("wikitrends.serving.cassandra.table.serversranking");
 	}
@@ -74,6 +77,13 @@ public class CassandraBatchLayer2Job extends BatchLayer2Job {
 
 	@Override
 	protected void saveResultTopIdioms(Map<String, Integer> mapIdiomToCount) {
+		
+//		JavaRDD<EditType> wikipediaEdits = javaFunctions(sc).cassandraTable("master_dataset", "edits")
+//				.select("id", "year", "month", "day", "hour")
+//				.limit(1L)
+
+		
+//		CassandraJavaUtil.javaFunctions(sc).cassandraTable("batch_views", "status").
 		
 		List<ResultTopIdiom> rtpList = new ArrayList<ResultTopIdiom>();
 		for(Entry<String, Integer> entry : mapIdiomToCount.entrySet()) {
@@ -171,21 +181,23 @@ public class CassandraBatchLayer2Job extends BatchLayer2Job {
     	
     	CassandraConnector connector = CassandraConnector.apply(sc.getConf());
     	try (Session session = connector.openSession()) {
-            ResultSet results = session.execute("SELECT data FROM batch_views." + tableName);
-            
-            //System.out.println(results.toString());
-            
-            for(Row r : results) {
-            	Map<String, Integer> tmpM = r.getMap("data", String.class, Integer.class);
-            	for (String key : tmpM.keySet()) {
-            	    if(map.keySet().contains(key)) {
-            	    	map.put(key, map.get(key) + tmpM.get(key));
-            	    }
-            	    else {
-            	    	map.put(key, tmpM.get(key));
-            	    }
-            	}
-            }
+    		for (int i = 0; i < 120; i++) {
+                ResultSet results = session.execute("SELECT data FROM batch_views." + tableName);
+                
+                //System.out.println(results.toString());
+                
+                for(Row r : results) {
+                	Map<String, Integer> tmpM = r.getMap("data", String.class, Integer.class);
+                	for (String key : tmpM.keySet()) {
+                	    if(map.keySet().contains(key)) {
+                	    	map.put(key, map.get(key) + tmpM.get(key));
+                	    }
+                	    else {
+                	    	map.put(key, tmpM.get(key));
+                	    }
+                	}
+                }
+			}
     	}
         
         //System.out.println("Final map: " + map.toString());
