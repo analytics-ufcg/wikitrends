@@ -135,13 +135,7 @@ public class CassandraMasterDatasetManager implements Serializable {
 		session.execute("DROP KEYSPACE IF EXISTS master_dataset");
 	}
 
-	public void populateFrom(String cassandraSeedHostname, String inputFile) {
-
-		SparkConf conf = new SparkConf();
-		conf.setAppName("wikitrends-migrate-master");
-		conf.set("spark.cassandra.connection.host", cassandraSeedHostname);
-
-		try (JavaSparkContext sc = new JavaSparkContext(conf);) {
+	public void populateFrom(String cassandraSeedHostname, String inputFile, JavaSparkContext sc) {
 
 			JavaRDD<JsonObject> oldMasterDataset = sc.textFile(inputFile)
 					.map(l -> new JsonParser().parse(l).getAsJsonObject());
@@ -162,7 +156,6 @@ public class CassandraMasterDatasetManager implements Serializable {
 			CassandraJavaUtil.javaFunctions(logs)
 			.writerBuilder("master_dataset", "logs", mapToRow(LogType.class))
 			.saveToCassandra();
-		}
 	}
 
 	private LogType parseLogFromJSON(JsonObject obj) {
@@ -254,7 +247,17 @@ public class CassandraMasterDatasetManager implements Serializable {
 				System.exit(1);
 			}
 			String inputFile = args[2];
-			manager.populateFrom(seedNode, inputFile);
+
+			SparkConf conf = new SparkConf();
+			conf.setAppName("wikitrends-migrate-master");
+			conf.set("spark.cassandra.connection.host", seedNode);
+
+			try (JavaSparkContext sc = new JavaSparkContext(conf);) {
+
+
+			manager.populateFrom(seedNode, inputFile, sc);
+			}
+			
 			break;
 		default:
 			System.err.println("Unsupported operation. Choose CREATE OR POPULATE");

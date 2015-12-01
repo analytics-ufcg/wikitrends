@@ -1,9 +1,10 @@
 package br.edu.ufcg.analytics.wikitrends.storage.raw;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import org.junit.Ignore;
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaSparkContext;
 import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
@@ -28,10 +29,8 @@ public class CassandraMasterDatasetManagerTest {
 		try(Cluster cluster = Cluster.builder().addContactPoints(testHosts).build();){
 			
 			try(Session session = cluster.newSession();){
+				new CassandraMasterDatasetManager().dropTables(session);
 				new CassandraMasterDatasetManager().createTables(session);
-			}
-			
-			try(Session session = cluster.newSession();){
 				session.execute("USE master_dataset;");
 				ResultSet resultSet = session.execute("SELECT * FROM edits;");
 				assertTrue(resultSet.all().isEmpty());
@@ -49,10 +48,8 @@ public class CassandraMasterDatasetManagerTest {
 		try(Cluster cluster = Cluster.builder().addContactPoints(testHosts).build();){
 			
 			try(Session session = cluster.newSession();){
+				new CassandraMasterDatasetManager().dropTables(session);
 				new CassandraMasterDatasetManager().createTables(session);
-			}
-			
-			try(Session session = cluster.newSession();){
 				session.execute("USE master_dataset;");
 				ResultSet resultSet = session.execute("SELECT * FROM logs;");
 				assertTrue(resultSet.all().isEmpty());
@@ -65,7 +62,6 @@ public class CassandraMasterDatasetManagerTest {
 	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager#populateFrom(String, String)}.
 	 */
 	@Test
-	@Ignore("cannot access spark without spark-submit")
 	public void testPopulateEdits() {
 		String[] testHosts = seedNode.split(",");
 		try(Cluster cluster = Cluster.builder().addContactPoints(testHosts).build();){
@@ -76,7 +72,13 @@ public class CassandraMasterDatasetManagerTest {
 				manager.createTables(session);
 			}
 			
-			manager.populateFrom(seedNode, inputFile);
+			
+			SparkConf conf = new SparkConf();
+			conf.set("spark.cassandra.connection.host", seedNode);
+
+			try (JavaSparkContext sc = new JavaSparkContext("local", "test", conf);) {
+				manager.populateFrom(seedNode, inputFile, sc);
+			}
 			
 			try(Session session = cluster.newSession();){
 				session.execute("USE master_dataset;");
