@@ -3,7 +3,7 @@ package br.edu.ufcg.analytics.wikitrends.storage.batch1;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.spark.SparkConf;
@@ -24,7 +24,7 @@ import br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1M
  * @author Guilherme Gadelha
  *
  */
-public class CassandraBatchLayerManagerTest {
+public class CassandraBatchLayer1ManagerTest {
 	
 	private JavaSparkContext sc;
 	private Cluster cluster;
@@ -88,28 +88,24 @@ public class CassandraBatchLayerManagerTest {
 		dataGen.generateTopEditorsData();
 		
 		ResultSet resultSet0 = session.execute("SELECT * FROM top_editors;");
-		assertEquals(resultSet0.all().size(), 4);
+		assertEquals(resultSet0.all().size(), 20);
 		
 		ResultSet resultSet1 = session.execute("SELECT * FROM top_editors where year=2013 AND month=4 AND day=3 AND hour=8;");
-		assertEquals(resultSet1.all().size(), 1);
+		List<Row> rows = resultSet1.all();
+
+		assertEquals(rows.size(), 2);
 		
-		for(Row r : resultSet1) {
-			if(r.getInt("hour") == 8) {
-				Map<String, Integer> m = r.getMap("data", String.class, Integer.class);
-				assertTrue(m.get("john_1") == 2);
-				assertTrue(m.get("john_2") == 0);
-			}
-		}
+		Row r0 = rows.get(0);
+		Row r1 = rows.get(1);
+		
+		assertTrue(r0.getInt("hour") == 8);
+		assertTrue(r0.getString("name").equals("john_2"));
+		assertTrue(r0.getLong("count") == 0L);
+		assertTrue(r1.getString("name").equals("john_3"));
+		assertTrue(r1.getLong("count") == 4L);
 		
 		ResultSet resultSet2 = session.execute("SELECT * FROM top_editors where year=2013 AND month=4 AND day=4 AND hour=7;");
 		assertEquals(resultSet2.all().size(), 1);
-		
-		for(Row r : resultSet2) {
-			if(r.getInt("hour") == 7) {
-				Map<String, Integer> m = r.getMap("data", String.class, Integer.class);
-				assertTrue(m.keySet().size() == 4);
-			}
-		}
 	}
 	
 	@Test
@@ -117,28 +113,25 @@ public class CassandraBatchLayerManagerTest {
 		dataGen.generateTopIdiomsData();
 		
 		ResultSet resultSet0 = session.execute("SELECT * FROM top_idioms;");
-		assertEquals(resultSet0.all().size(), 4);
+		assertEquals(resultSet0.all().size(), 20);
 		
 		ResultSet resultSet1 = session.execute("SELECT * FROM top_idioms where year=2013 AND month=4 AND day=3 AND hour=8;");
-		assertEquals(resultSet1.all().size(), 1);
+		List<Row> rows = resultSet1.all();
+
+		assertEquals(rows.size(), 2);
 		
-		for(Row r : resultSet1) {
-			if(r.getInt("hour") == 8) {
-				Map<String, Integer> m = r.getMap("data", String.class, Integer.class);
-				assertTrue(m.get("en") == 2);
-				assertTrue(m.get("fr") == 1);
-			}
-		}
+		Row r0 = rows.get(0);
+		Row r1 = rows.get(1);
+		
+		assertTrue(r0.getInt("hour") == 8);
+		assertTrue(r0.getString("name").equals("de"));
+		assertTrue(r0.getLong("count") == 3L);
+		assertTrue(r1.getString("name").equals("ru"));
+		assertTrue(r1.getLong("count") == 10L);
 		
 		ResultSet resultSet2 = session.execute("SELECT * FROM top_idioms where year=2013 AND month=4 AND day=4 AND hour=7;");
 		assertEquals(resultSet2.all().size(), 1);
 		
-		for(Row r : resultSet2) {
-			if(r.getInt("hour") == 7) {
-				Map<String, Integer> m = r.getMap("data", String.class, Integer.class);
-				assertTrue(m.keySet().size() == 4);
-			}
-		}
 	}
 	
 	@Test
@@ -146,28 +139,25 @@ public class CassandraBatchLayerManagerTest {
 		dataGen.generateTopPagesData();
 		
 		ResultSet resultSet0 = session.execute("SELECT * FROM top_pages;");
-		assertEquals(resultSet0.all().size(), 4);
+		assertEquals(resultSet0.all().size(), 20);
 		
 		ResultSet resultSet1 = session.execute("SELECT * FROM top_pages where year=2013 AND month=4 AND day=3 AND hour=8;");
-		assertEquals(resultSet1.all().size(), 1);
+		List<Row> rows = resultSet1.all();
+
+		assertEquals(rows.size(), 2);
 		
-		for(Row r : resultSet1) {
-			if(r.getInt("hour") == 8) {
-				Map<String, Integer> m = r.getMap("data", String.class, Integer.class);
-				assertTrue(m.get("page1") == 2);
-				assertTrue(m.get("page2") == 0);
-			}
-		}
+		Row r0 = rows.get(0);
+		Row r1 = rows.get(1);
+		
+		assertTrue(r0.getInt("hour") == 8);
+		assertTrue(r0.getString("name").equals("page_4"));
+		assertTrue(r0.getLong("count") == 3L);
+		assertTrue(r1.getString("name").equals("page_5"));
+		assertTrue(r1.getLong("count") == 10L);
 		
 		ResultSet resultSet2 = session.execute("SELECT * FROM top_pages where year=2013 AND month=4 AND day=4 AND hour=7;");
 		assertEquals(resultSet2.all().size(), 1);
 		
-		for(Row r : resultSet2) {
-			if(r.getInt("hour") == 7) {
-				Map<String, Integer> m = r.getMap("data", String.class, Integer.class);
-				assertTrue(m.keySet().size() == 4);
-			}
-		}
 	}
 	
 	@Test
@@ -175,28 +165,25 @@ public class CassandraBatchLayerManagerTest {
 		dataGen.generateTopContentPagesData();
 		
 		ResultSet resultSet0 = session.execute("SELECT * FROM top_content_pages;");
-		assertEquals(resultSet0.all().size(), 4);
+		assertEquals(resultSet0.all().size(), 20);
 		
 		ResultSet resultSet1 = session.execute("SELECT * FROM top_content_pages where year=2013 AND month=4 AND day=3 AND hour=8;");
-		assertEquals(resultSet1.all().size(), 1);
+		List<Row> rows = resultSet1.all();
+
+		assertEquals(rows.size(), 2);
 		
-		for(Row r : resultSet1) {
-			if(r.getInt("hour") == 8) {
-				Map<String, Integer> m = r.getMap("data", String.class, Integer.class);
-				assertTrue(m.get("content_page_1") == 2);
-				assertTrue(m.get("content_page_2") == 0);
-			}
-		}
+		Row r0 = rows.get(0);
+		Row r1 = rows.get(1);
+		
+		assertTrue(r0.getInt("hour") == 8);
+		assertTrue(r0.getString("name").equals("content_page_4"));
+		assertTrue(r0.getLong("count") == 3L);
+		assertTrue(r1.getString("name").equals("content_page_5"));
+		assertTrue(r1.getLong("count") == 10L);
 		
 		ResultSet resultSet2 = session.execute("SELECT * FROM top_content_pages where year=2013 AND month=4 AND day=4 AND hour=7;");
 		assertEquals(resultSet2.all().size(), 1);
 		
-		for(Row r : resultSet2) {
-			if(r.getInt("hour") == 7) {
-				Map<String, Integer> m = r.getMap("data", String.class, Integer.class);
-				assertTrue(m.keySet().size() == 4);
-			}
-		}
 	}
 	
 	

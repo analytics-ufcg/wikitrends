@@ -3,7 +3,13 @@ package br.edu.ufcg.analytics.wikitrends.storage.serving1.types;
 import java.io.Serializable;
 
 public class TopClass implements Serializable {
-		private static final long serialVersionUID = 2644747318393169105L;
+	
+	/**
+	 *  SerialVersionUID to class TopClass
+	 *  
+	 *  @since December 1, 2015	
+	 */
+	private static final long serialVersionUID = 4549928096222419333L;
 		
 		private Integer hour;
     	private Integer day;

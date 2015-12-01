@@ -15,13 +15,16 @@ public class CassandraServingLayer1Manager implements Serializable {
 	private static final long serialVersionUID = -1017103087942947022L;
 
 	public void createTables(Session session) {
-            session.execute("CREATE KEYSPACE batch_views WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
+			session.execute("DROP KEYSPACE IF EXISTS batch_views");
+		
+			session.execute("CREATE KEYSPACE batch_views WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
             
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
 								"top_editors" +
 								
 								"(name TEXT," +
 								"count BIGINT," +
+								
 								"year INT," +
 								"month INT," +
 								"day INT," +
@@ -33,6 +36,7 @@ public class CassandraServingLayer1Manager implements Serializable {
             
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
 								"top_idioms" +
+								
 								"(name TEXT," +
 								"count BIGINT," +
 								
@@ -40,54 +44,29 @@ public class CassandraServingLayer1Manager implements Serializable {
 								"month INT," +
 								"day INT," +
 								"hour INT," +
-								"event_time TIMESTAMP," +
 								
 								"PRIMARY KEY((year, month, day, hour), count)," +
 								") WITH CLUSTERING ORDER BY (count ASC);"
             		);
            
-            session.execute("CREATE TABLE IF NOT EXISTS batch_views.servers_ranking (" + 
-            		"year INT," +
-            		"month INT," +
-            		"day INT," +
-            		"hour INT," +
-            		
-            		"server_name TEXT," +
-            		"number_of_changes INT," +
-            		
-            		"PRIMARY KEY((year, month, day, hour), number_of_changes, server_name)) " + 
-            		"WITH CLUSTERING ORDER BY (number_of_changes DESC, server_name ASC);"
-            		);
-           
-            session.execute("CREATE TABLE IF NOT EXISTS batch_views.status (" + 
-            		"id TEXT," +
-            		
-            		"year INT," +
-            		"month INT," +
-            		"day INT," +
-            		"hour INT," +
-            		
-            		"PRIMARY KEY((id), year, month, day, hour)) " + 
-            		"WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
-            		);
-           
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
 								"top_pages" +
+								
 								"(name TEXT," +
-								"count BIGINT" +
+								"count BIGINT," +
 								
 								"year INT," +
 								"month INT," +
 								"day INT," +
 								"hour INT," +
-								"event_time TIMESTAMP," +
 
-								"PRIMARY KEY((year, month, day, hour), id)," +
-								") WITH CLUSTERING ORDER BY (id DESC);"
+								"PRIMARY KEY((year, month, day, hour), count)," +
+								") WITH CLUSTERING ORDER BY (count ASC);"
             		);
             
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
 								"top_content_pages" +
+								
 								"(name TEXT," +
 								"count BIGINT," +
 								
@@ -120,6 +99,34 @@ public class CassandraServingLayer1Manager implements Serializable {
 								"PRIMARY KEY((year, month, day, hour), id)," +
 								") WITH CLUSTERING ORDER BY (id DESC);"
 				);
+            
+            
+            
+            
+            session.execute("CREATE TABLE IF NOT EXISTS batch_views.servers_ranking (" + 
+            		"year INT," +
+            		"month INT," +
+            		"day INT," +
+            		"hour INT," +
+            		
+            		"server_name TEXT," +
+            		"number_of_changes INT," +
+            		
+            		"PRIMARY KEY((year, month, day, hour), number_of_changes, server_name)) " + 
+            		"WITH CLUSTERING ORDER BY (number_of_changes DESC, server_name ASC);"
+            		);
+           
+            session.execute("CREATE TABLE IF NOT EXISTS batch_views.status (" + 
+            		"id TEXT," +
+            		
+            		"year INT," +
+            		"month INT," +
+            		"day INT," +
+            		"hour INT," +
+            		
+            		"PRIMARY KEY((id), year, month, day, hour)) " + 
+            		"WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
+            		);
 
 	}
 

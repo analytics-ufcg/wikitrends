@@ -21,6 +21,7 @@ import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.AbsoluteValuesShot;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
 
+@Deprecated
 public class CassandraBatchLayer1Job extends BatchLayer1Job {
 
 	private static final long serialVersionUID = -1876586531051844584L;
@@ -38,6 +39,7 @@ public class CassandraBatchLayer1Job extends BatchLayer1Job {
 	 * 
 	 * @param configuration
 	 */
+	@Deprecated
 	public CassandraBatchLayer1Job(Configuration configuration) {
 		super(configuration);
 		batchViewsKeyspace = configuration.getString("wikitrends.batch.cassandra.keyspace");
@@ -54,6 +56,7 @@ public class CassandraBatchLayer1Job extends BatchLayer1Job {
 	 * @see br.edu.ufcg.analytics.wikitrends.processing.batch1.BatchLayer1Job#readRDD(org.apache.spark.api.java.JavaSparkContext)
 	 */
 	@Override
+	@Deprecated
 	protected JavaRDD<EditType> readRDD(JavaSparkContext sc) {
 		JavaRDD<EditType> wikipediaEdits = javaFunctions(sc).cassandraTable("master_dataset", "edits")
 				.select("event_time", "common_event_bot", "common_event_title", "common_server_name", "common_event_user",
@@ -80,6 +83,7 @@ public class CassandraBatchLayer1Job extends BatchLayer1Job {
 	}
 
 	@Override
+	@Deprecated
 	protected void saveTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayer1Output<Integer>> titleRanking) {
 		List<BatchLayer1Output<Integer>> allPages = titleRanking.take(100); // data map
 		
@@ -88,15 +92,16 @@ public class CassandraBatchLayer1Job extends BatchLayer1Job {
 			data.put(t.getKey(), t.getValue());
 		}
 		
-		List<TopClass> output = Arrays.asList(new TopClass(data));
+//		List<TopClass> output = Arrays.asList(new TopClass(data));
 		
-		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
-			.writerBuilder(batchViewsKeyspace, pagesTable, mapToRow(TopClass.class))
-			.saveToCassandra();
+//		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
+//			.writerBuilder(batchViewsKeyspace, pagesTable, mapToRow(TopClass.class))
+//			.saveToCassandra();
 		
 	}
 
 	@Override
+	@Deprecated
 	protected void saveContentTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayer1Output<Integer>> contentTitleRanking) {
 		List<BatchLayer1Output<Integer>> allPages = contentTitleRanking.take(100); // data map
 		
@@ -105,11 +110,11 @@ public class CassandraBatchLayer1Job extends BatchLayer1Job {
 			data.put(t.getKey(), t.getValue());
 		}
 		
-		List<TopClass> output = Arrays.asList(new TopClass(data));
+//		List<TopClass> output = Arrays.asList(new TopClass(data));
 		
-		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
-			.writerBuilder(batchViewsKeyspace, contentPagesTable, mapToRow(TopClass.class))
-			.saveToCassandra();
+//		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
+//			.writerBuilder(batchViewsKeyspace, contentPagesTable, mapToRow(TopClass.class))
+//			.saveToCassandra();
 		
 	}
 
@@ -117,6 +122,7 @@ public class CassandraBatchLayer1Job extends BatchLayer1Job {
 	 * @see br.edu.ufcg.analytics.wikitrends.processing.batch1.BatchLayer1Job#saveServerRanking(org.apache.spark.api.java.JavaSparkContext, org.apache.spark.api.java.JavaRDD)
 	 */
 	@Override
+	@Deprecated
 	protected void saveServerRanking(JavaSparkContext sc, JavaRDD<BatchLayer1Output<Integer>> serverRanking) {
 		
 		List<BatchLayer1Output<Integer>> allPages = serverRanking.collect();
@@ -126,11 +132,11 @@ public class CassandraBatchLayer1Job extends BatchLayer1Job {
 			data.put(t.getKey(), t.getValue());
 		}
 		
-		List<TopClass> output = Arrays.asList(new TopClass(data));
+//		List<TopClass> output = Arrays.asList(new TopClass(data));
 		
-		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
-			.writerBuilder(batchViewsKeyspace, serversTable, mapToRow(TopClass.class))
-			.saveToCassandra();
+//		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
+//			.writerBuilder(batchViewsKeyspace, serversTable, mapToRow(TopClass.class))
+//			.saveToCassandra();
 		
 	}
 
@@ -138,6 +144,7 @@ public class CassandraBatchLayer1Job extends BatchLayer1Job {
 	 * @see br.edu.ufcg.analytics.wikitrends.processing.batch1.BatchLayer1Job#saveUserRanking(org.apache.spark.api.java.JavaSparkContext, org.apache.spark.api.java.JavaRDD)
 	 */
 	@Override
+	@Deprecated
 	protected void saveUserRanking(JavaSparkContext sc, JavaRDD<BatchLayer1Output<Integer>> userRanking) {
 		List<BatchLayer1Output<Integer>> allPages = userRanking.take(100);
 		
@@ -146,27 +153,23 @@ public class CassandraBatchLayer1Job extends BatchLayer1Job {
 			data.put(t.getKey(), t.getValue());
 		}
 		
-		List<TopClass> output = Arrays.asList(new TopClass(data));
+//		List<TopClass> output = Arrays.asList(new TopClass(data));
 		
-		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
-			.writerBuilder(batchViewsKeyspace, usersTable, mapToRow(TopClass.class))
-			.saveToCassandra();
+//		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
+//			.writerBuilder(batchViewsKeyspace, usersTable, mapToRow(TopClass.class))
+//			.saveToCassandra();
 	}
 
 	/* (non-Javadoc)
 	 * @see br.edu.ufcg.analytics.wikitrends.processing.batch1.BatchLayer1Job#processStatistics(org.apache.spark.api.java.JavaSparkContext, org.apache.spark.api.java.JavaRDD)
 	 */
 	@Override
+	@Deprecated
 	protected void processStatistics(JavaSparkContext sc, JavaRDD<EditType> wikipediaEdits) {
 		Map<String, Long> edits_data = new HashMap<String, Long>();
 		edits_data.put("all_edits", countAllEdits(wikipediaEdits));
 		edits_data.put("minor_edits", countMinorEdits(wikipediaEdits));
 		edits_data.put("average_size", calcAverageEditLength(wikipediaEdits));
-
-		
-//		Set<String> distincts_pages_set = new HashSet<>();
-//		Set<String> distincts_editors_set = new HashSet<>();
-//		Set<String> distincts_servers_set = new HashSet<>();
 
 		Set<String> distincts_pages_set = distinctPages(wikipediaEdits);
 		Set<String> distincts_editors_set = distinctEditors(wikipediaEdits);

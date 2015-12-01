@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.configuration.Configuration;
@@ -29,23 +30,35 @@ import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.datastax.spark.connector.japi.CassandraRow;
 
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
+import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.AbsoluteValuesShot;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.HourlyRanking;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
 
 /**
- * 
+ * @author Guilherme Gadelha
  * @author Ricardo Araújo Santos - ricoaraujosantos@gmail.com
  */
-public class CassandraIncrementalBatchLayer1Job extends CassandraBatchLayer1Job{
+public class CassandraIncrementalBatchLayer1Job extends BatchLayer1Job {
 	
 	/**
+	 * SerialVersionUID to class CassandraIncrementalBatchLayer1Job
 	 * 
+	 *  @since December 1, 2015
 	 */
 	private static final long serialVersionUID = 7386905244759035777L;
+	
 	private LocalDateTime now;
 	private LocalDateTime end;
 	private String[] seeds;
-
+	
+	protected String batchViewsKeyspace;
+	private String pagesTable;
+	private String contentPagesTable;
+	private String serversTable;
+	protected String serversRankingTable;
+	protected String usersTable;
+	private String absoluteValuesTable;
+	
 	/**
 	 * Default constructor
 	 * 
@@ -53,6 +66,13 @@ public class CassandraIncrementalBatchLayer1Job extends CassandraBatchLayer1Job{
 	 */
 	public CassandraIncrementalBatchLayer1Job(Configuration configuration) {
 		super(configuration);
+		batchViewsKeyspace = configuration.getString("wikitrends.batch.cassandra.keyspace");
+		pagesTable = configuration.getString("wikitrends.batch.cassandra.table.pages");
+		contentPagesTable = configuration.getString("wikitrends.batch.cassandra.table.contentpages");
+		serversTable = configuration.getString("wikitrends.batch.cassandra.table.servers");
+		serversRankingTable = configuration.getString("wikitrends.batch.cassandra.table.serversranking");
+		usersTable = configuration.getString("wikitrends.batch.cassandra.table.users");
+		absoluteValuesTable = configuration.getString("wikitrends.batch.cassandra.table.absolutevalues");
 		
 		seeds = configuration.getStringArray("spark.cassandra.connection.host");
 		
@@ -115,20 +135,62 @@ public class CassandraIncrementalBatchLayer1Job extends CassandraBatchLayer1Job{
 	
 	@Override
 	protected void saveServerRanking(JavaSparkContext sc, JavaRDD<BatchLayer1Output<Integer>> serverRanking) {
-		CassandraJavaUtil
-				.javaFunctions(serverRanking.map(entry -> new HourlyRanking(now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour(), entry.getKey(), entry.getValue())))
-				.writerBuilder(batchViewsKeyspace, serversRankingTable, mapToRow(HourlyRanking.class))
+		CassandraJavaUtil.javaFunctions(serverRanking.map(entry -> new TopClass(entry.getKey(), (long) entry.getValue(), now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour())))
+				.writerBuilder(batchViewsKeyspace, serversRankingTable, mapToRow(TopClass.class))
 				.saveToCassandra();
 	}
 	
 	@Override
 	protected void saveUserRanking(JavaSparkContext sc, JavaRDD<BatchLayer1Output<Integer>> userRanking) {
-		CassandraJavaUtil.javaFunctions(userRanking.map(entry -> new HourlyRanking(now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour(), entry.getKey(), entry.getValue())))
-		.writerBuilder(batchViewsKeyspace, usersTable, mapToRow(HourlyRanking.class))
-		.saveToCassandra();
+		CassandraJavaUtil.javaFunctions(userRanking.map(entry -> new TopClass(entry.getKey(), (long) entry.getValue(), now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour())))
+			.writerBuilder(batchViewsKeyspace, usersTable, mapToRow(TopClass.class))
+			.saveToCassandra();
 	}
 
+	@Override
+	protected void saveTitleRanking(JavaSparkContext sc, JavaRDD<BatchLayer1Output<Integer>> titleRanking) {
+		CassandraJavaUtil.javaFunctions(titleRanking.map(entry -> new TopClass(entry.getKey(), (long) entry.getValue(), now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour())))
+			.writerBuilder(batchViewsKeyspace, pagesTable, mapToRow(TopClass.class))
+			.saveToCassandra();
+	}
 
+	@Override
+	protected void saveContentTitleRanking(JavaSparkContext sc,
+			JavaRDD<BatchLayer1Output<Integer>> contentTitleRanking) {
+		CassandraJavaUtil.javaFunctions(contentTitleRanking.map(entry -> new TopClass(entry.getKey(), (long) entry.getValue(), now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour())))
+			.writerBuilder(batchViewsKeyspace, contentPagesTable, mapToRow(TopClass.class))
+			.saveToCassandra();
+		
+	}
 
+	/* (non-Javadoc)
+	 * @see br.edu.ufcg.analytics.wikitrends.processing.batch1.BatchLayer1Job#processStatistics(org.apache.spark.api.java.JavaSparkContext, org.apache.spark.api.java.JavaRDD)
+	 */
+	@Override
+	protected void processStatistics(JavaSparkContext sc, JavaRDD<EditType> wikipediaEdits) {
+		Map<String, Long> edits_data = new HashMap<String, Long>();
+		edits_data.put("all_edits", countAllEdits(wikipediaEdits));
+		edits_data.put("minor_edits", countMinorEdits(wikipediaEdits));
+		edits_data.put("average_size", calcAverageEditLength(wikipediaEdits));
+
+		Set<String> distincts_pages_set = distinctPages(wikipediaEdits);
+		Set<String> distincts_editors_set = distinctEditors(wikipediaEdits);
+		Set<String> distincts_servers_set = distinctServers(wikipediaEdits);
+		
+//		System.out.println(distincts_pages_set.size()); // 359185
+//		System.out.println(distincts_editors_set.size()); // 57978
+//		System.out.println(distincts_servers_set.size()); // 215
+
+		Long smaller_origin = getOrigin(wikipediaEdits); 
+		
+		List<AbsoluteValuesShot> output = Arrays.asList(new AbsoluteValuesShot(edits_data, 
+																				distincts_pages_set,
+																				distincts_editors_set,
+																				distincts_servers_set,
+																				smaller_origin));
+		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
+			.writerBuilder(batchViewsKeyspace, absoluteValuesTable, mapToRow(AbsoluteValuesShot.class))
+			.saveToCassandra();
+	}
 
 }

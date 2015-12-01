@@ -6,6 +6,7 @@ import java.io.Serializable;
  * Abstraction to 
  * @author Ricardo Araújo Santos - ricoaraujosantos@gmail.com
  */
+@Deprecated
 public class HourlyRanking implements Serializable {
 
 	
