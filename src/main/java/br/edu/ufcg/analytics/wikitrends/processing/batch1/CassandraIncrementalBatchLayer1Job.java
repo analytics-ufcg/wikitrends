@@ -12,12 +12,14 @@ import java.time.temporal.TemporalField;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.configuration.Configuration;
+import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
@@ -51,12 +53,12 @@ public class CassandraIncrementalBatchLayer1Job extends BatchLayer1Job {
 	private LocalDateTime end;
 	private String[] seeds;
 	
-	protected String batchViewsKeyspace;
+	private String batchViewsKeyspace;
 	private String pagesTable;
 	private String contentPagesTable;
 	private String serversTable;
-	protected String serversRankingTable;
-	protected String usersTable;
+	private String serversRankingTable;
+	private String usersTable;
 	private String absoluteValuesTable;
 	
 	/**
@@ -89,17 +91,28 @@ public class CassandraIncrementalBatchLayer1Job extends BatchLayer1Job {
 		}
 
 //		end = LocalDateTime.ofInstant(Instant.ofEpochMilli((System.currentTimeMillis() / 3600000) * 3600000), ZoneId.systemDefault());
-//		end = LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.stoptime") * 1000), ZoneId.systemDefault());
-		end = LocalDateTime.of(2015, 11, 9, 12, 0) ;
+		end = LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.stoptime") * 1000), ZoneId.systemDefault());
+//		end = LocalDateTime.of(2015, 11, 9, 12, 0) ;
 	}
 	
 	@Override
 	public void run() {
-		try (Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
+		
+		SparkConf conf = new SparkConf();
+		conf.setAppName(configuration.getString("wikitrends.batch.id"));
+		
+		Iterator<String> keys = configuration.getKeys();
+		while (keys.hasNext()) {
+			String key = keys.next();
+			conf.set(key, configuration.getString(key));
+		}
+
+		try(JavaSparkContext sc = new JavaSparkContext(conf);
+				Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
 				Session session = cluster.newSession();) {
 			
 			while(now.isBefore(end)){
-				super.run();
+				super.run(sc);
 				session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", "servers_ranking", now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour());
 				now = now.plusHours(1);
 			}
@@ -136,7 +149,7 @@ public class CassandraIncrementalBatchLayer1Job extends BatchLayer1Job {
 	@Override
 	protected void saveServerRanking(JavaSparkContext sc, JavaRDD<BatchLayer1Output<Integer>> serverRanking) {
 		CassandraJavaUtil.javaFunctions(serverRanking.map(entry -> new TopClass(entry.getKey(), (long) entry.getValue(), now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour())))
-				.writerBuilder(batchViewsKeyspace, serversRankingTable, mapToRow(TopClass.class))
+				.writerBuilder(batchViewsKeyspace, serversTable, mapToRow(TopClass.class))
 				.saveToCassandra();
 	}
 	
