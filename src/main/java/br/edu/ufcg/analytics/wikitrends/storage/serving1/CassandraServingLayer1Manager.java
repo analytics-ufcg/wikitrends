@@ -31,7 +31,7 @@ public class CassandraServingLayer1Manager implements Serializable {
 								"hour INT," +
 								
 								"PRIMARY KEY((year, month, day, hour), count)," +
-								") WITH CLUSTERING ORDER BY (count ASC);"
+								") WITH CLUSTERING ORDER BY (count DESC);"
             		);
             
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +

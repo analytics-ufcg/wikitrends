@@ -64,8 +64,7 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 	}
 
 	public void run(JavaSparkContext sc) {
-
-		processEditorsRanking(sc);
+//		processEditorsRanking(sc);
 		processTopPages(sc);
 		processTopIdioms(sc);
 		processTopContentPages(sc);
@@ -135,25 +134,6 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 		saveTitleRanking(sc, titleRanking);
 	}
 
-	public void processEditorsRanking(JavaSparkContext sc) {
-		JavaRDD<EditType> wikipediaEdits = readRDD(sc)
-				.filter(edit -> edit.getCommon_server_name().endsWith("wikipedia.org"))
-				.cache();
-		
-		JavaPairRDD<String, Integer> userRDD = wikipediaEdits
-		.mapPartitionsToPair( iterator -> {
-			ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
-			while(iterator.hasNext()){
-				EditType edit = iterator.next();
-				pairs.add(new Tuple2<String, Integer>(edit.getCommon_event_user(), 1));
-			}
-			return pairs;
-		});
-		JavaRDD<BatchLayer1Output<Integer>> userRanking = processRanking(sc, userRDD);
-		saveUserRanking(sc, userRanking);
-	}
-	
-
 
 	protected abstract JavaRDD<EditType> readRDD(JavaSparkContext sc);
 
@@ -166,7 +146,7 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 	 * @param path HDFS output path.
 	 * @return 
 	 */
-	private JavaRDD<BatchLayer1Output<Integer>> processRanking(JavaSparkContext sc, JavaPairRDD<String,Integer> pairRDD) {
+	protected JavaRDD<BatchLayer1Output<Integer>> processRanking(JavaSparkContext sc, JavaPairRDD<String,Integer> pairRDD) {
 		JavaRDD<BatchLayer1Output<Integer>> result = pairRDD
 				.reduceByKey( (a,b) -> a+b )
 				.mapToPair( edit -> edit.swap() )
@@ -182,7 +162,6 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 
 	protected abstract void saveServerRanking(JavaSparkContext sc, JavaRDD<BatchLayer1Output<Integer>> serverRanking);
 	
-	protected abstract void saveUserRanking(JavaSparkContext sc, JavaRDD<BatchLayer1Output<Integer>> userRanking);
 
 	protected abstract void processStatistics(JavaSparkContext sc, JavaRDD<EditType> wikipediaEdits);
 

@@ -16,6 +16,7 @@ import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
 import br.edu.ufcg.analytics.wikitrends.processing.batch1.CassandraIncrementalBatchLayer1Job;
@@ -67,13 +68,13 @@ public class SmallDataBatch1IT {
 	 */
 	@After
 	public void tearDown() throws Exception {
-//		String[] testHosts = SEED_NODE.split(",");
-//		try(Cluster cluster = Cluster.builder().addContactPoints(testHosts).build();
-//			Session session = cluster.newSession();){
-//
-//			new CassandraMasterDatasetManager().dropTables(session);
-//			new CassandraServingLayer1Manager().dropTables(session);
-//		}
+		String[] testHosts = SEED_NODE.split(",");
+		try(Cluster cluster = Cluster.builder().addContactPoints(testHosts).build();
+			Session session = cluster.newSession();){
+
+			new CassandraMasterDatasetManager().dropTables(session);
+			new CassandraServingLayer1Manager().dropTables(session);
+		}
 	}
 
 	/**
@@ -94,6 +95,7 @@ public class SmallDataBatch1IT {
 		try (Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
 				Session session = cluster.newSession();) {
 			
+<<<<<<< HEAD
 			ResultSet resultSet = session.execute("SELECT count(1) FROM master_dataset.edits WHERE year = ? AND month = ? AND day = ? AND hour = ? ALLOW FILTERING", 2015, 11, 9, 11);
 			assertEquals(899, resultSet.one().getLong("count"));
 			
@@ -102,6 +104,10 @@ public class SmallDataBatch1IT {
 
 			resultSet = session.execute("SELECT count(1) FROM batch_views.top_editors");
 			assertEquals(11, resultSet.one().getLong("count"));
+=======
+			assertEquals(11, session.execute("SELECT count(1) FROM batch_views.top_editors").one().getLong("count"));
+			assertEquals(126, session.execute("SELECT sum(count) as ranking_sum FROM batch_views.top_editors").one().getLong("ranking_sum"));
+>>>>>>> refac process editors ranking
 		}
 	}
 	
