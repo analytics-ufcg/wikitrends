@@ -8,7 +8,6 @@ import java.util.Set;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.AbstractJavaRDDLike;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
