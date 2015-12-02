@@ -10,6 +10,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
@@ -24,7 +25,8 @@ import br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1M
  * @author Guilherme Gadelha
  *
  */
-public class CassandraBatchLayer1ManagerTest {
+@Ignore
+public class CassandraBatchLayer1ManagerIT {
 	
 	private JavaSparkContext sc;
 	private Cluster cluster;

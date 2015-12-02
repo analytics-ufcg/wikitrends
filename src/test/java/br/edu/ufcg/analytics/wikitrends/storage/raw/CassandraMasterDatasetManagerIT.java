@@ -15,7 +15,7 @@ import com.datastax.driver.core.Session;
  * @author Ricardo Araújo Santos - ricardo@copin.ufcg.edu.br
  *
  */
-public class CassandraMasterDatasetManagerTest {
+public class CassandraMasterDatasetManagerIT {
 	
 	private static String seedNode = "localhost";
 	private static String inputFile = "src/test/resources/small_test_data.json";
