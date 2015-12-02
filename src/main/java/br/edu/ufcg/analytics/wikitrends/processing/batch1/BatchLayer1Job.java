@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.AbstractJavaRDDLike;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -63,57 +64,75 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 	}
 
 	public void run(JavaSparkContext sc) {
-		
+
 		processEditorsRanking(sc);
+		processTopPages(sc);
+		processTopIdioms(sc);
+		processTopContentPages(sc);
 		
-
-		
-//			JavaPairRDD<String, Integer> titleRDD = wikipediaEdits
-//			.mapPartitionsToPair( iterator -> {
-//				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
-//				while(iterator.hasNext()){
-//					EditType edit = iterator.next();
-//					pairs.add(new Tuple2<String, Integer>(edit.getCommon_event_title(), 1));
-//				}
-//				return pairs;
-//			});
-//			JavaRDD<BatchLayer1Output<Integer>> titleRanking = processRanking(sc, titleRDD);
-//			
-//			saveTitleRanking(sc, titleRanking);
+//		JavaRDD<BatchLayer1Output<Integer>> serverRanking = processRanking(sc, serverRDD);
+//		saveServerRanking(sc, serverRanking);
 //
-//			JavaPairRDD<String, Integer> contentTitleRDD = wikipediaEdits
-//			.filter(edits -> "0".equals(edits.getCommon_event_namespace()))
-//			.mapPartitionsToPair( iterator -> {
-//				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
-//				while(iterator.hasNext()){
-//					EditType edit = iterator.next();
-//					pairs.add(new Tuple2<String, Integer>(edit.getCommon_event_title(), 1));
-//				}
-//				return pairs;
-//			});
-//			JavaRDD<BatchLayer1Output<Integer>> contentTitleRanking = processRanking(sc, contentTitleRDD);
-//			
-//			saveContentTitleRanking(sc, contentTitleRanking);
+//		processStatistics(sc, wikipediaEdits);
+	
+	}
 
+	public void processTopContentPages(JavaSparkContext sc) {
 		JavaRDD<EditType> wikipediaEdits = readRDD(sc)
 				.filter(edit -> edit.getCommon_server_name().endsWith("wikipedia.org"))
 				.cache();
+		
+		JavaPairRDD<String, Integer> contentTitleRDD = wikipediaEdits
+			.filter(edits -> "0".equals(edits.getCommon_event_namespace()))
+			.mapPartitionsToPair( iterator -> {
+				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
+				while(iterator.hasNext()){
+					EditType edit = iterator.next();
+					pairs.add(new Tuple2<String, Integer>(edit.getCommon_event_title(), 1));
+				}
+				return pairs;
+			});
+		
+		JavaRDD<BatchLayer1Output<Integer>> contentTitleRanking = processRanking(sc, contentTitleRDD);
+		
+		saveContentTitleRanking(sc, contentTitleRanking);
+	}
 
+	public JavaPairRDD<String, Integer> processTopIdioms(JavaSparkContext sc) {
+		JavaRDD<EditType> wikipediaEdits = readRDD(sc)
+				.filter(edit -> edit.getCommon_server_name().endsWith("wikipedia.org"))
+				.cache();
+		
 		JavaPairRDD<String, Integer> serverRDD = wikipediaEdits
-		.mapPartitionsToPair( iterator -> {
-			ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
-			while(iterator.hasNext()){
-				EditType edit = iterator.next();
-				pairs.add(new Tuple2<String, Integer>(edit.getCommon_server_name(), 1));
-			}
-			return pairs;
-		});
+			.mapPartitionsToPair( iterator -> {
+				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
+				while(iterator.hasNext()){
+					EditType edit = iterator.next();
+					pairs.add(new Tuple2<String, Integer>(edit.getCommon_server_name(), 1));
+				}
+				return pairs;
+			});
+		return serverRDD;
+	}
+
+	public void processTopPages(JavaSparkContext sc) {
+		JavaRDD<EditType> wikipediaEdits = readRDD(sc)
+				.filter(edit -> edit.getCommon_server_name().endsWith("wikipedia.org"))
+				.cache();
 		
-		JavaRDD<BatchLayer1Output<Integer>> serverRanking = processRanking(sc, serverRDD);
-		saveServerRanking(sc, serverRanking);
+		JavaPairRDD<String, Integer> titleRDD = wikipediaEdits
+			.mapPartitionsToPair( iterator -> {
+				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
+				while(iterator.hasNext()){
+					EditType edit = iterator.next();
+					pairs.add(new Tuple2<String, Integer>(edit.getCommon_event_title(), 1));
+				}
+				return pairs;
+			});
 		
-//
-//			processStatistics(sc, wikipediaEdits);
+		JavaRDD<BatchLayer1Output<Integer>> titleRanking = processRanking(sc, titleRDD);
+		
+		saveTitleRanking(sc, titleRanking);
 	}
 
 	public void processEditorsRanking(JavaSparkContext sc) {

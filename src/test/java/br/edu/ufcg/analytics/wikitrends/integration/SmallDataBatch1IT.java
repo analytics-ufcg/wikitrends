@@ -67,13 +67,13 @@ public class SmallDataBatch1IT {
 	 */
 	@After
 	public void tearDown() throws Exception {
-		String[] testHosts = SEED_NODE.split(",");
-		try(Cluster cluster = Cluster.builder().addContactPoints(testHosts).build();
-			Session session = cluster.newSession();){
-
-			new CassandraMasterDatasetManager().dropTables(session);
-			new CassandraServingLayer1Manager().dropTables(session);
-		}
+//		String[] testHosts = SEED_NODE.split(",");
+//		try(Cluster cluster = Cluster.builder().addContactPoints(testHosts).build();
+//			Session session = cluster.newSession();){
+//
+//			new CassandraMasterDatasetManager().dropTables(session);
+//			new CassandraServingLayer1Manager().dropTables(session);
+//		}
 	}
 
 	/**
@@ -94,13 +94,42 @@ public class SmallDataBatch1IT {
 		try (Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
 				Session session = cluster.newSession();) {
 			
-			ResultSet resultSet = session.execute("SELECT count(1) FROM master_dataset.edits WHERE year = ? and month = ? and day = ? and hour = ? ALLOW FILTERING", 2015, 11, 9, 11);
+			ResultSet resultSet = session.execute("SELECT count(1) FROM master_dataset.edits WHERE year = ? AND month = ? AND day = ? AND hour = ? ALLOW FILTERING", 2015, 11, 9, 11);
 			assertEquals(899, resultSet.one().getLong("count"));
 			
 			resultSet = session.execute("SELECT count(1) FROM master_dataset.logs");
 			assertEquals(101, resultSet.one().getLong("count"));
 
 			resultSet = session.execute("SELECT count(1) FROM batch_views.top_editors");
+			assertEquals(11, resultSet.one().getLong("count"));
+		}
+	}
+	
+	
+	/**
+	 * @throws ConfigurationException
+	 */
+	@Test
+	public void testProcessTopPages() throws ConfigurationException {
+		Configuration configuration = new PropertiesConfiguration(TEST_CONFIGURATION_FILE);
+		CassandraIncrementalBatchLayer1Job job = new CassandraIncrementalBatchLayer1Job(configuration);
+		
+		SparkConf conf = new SparkConf();
+		conf.set("spark.cassandra.connection.host", "localhost");
+		try(JavaSparkContext sc = new JavaSparkContext("local", "small-data-batch1-test", conf);){
+			job.processTopPages(sc);
+		}	
+		
+		try (Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
+				Session session = cluster.newSession();) {
+			
+			ResultSet resultSet = session.execute("SELECT count(1) FROM master_dataset.edits WHERE year = ? and month = ? and day = ? and hour = ? ALLOW FILTERING", 2015, 11, 9, 11);
+			assertEquals(899, resultSet.one().getLong("count"));
+			
+			resultSet = session.execute("SELECT count(1) FROM master_dataset.logs");
+			assertEquals(101, resultSet.one().getLong("count"));
+
+			resultSet = session.execute("SELECT count(1) FROM batch_views.top_pages");
 			assertEquals(11, resultSet.one().getLong("count"));
 		}
 	}
