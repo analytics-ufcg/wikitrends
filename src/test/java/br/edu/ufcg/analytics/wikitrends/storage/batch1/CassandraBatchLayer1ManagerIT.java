@@ -25,7 +25,6 @@ import br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1M
  * @author Guilherme Gadelha
  *
  */
-@Ignore
 public class CassandraBatchLayer1ManagerIT {
 	
 	private JavaSparkContext sc;
@@ -225,7 +224,8 @@ public class CassandraBatchLayer1ManagerIT {
 	
 	@After
 	public void stop() {
-		session.close();
 		sc.stop();
+		session.close();
+		cluster.close();
 	}
 }
