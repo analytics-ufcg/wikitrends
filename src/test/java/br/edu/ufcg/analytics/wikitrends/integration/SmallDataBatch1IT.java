@@ -73,8 +73,8 @@ public class SmallDataBatch1IT {
 	 */
 	@After
 	public void tearDown() throws Exception {
-//		master_dataset_manager.dropTables(session);
-//		serving_layer_manager.dropTables(session);
+		master_dataset_manager.dropTables(session);
+		serving_layer_manager.dropTables(session);
 		
 		sc.close();
 		session.close();
@@ -91,6 +91,28 @@ public class SmallDataBatch1IT {
 		
 		assertEquals(11, session.execute("SELECT count(1) FROM batch_views.top_editors").one().getLong("count"));
 		assertEquals(126, session.execute("SELECT sum(count) as ranking_sum FROM batch_views.top_editors").one().getLong("ranking_sum"));
+
+//		Configuration configuration = new PropertiesConfiguration(TEST_CONFIGURATION_FILE);
+//		CassandraIncrementalBatchLayer1Job job = new CassandraIncrementalBatchLayer1Job(configuration);
+		
+		SparkConf conf = new SparkConf();
+		conf.set("spark.cassandra.connection.host", "localhost");
+		try(JavaSparkContext sc = new JavaSparkContext("local", "small-data-batch1-test", conf);){
+//			job.processEditorsRanking(sc);
+		}	
+		
+		try (Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
+				Session session = cluster.newSession();) {
+			
+			assertEquals(327, session.execute("SELECT count(1) FROM batch_views.users_ranking").one().getLong("count"));
+			assertEquals(510, session.execute("SELECT sum(count) as ranking_sum FROM batch_views.users_ranking").one().getLong("ranking_sum"));
+
+			long rankingMax = session.execute("SELECT max(count) as ranking_max FROM batch_views.users_ranking").one().getLong("ranking_max");
+			long rankingFirst = session.execute("SELECT count as ranking_max FROM batch_views.users_ranking LIMIT 1").one().getLong("ranking_max");
+			
+			assertEquals(31, rankingMax);
+			assertEquals(31, rankingFirst);
+		}
 	}
 	
 	

@@ -15,25 +15,20 @@ public class CassandraServingLayer1Manager implements Serializable {
 	private static final long serialVersionUID = -1017103087942947022L;
 
 	public void createTables(Session session) {
-			session.execute("DROP KEYSPACE IF EXISTS batch_views");
 		
-			session.execute("CREATE KEYSPACE batch_views WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
-            
-            session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
-								"top_editors" +
-								
-								"(name TEXT," +
-								"count BIGINT," +
-								
-								"year INT," +
-								"month INT," +
-								"day INT," +
-								"hour INT," +
-								
-								"PRIMARY KEY((year, month, day, hour), count, name)," +
-								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
-            		);
-            
+		session.execute("CREATE KEYSPACE batch_views WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
+
+		session.execute("CREATE TABLE IF NOT EXISTS batch_views.users_ranking(" + 
+				"name TEXT," +
+				"count BIGINT," +
+				"year INT," +
+				"month INT," +
+				"day INT," +
+				"hour INT," +
+				"PRIMARY KEY((year, month, day, hour), count, name)) " + 
+				"WITH CLUSTERING ORDER BY (count DESC, name ASC);"
+				);
+
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
 								"top_idioms" +
 								
@@ -109,11 +104,11 @@ public class CassandraServingLayer1Manager implements Serializable {
             		"day INT," +
             		"hour INT," +
             		
-            		"server_name TEXT," +
-            		"number_of_changes INT," +
+            		"name TEXT," +
+            		"count INT," +
             		
-            		"PRIMARY KEY((year, month, day, hour), number_of_changes, server_name)) " + 
-            		"WITH CLUSTERING ORDER BY (number_of_changes DESC, server_name ASC);"
+            		"PRIMARY KEY((year, month, day, hour), count, name)) " + 
+            		"WITH CLUSTERING ORDER BY (count DESC, name ASC);"
             		);
            
             session.execute("CREATE TABLE IF NOT EXISTS batch_views.status (" + 
