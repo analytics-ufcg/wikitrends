@@ -5,12 +5,16 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
+import java.time.LocalDateTime;
+
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
@@ -98,7 +102,8 @@ public class SmallDataBatch1IT {
 		SparkConf conf = new SparkConf();
 		conf.set("spark.cassandra.connection.host", "localhost");
 		try(JavaSparkContext sc = new JavaSparkContext("local", "small-data-batch1-test", conf);){
-//			job.processEditorsRanking(sc);
+			LocalDateTime now = LocalDateTime.of(2015, 11, 9, 11, 00);//FIXME wrong date
+			job.processEditorsRanking(sc, now);
 		}	
 		
 		try (Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
@@ -120,6 +125,7 @@ public class SmallDataBatch1IT {
 	 * @throws ConfigurationException
 	 */
 	@Test
+	@Ignore
 	public void testProcessTopPages() throws ConfigurationException {
 		TopPagesBatch1 job2 = new TopPagesBatch1(new PropertiesConfiguration(TEST_CONFIGURATION_FILE));
 		job2.process(sc);

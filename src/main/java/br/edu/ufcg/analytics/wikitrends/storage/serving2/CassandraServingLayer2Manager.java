@@ -17,18 +17,17 @@ public class CassandraServingLayer2Manager implements Serializable {
 
 	// Prepare the schema
 	public void createTables(Session session) {
-            session.execute("DROP KEYSPACE IF EXISTS results");
-            
+                    
             session.execute("CREATE KEYSPACE results WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
             
             session.execute("CREATE TABLE IF NOT EXISTS results." +
-								"top_editor" +
-								"(id UUID," +
-								"editor TEXT," +
-								"count INT," +
+								"ranking" +
+								"(id TEXT," +
+								"name TEXT," +
+								"count BIGINT," +
 								
-								"PRIMARY KEY((id), count)" +
-								") WITH CLUSTERING ORDER BY (count DESC);"
+								"PRIMARY KEY((id), count, name)" +
+								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
 					);
             
             session.execute("CREATE TABLE IF NOT EXISTS results." +
@@ -45,7 +44,7 @@ public class CassandraServingLayer2Manager implements Serializable {
 								"(id text," +
 								"server_name TEXT," +
 								"count INT," +
-								"PRIMARY KEY((id), server_name, count)" +
+								"PRIMARY KEY((id), count, server_name)" +
 								") WITH CLUSTERING ORDER BY (count DESC, server_name ASC);"
 					);
            
@@ -89,6 +88,12 @@ public class CassandraServingLayer2Manager implements Serializable {
 	
 	
 	
+	// Prepare the schema
+	public void dropTables(Session session) {
+	
+		session.execute("DROP KEYSPACE IF EXISTS results");
+	}
+
 	/**
 	 * Entry point
 	 * 

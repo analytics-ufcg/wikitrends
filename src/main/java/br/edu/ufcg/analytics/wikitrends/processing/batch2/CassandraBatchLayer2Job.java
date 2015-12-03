@@ -1,6 +1,7 @@
 package br.edu.ufcg.analytics.wikitrends.processing.batch2;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
+import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapRowToTuple;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
 import java.util.ArrayList;
@@ -11,20 +12,27 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.configuration.Configuration;
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.spark.connector.cql.CassandraConnector;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
+import com.datastax.spark.connector.japi.CassandraRow;
+import com.datastax.spark.connector.japi.rdd.CassandraJavaRDD;
+import com.datastax.spark.connector.japi.rdd.CassandraTableScanJavaRDD;
+import com.datastax.spark.connector.rdd.CassandraRDD;
 
-import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
+import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultAbsoluteValuesShot;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopContentPage;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopEditor;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopIdiom;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopPage;
+import scala.Tuple2;
 
 public class CassandraBatchLayer2Job extends BatchLayer2Job {
 
@@ -166,7 +174,24 @@ public class CassandraBatchLayer2Job extends BatchLayer2Job {
         //System.out.println("Final map: " + map.toString());
         return map;
     }
-	
+
+	public void computeFullRankingFromPartial(JavaSparkContext sc, String tableName) {
+		
+		JavaRDD<TopClass> fullRanking = javaFunctions(sc)
+			    .cassandraTable("batch_views", tableName, mapRowToTuple(String.class, Long.class))
+			    .select("id", "name")
+			    .mapToPair(row -> new Tuple2<String, Long>(row._1, row._2)).reduceByKey((a,b) -> a+b)
+			    .map( tuple -> new TopClass(tuple._1, tuple._2, 2015, 11, 9, 0));
+		
+//		javaFunctions(fullRanking).writerBuilder(servingKeyspace, tableName, rowWriterFactory);
+//		
+//		JavaRDD<Tuple2<String, Long>> partialRankings = javaFunctions(sc)
+//				.cassandraTable("batch_views", tableName, mapRowTo(mapColumnTo(String.class), mapColumnTo(Long.class)))
+//				.select("name", "count");
+//		
+//		CassandraJavaUtil.javaFunctions(sc).toJavaPairRDD(partialRankings, String.class, Long.class);
+    }
+
 	/**
 	 * Compute topEditors, topContentPages, topIdioms and topPages based
 	 * on the hourly generated data.

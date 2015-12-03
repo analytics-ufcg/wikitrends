@@ -1,7 +1,5 @@
 package br.edu.ufcg.analytics.wikitrends.processing.batch1;
 
-import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
-
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;

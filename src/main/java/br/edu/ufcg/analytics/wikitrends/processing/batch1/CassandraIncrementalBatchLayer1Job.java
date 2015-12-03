@@ -6,6 +6,7 @@ import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.chrono.ChronoLocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -46,8 +47,6 @@ public class CassandraIncrementalBatchLayer1Job extends BatchLayer1Job {
 	 */
 	private static final long serialVersionUID = 7386905244759035777L;
 
-	private LocalDateTime now;
-	private LocalDateTime end;
 	private String[] seeds;
 
 	private String batchViewsKeyspace;
@@ -56,6 +55,12 @@ public class CassandraIncrementalBatchLayer1Job extends BatchLayer1Job {
 	private String serversTable;
 	private String usersTable;
 	private String absoluteValuesTable;
+
+	private LocalDateTime start;
+
+	private LocalDateTime end;
+
+	private LocalDateTime now;
 
 	/**
 	 * Default constructor
@@ -79,9 +84,9 @@ public class CassandraIncrementalBatchLayer1Job extends BatchLayer1Job {
 			List<Row> all = resultSet.all();
 			if(!all.isEmpty()){
 				Row row = all.get(0);
-				now = LocalDateTime.of(row.getInt("year"), row.getInt("month"), row.getInt("day"), row.getInt("hour"), 0).plusHours(1) ;
+				start = LocalDateTime.of(row.getInt("year"), row.getInt("month"), row.getInt("day"), row.getInt("hour"), 0).plusHours(1) ;
 			}else{
-				now = LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.starttime") * 1000), ZoneId.systemDefault());
+				start = LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.starttime") * 1000), ZoneId.systemDefault());
 			}
 		}
 
@@ -105,9 +110,10 @@ public class CassandraIncrementalBatchLayer1Job extends BatchLayer1Job {
 		try(JavaSparkContext sc = new JavaSparkContext(conf);
 				Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
 				Session session = cluster.newSession();) {
-
-			while(now.isBefore(end)){
-				this.run(sc);
+			
+			LocalDateTime now = start;
+			while(now .isBefore(end)){
+				this.run(sc, now);
 				session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", "servers_ranking", now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour());
 				now = now.plusHours(1);
 			}
@@ -115,25 +121,25 @@ public class CassandraIncrementalBatchLayer1Job extends BatchLayer1Job {
 	}
 
 	@Override
-	public void run(JavaSparkContext sc) {
-		processEditorsRanking(sc);
+	public void run(JavaSparkContext sc, LocalDateTime currentTime) {
+		processEditorsRanking(sc, currentTime);
 	}
 
-	public void processEditorsRanking(JavaSparkContext sc) {
-		JavaRDD<EditType> wikipediaEdits = readEditorsRDD(sc)
+	public void processEditorsRanking(JavaSparkContext sc, LocalDateTime currentTime) {
+		JavaRDD<EditType> wikipediaEdits = readEditorsRDD(sc, currentTime)
 				.filter(edit -> edit.getCommon_server_name().endsWith("wikipedia.org"))
 				.cache();
 
 		JavaPairRDD<String, Integer> userRDD = wikipediaEdits
 				.mapToPair(edit -> new Tuple2<String, Integer>(edit.getCommon_event_user(), 1));
-		JavaRDD<TopClass> userRanking = processRankingEntry(userRDD);
+		JavaRDD<TopClass> userRanking = processRankingEntry(userRDD, currentTime);
 		saveUserRanking(sc, userRanking);
 	}
 
-	protected JavaRDD<EditType> readEditorsRDD(JavaSparkContext sc) {
+	protected JavaRDD<EditType> readEditorsRDD(JavaSparkContext sc, LocalDateTime currentTime) {
 		JavaRDD<EditType> wikipediaEdits = javaFunctions(sc).cassandraTable("master_dataset", "edits")
 				.select("common_event_bot", "common_server_name", "common_event_user", "common_event_namespace", "edit_minor")
-				.where("year = ? and month = ? and day = ? and hour = ?", now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour())
+				.where("year = ? and month = ? and day = ? and hour = ?", currentTime.getYear(), currentTime.getMonthValue(), currentTime.getDayOfMonth(), currentTime.getHour())
 				.map(row -> {
 					EditType edit = new EditType();
 					edit.setCommon_event_bot(row.getBoolean("common_event_bot"));
@@ -146,10 +152,10 @@ public class CassandraIncrementalBatchLayer1Job extends BatchLayer1Job {
 		return wikipediaEdits;
 	}
 
-	protected JavaRDD<TopClass> processRankingEntry(JavaPairRDD<String,Integer> pairRDD) {
+	protected JavaRDD<TopClass> processRankingEntry(JavaPairRDD<String,Integer> pairRDD, LocalDateTime currentTime) {
 		JavaRDD<TopClass> result = pairRDD
 				.reduceByKey( (a,b) -> a+b )
-				.map( rankingEntry -> new TopClass(rankingEntry._1, (long) rankingEntry._2, now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour()) );
+				.map( rankingEntry -> new TopClass(rankingEntry._1, (long) rankingEntry._2, currentTime.getYear(), currentTime.getMonthValue(), currentTime.getDayOfMonth(), currentTime.getHour()) );
 		
 		return result;
 	}
@@ -166,7 +172,7 @@ public class CassandraIncrementalBatchLayer1Job extends BatchLayer1Job {
 		JavaRDD<EditType> wikipediaEdits = javaFunctions(sc).cassandraTable("master_dataset", "edits")
 				.select("event_time", "common_event_bot", "common_event_title", "common_server_name", "common_event_user",
 						"common_event_namespace", "edit_minor", "edit_length")
-				.where("year = ? and month = ? and day = ? and hour = ?", now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour())
+//				.where("year = ? and month = ? and day = ? and hour = ?", now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour())
 				.map(new Function<CassandraRow, EditType>() {
 					private static final long serialVersionUID = 1L;
 
