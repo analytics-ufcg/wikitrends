@@ -10,7 +10,6 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
@@ -100,10 +99,10 @@ public class CassandraBatchLayer1ManagerIT {
 		Row r1 = rows.get(1);
 		
 		assertTrue(r0.getInt("hour") == 8);
-		assertTrue(r0.getString("name").equals("john_2"));
-		assertTrue(r0.getLong("count") == 0L);
-		assertTrue(r1.getString("name").equals("john_3"));
-		assertTrue(r1.getLong("count") == 4L);
+		assertTrue(r0.getString("name").equals("john_3"));
+		assertTrue(r0.getLong("count") == 4L);
+		assertTrue(r1.getString("name").equals("john_2"));
+		assertTrue(r1.getLong("count") == 0L);
 		
 		ResultSet resultSet2 = session.execute("SELECT * FROM top_editors where year=2013 AND month=4 AND day=4 AND hour=7;");
 		assertEquals(resultSet2.all().size(), 1);
@@ -125,10 +124,10 @@ public class CassandraBatchLayer1ManagerIT {
 		Row r1 = rows.get(1);
 		
 		assertTrue(r0.getInt("hour") == 8);
-		assertTrue(r0.getString("name").equals("de"));
-		assertTrue(r0.getLong("count") == 3L);
-		assertTrue(r1.getString("name").equals("ru"));
-		assertTrue(r1.getLong("count") == 10L);
+		assertTrue(r0.getString("name").equals("ru"));
+		assertTrue(r0.getLong("count") == 10L);
+		assertTrue(r1.getString("name").equals("de"));
+		assertTrue(r1.getLong("count") == 3L);
 		
 		ResultSet resultSet2 = session.execute("SELECT * FROM top_idioms where year=2013 AND month=4 AND day=4 AND hour=7;");
 		assertEquals(resultSet2.all().size(), 1);
@@ -151,10 +150,10 @@ public class CassandraBatchLayer1ManagerIT {
 		Row r1 = rows.get(1);
 		
 		assertTrue(r0.getInt("hour") == 8);
-		assertTrue(r0.getString("name").equals("page_4"));
-		assertTrue(r0.getLong("count") == 3L);
-		assertTrue(r1.getString("name").equals("page_5"));
-		assertTrue(r1.getLong("count") == 10L);
+		assertTrue(r0.getString("name").equals("page_5"));
+		assertTrue(r0.getLong("count") == 10L);
+		assertTrue(r1.getString("name").equals("page_4"));
+		assertTrue(r1.getLong("count") == 3L);
 		
 		ResultSet resultSet2 = session.execute("SELECT * FROM top_pages where year=2013 AND month=4 AND day=4 AND hour=7;");
 		assertEquals(resultSet2.all().size(), 1);
@@ -177,10 +176,10 @@ public class CassandraBatchLayer1ManagerIT {
 		Row r1 = rows.get(1);
 		
 		assertTrue(r0.getInt("hour") == 8);
-		assertTrue(r0.getString("name").equals("content_page_4"));
-		assertTrue(r0.getLong("count") == 3L);
-		assertTrue(r1.getString("name").equals("content_page_5"));
-		assertTrue(r1.getLong("count") == 10L);
+		assertTrue(r0.getString("name").equals("content_page_5"));
+		assertTrue(r0.getLong("count") == 10L);
+		assertTrue(r1.getString("name").equals("content_page_4"));
+		assertTrue(r1.getLong("count") == 3L);
 		
 		ResultSet resultSet2 = session.execute("SELECT * FROM top_content_pages where year=2013 AND month=4 AND day=4 AND hour=7;");
 		assertEquals(resultSet2.all().size(), 1);

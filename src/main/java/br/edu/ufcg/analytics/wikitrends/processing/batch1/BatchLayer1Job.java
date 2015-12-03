@@ -96,7 +96,8 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 	public void setEnd(LocalDateTime end) {
 		this.end = end;
 	}
-
+	
+	@Deprecated
 	public void run(JavaSparkContext sc) {
 //		processEditorsRanking(sc);
 //		processTopPages(sc);

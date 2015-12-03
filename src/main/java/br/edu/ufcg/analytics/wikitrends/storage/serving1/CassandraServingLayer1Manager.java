@@ -30,8 +30,8 @@ public class CassandraServingLayer1Manager implements Serializable {
 								"day INT," +
 								"hour INT," +
 								
-								"PRIMARY KEY((year, month, day, hour), count)," +
-								") WITH CLUSTERING ORDER BY (count DESC);"
+								"PRIMARY KEY((year, month, day, hour), count, name)," +
+								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
             		);
             
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
@@ -45,8 +45,8 @@ public class CassandraServingLayer1Manager implements Serializable {
 								"day INT," +
 								"hour INT," +
 								
-								"PRIMARY KEY((year, month, day, hour), count)," +
-								") WITH CLUSTERING ORDER BY (count ASC);"
+								"PRIMARY KEY((year, month, day, hour), count, name)," +
+								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
             		);
            
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
@@ -60,8 +60,8 @@ public class CassandraServingLayer1Manager implements Serializable {
 								"day INT," +
 								"hour INT," +
 
-								"PRIMARY KEY((year, month, day, hour), count)," +
-								") WITH CLUSTERING ORDER BY (count ASC);"
+								"PRIMARY KEY((year, month, day, hour), count, name)," +
+								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
             		);
             
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
@@ -75,8 +75,8 @@ public class CassandraServingLayer1Manager implements Serializable {
 								"day INT," +
 								"hour INT," +
 								
-								"PRIMARY KEY((year, month, day, hour), count)," +
-								") WITH CLUSTERING ORDER BY (count ASC);"
+								"PRIMARY KEY((year, month, day, hour), count, name)," +
+								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
             		);
             
             session.execute("CREATE TABLE IF NOT EXISTS batch_views." +

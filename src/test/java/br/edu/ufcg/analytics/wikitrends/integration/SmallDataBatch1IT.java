@@ -1,6 +1,9 @@
 package br.edu.ufcg.analytics.wikitrends.integration;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -12,6 +15,7 @@ import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
 import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopEditorsBatch1;
@@ -52,6 +56,7 @@ public class SmallDataBatch1IT {
 		serving_layer_manager = new CassandraServingLayer1Manager();
 		
 		session = cluster.newSession();
+		session.execute("USE batch_views");
 		
 		master_dataset_manager.dropTables(session);
 		master_dataset_manager.createTables(session);
@@ -97,14 +102,23 @@ public class SmallDataBatch1IT {
 		TopPagesBatch1 job2 = new TopPagesBatch1(new PropertiesConfiguration(TEST_CONFIGURATION_FILE));
 		job2.process(sc);
 		
-		ResultSet resultSet = session.execute("SELECT count(1) FROM master_dataset.edits WHERE year = ? and month = ? and day = ? and hour = ? ALLOW FILTERING", 2015, 11, 9, 11);
-		assertEquals(899, resultSet.one().getLong("count"));
-			
-		resultSet = session.execute("SELECT count(1) FROM master_dataset.logs");
-		assertEquals(101, resultSet.one().getLong("count"));
+		ResultSet resultSet = session.execute("SELECT count(1) FROM top_pages");
+		assertEquals(490, resultSet.one().getLong("count"));
 		
-		resultSet = session.execute("SELECT count(1) FROM batch_views.top_pages");
+		resultSet = session.execute("SELECT count(*) FROM top_pages WHERE count >= 3 ALLOW FILTERING");
 		assertEquals(3, resultSet.one().getLong("count"));
-	
+		
+		resultSet = session.execute("SELECT count(*) FROM top_pages WHERE count = 2 ALLOW FILTERING");
+		assertEquals(14, resultSet.one().getLong("count"));
+		
+		resultSet = session.execute("SELECT * FROM top_pages WHERE count = 3 AND name = 'Marie Antoinette' ALLOW FILTERING");
+		List<Row> list = resultSet.all();
+		assertTrue(list.size() == 1);
+		assertTrue(list.get(0).getLong("count") == 3L);
+		
+		resultSet = session.execute("SELECT * FROM top_pages WHERE count = 3 AND name = 'Simone Zaza' ALLOW FILTERING");
+		List<Row> list2 = resultSet.all();
+		assertTrue(list2.size() == 1);
+		assertTrue(list2.get(0).getString("name").equals("Simone Zaza"));
 	}
 }
