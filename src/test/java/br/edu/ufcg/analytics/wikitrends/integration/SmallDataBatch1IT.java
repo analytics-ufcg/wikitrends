@@ -5,7 +5,6 @@ package br.edu.ufcg.analytics.wikitrends.integration;
 
 import static org.junit.Assert.assertEquals;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.spark.SparkConf;
@@ -18,11 +17,13 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 
-import br.edu.ufcg.analytics.wikitrends.processing.batch1.CassandraIncrementalBatchLayer1Job;
+import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopEditorsBatch1;
+import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopPagesBatch1;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager;
 
 /**
+ * @author Guilherme Gadelha
  * @author Ricardo Araújo Santos - ricoaraujosantos@gmail.com
  *
  */
@@ -31,7 +32,14 @@ public class SmallDataBatch1IT {
 	private static final String SEED_NODE = "localhost";
 	private static final String INPUT_FILE = "src/test/resources/small_test_data.json";
 	private static final String TEST_CONFIGURATION_FILE = "src/test/resources/wikitrends.properties";
-
+	private JavaSparkContext sc;
+	private Cluster cluster;
+	private Session session;
+	private CassandraMasterDatasetManager master_dataset_manager;
+	private CassandraServingLayer1Manager serving_layer_manager;
+	
+	private TopEditorsBatch1 job1;
+	private TopPagesBatch1 job2;
 
 	/**
 	 * @throws java.lang.Exception
@@ -39,27 +47,28 @@ public class SmallDataBatch1IT {
 	@Before
 	public void setUp() throws Exception {
 		String[] testHosts = SEED_NODE.split(",");
-		try(Cluster cluster = Cluster.builder().addContactPoints(testHosts).build();){
 
-			CassandraMasterDatasetManager manager = new CassandraMasterDatasetManager();
-			CassandraServingLayer1Manager serving = new CassandraServingLayer1Manager();
+		SparkConf conf = new SparkConf();
+		conf.set("spark.cassandra.connection.host", SEED_NODE);
+		sc = new JavaSparkContext("local", "small-data-batch1-test", conf);
 
-			try(Session session = cluster.newSession();){
-				manager.dropTables(session);
-				manager.createTables(session);
-				
-				serving.dropTables(session);
-				serving.createTables(session);
-			}
+		cluster = Cluster.builder().addContactPoints(testHosts).build();
+		
+		master_dataset_manager = new CassandraMasterDatasetManager();
+		serving_layer_manager = new CassandraServingLayer1Manager();
+		
+		session = cluster.newSession();
+		
+		master_dataset_manager.dropTables(session);
+		master_dataset_manager.createTables(session);
+		
+		serving_layer_manager.dropTables(session);
+		serving_layer_manager.createTables(session);
 
-
-			SparkConf conf = new SparkConf();
-			conf.set("spark.cassandra.connection.host", SEED_NODE);
-
-			try (JavaSparkContext sc = new JavaSparkContext("local", "test", conf);) {
-				manager.populateFrom(SEED_NODE, INPUT_FILE, sc);
-			}
-		}
+		master_dataset_manager.populateFrom(SEED_NODE, INPUT_FILE, sc);
+		
+		job1 = new TopEditorsBatch1(new PropertiesConfiguration(TEST_CONFIGURATION_FILE));
+		job2 = new TopPagesBatch1(new PropertiesConfiguration(TEST_CONFIGURATION_FILE));
 	}
 
 	/**
@@ -67,13 +76,12 @@ public class SmallDataBatch1IT {
 	 */
 	@After
 	public void tearDown() throws Exception {
-		String[] testHosts = SEED_NODE.split(",");
-		try(Cluster cluster = Cluster.builder().addContactPoints(testHosts).build();
-			Session session = cluster.newSession();){
-
-			new CassandraMasterDatasetManager().dropTables(session);
-			new CassandraServingLayer1Manager().dropTables(session);
-		}
+//		master_dataset_manager.dropTables(session);
+//		serving_layer_manager.dropTables(session);
+		
+		sc.close();
+		session.close();
+		cluster.close();
 	}
 
 	/**
@@ -81,22 +89,10 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessEditorsRanking() throws ConfigurationException {
-		Configuration configuration = new PropertiesConfiguration(TEST_CONFIGURATION_FILE);
-		CassandraIncrementalBatchLayer1Job job = new CassandraIncrementalBatchLayer1Job(configuration);
+		job1.process(sc);
 		
-		
-		SparkConf conf = new SparkConf();
-		conf.set("spark.cassandra.connection.host", "localhost");
-		try(JavaSparkContext sc = new JavaSparkContext("local", "small-data-batch1-test", conf);){
-			job.processEditorsRanking(sc);
-		}	
-		
-		try (Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
-				Session session = cluster.newSession();) {
-			
-			assertEquals(11, session.execute("SELECT count(1) FROM batch_views.top_editors").one().getLong("count"));
-			assertEquals(126, session.execute("SELECT sum(count) as ranking_sum FROM batch_views.top_editors").one().getLong("ranking_sum"));
-		}
+		assertEquals(11, session.execute("SELECT count(1) FROM batch_views.top_editors").one().getLong("count"));
+		assertEquals(126, session.execute("SELECT sum(count) as ranking_sum FROM batch_views.top_editors").one().getLong("ranking_sum"));
 	}
 	
 	
@@ -105,27 +101,16 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessTopPages() throws ConfigurationException {
-		Configuration configuration = new PropertiesConfiguration(TEST_CONFIGURATION_FILE);
-		CassandraIncrementalBatchLayer1Job job = new CassandraIncrementalBatchLayer1Job(configuration);
+		job2.process(sc);
 		
-		SparkConf conf = new SparkConf();
-		conf.set("spark.cassandra.connection.host", "localhost");
-		try(JavaSparkContext sc = new JavaSparkContext("local", "small-data-batch1-test", conf);){
-			job.processTopPages(sc);
-		}	
+		ResultSet resultSet = session.execute("SELECT count(1) FROM master_dataset.edits WHERE year = ? and month = ? and day = ? and hour = ? ALLOW FILTERING", 2015, 11, 9, 11);
+		assertEquals(899, resultSet.one().getLong("count"));
+			
+		resultSet = session.execute("SELECT count(1) FROM master_dataset.logs");
+		assertEquals(101, resultSet.one().getLong("count"));
 		
-		try (Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
-				Session session = cluster.newSession();) {
-			
-			ResultSet resultSet = session.execute("SELECT count(1) FROM master_dataset.edits WHERE year = ? and month = ? and day = ? and hour = ? ALLOW FILTERING", 2015, 11, 9, 11);
-			assertEquals(899, resultSet.one().getLong("count"));
-			
-			resultSet = session.execute("SELECT count(1) FROM master_dataset.logs");
-			assertEquals(101, resultSet.one().getLong("count"));
-
-			resultSet = session.execute("SELECT count(1) FROM batch_views.top_pages");
-			assertEquals(11, resultSet.one().getLong("count"));
-		}
+		resultSet = session.execute("SELECT count(1) FROM batch_views.top_pages");
+		assertEquals(3, resultSet.one().getLong("count"));
+	
 	}
-
 }
