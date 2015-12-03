@@ -1,6 +1,3 @@
-/**
- * 
- */
 package br.edu.ufcg.analytics.wikitrends.integration;
 
 import static org.junit.Assert.assertEquals;
@@ -38,9 +35,6 @@ public class SmallDataBatch1IT {
 	private CassandraMasterDatasetManager master_dataset_manager;
 	private CassandraServingLayer1Manager serving_layer_manager;
 	
-	private TopEditorsBatch1 job1;
-	private TopPagesBatch1 job2;
-
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -67,8 +61,6 @@ public class SmallDataBatch1IT {
 
 		master_dataset_manager.populateFrom(SEED_NODE, INPUT_FILE, sc);
 		
-		job1 = new TopEditorsBatch1(new PropertiesConfiguration(TEST_CONFIGURATION_FILE));
-		job2 = new TopPagesBatch1(new PropertiesConfiguration(TEST_CONFIGURATION_FILE));
 	}
 
 	/**
@@ -89,6 +81,7 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessEditorsRanking() throws ConfigurationException {
+		TopEditorsBatch1 job1 = new TopEditorsBatch1(new PropertiesConfiguration(TEST_CONFIGURATION_FILE));
 		job1.process(sc);
 		
 		assertEquals(11, session.execute("SELECT count(1) FROM batch_views.top_editors").one().getLong("count"));
@@ -101,6 +94,7 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessTopPages() throws ConfigurationException {
+		TopPagesBatch1 job2 = new TopPagesBatch1(new PropertiesConfiguration(TEST_CONFIGURATION_FILE));
 		job2.process(sc);
 		
 		ResultSet resultSet = session.execute("SELECT count(1) FROM master_dataset.edits WHERE year = ? and month = ? and day = ? and hour = ? ALLOW FILTERING", 2015, 11, 9, 11);
