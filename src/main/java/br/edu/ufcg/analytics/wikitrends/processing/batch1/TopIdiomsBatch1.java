@@ -21,15 +21,15 @@ public class TopIdiomsBatch1 extends BatchLayer1Job {
 	
 	private String serversTable;
 
-	public TopIdiomsBatch1(Configuration configuration) {
-		super(configuration);
+	public TopIdiomsBatch1(Configuration configuration, JavaSparkContext jsc) {
+		super(configuration, jsc);
 		
 		serversTable = configuration.getString("wikitrends.batch.cassandra.table.servers");
 	}
 	
 	@Override
-	public void process(JavaSparkContext sc) {
-		JavaRDD<EditType> wikipediaEdits = read(sc)
+	public void process() {
+		JavaRDD<EditType> wikipediaEdits = read()
 				.filter(edit -> edit.getCommon_server_name().endsWith("wikipedia.org"))
 				.cache();
 		
@@ -43,7 +43,7 @@ public class TopIdiomsBatch1 extends BatchLayer1Job {
 				return pairs;
 			});
 		
-		JavaRDD<TopClass> serverRanking = processRankingEntry(sc, serverRDD);
+		JavaRDD<TopClass> serverRanking = transformToTopEntry(serverRDD);
 		
 		CassandraJavaUtil.javaFunctions(serverRanking)
 			.writerBuilder(getBatchViewsKeyspace(), serversTable, mapToRow(TopClass.class))

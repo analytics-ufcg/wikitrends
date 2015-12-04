@@ -24,14 +24,14 @@ public class AbsoluteValuesBatch1 extends BatchLayer1Job {
 
 	private String absoluteValuesTable;
 
-	public AbsoluteValuesBatch1(Configuration configuration) {
-		super(configuration);
+	public AbsoluteValuesBatch1(Configuration configuration, JavaSparkContext jsc) {
+		super(configuration, jsc);
 		
 		absoluteValuesTable = configuration.getString("wikitrends.batch.cassandra.table.absolutevalues");
 	}
 
-	public void process(JavaSparkContext sc) {
-		JavaRDD<EditType> wikipediaEdits = read(sc)
+	public void process() {
+		JavaRDD<EditType> wikipediaEdits = read()
 				.filter(edit -> edit.getCommon_server_name().endsWith("wikipedia.org"))
 				.cache();
 		
@@ -56,7 +56,7 @@ public class AbsoluteValuesBatch1 extends BatchLayer1Job {
 				distincts_servers_set,
 				smaller_origin));
 		
-		CassandraJavaUtil.javaFunctions(sc.parallelize(output))
+		CassandraJavaUtil.javaFunctions(getJavaSparkContext().parallelize(output))
 			.writerBuilder(getBatchViewsKeyspace(), absoluteValuesTable, mapToRow(AbsoluteValuesShot.class))
 			.saveToCassandra();
 	}

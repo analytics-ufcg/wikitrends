@@ -47,7 +47,10 @@ public class CassandraBatchLayer1ManagerIT {
         cluster = Cluster.builder().addContactPoints(testHosts).build();
         session = cluster.newSession();
         
-        new CassandraServingLayer1Manager().createTables(session);
+        CassandraServingLayer1Manager serving1Manager = new CassandraServingLayer1Manager();
+        serving1Manager.dropTables(session);
+        serving1Manager.createTables(session);
+        
         session.execute("USE batch_views;");
         
         dataGen = new BatchViewsDataGenerator(sc);

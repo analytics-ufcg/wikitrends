@@ -12,13 +12,12 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 
-import br.edu.ufcg.analytics.wikitrends.processing.batch1.CassandraIncrementalBatchLayer1Job;
+import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopEditorsBatch1;
 import br.edu.ufcg.analytics.wikitrends.processing.batch2.CassandraBatchLayer2Job;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager;
@@ -89,7 +88,7 @@ public class BigDataBatch1IT {
 	@Test
 	public void testProcessUsersTotalRanking() throws ConfigurationException {
 		Configuration configuration = new PropertiesConfiguration(TEST_CONFIGURATION_FILE);
-		CassandraIncrementalBatchLayer1Job job = new CassandraIncrementalBatchLayer1Job(configuration);
+		TopEditorsBatch1 job = new TopEditorsBatch1(configuration, null);
 		
 		SparkConf conf = new SparkConf();
 		conf.set("spark.cassandra.connection.host", "localhost");
@@ -97,7 +96,8 @@ public class BigDataBatch1IT {
 			
 			LocalDateTime now = LocalDateTime.of(2015, 11, 7, 11, 00);
 			for (int i = 0; i < 7; i++) {
-				job.processEditorsRanking(sc, now);
+				job.setCurrentTime(now);
+				job.process();
 				now = now.plusHours(1);
 			}
 		}	

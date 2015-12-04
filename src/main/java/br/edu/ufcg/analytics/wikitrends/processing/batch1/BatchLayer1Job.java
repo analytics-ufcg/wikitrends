@@ -25,6 +25,8 @@ import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
 
+import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
+
 /**
  * {@link WikiTrendsProcess} implementation when a {@link WikiTrendsCommands#BATCH} is chosen. 
  * 
@@ -37,18 +39,25 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 
 	protected transient Configuration configuration;
 	
-	private LocalDateTime now;
-	private LocalDateTime end;
+	private LocalDateTime currentTime;
+	private LocalDateTime stopTime;
 	private String[] seeds;
 
 	private String batchViewsKeyspace;
+
+	private JavaSparkContext sc;
 	
 	/**
 	 * Default constructor
 	 * @param configuration 
 	 */
-	public BatchLayer1Job(Configuration configuration) {
-		this.configuration = configuration;
+	public BatchLayer1Job(Configuration configuration, JavaSparkContext jsc) {
+		if(jsc == null) {
+			createJavaSparkContext(configuration);
+		}
+		else {
+			setJavaSparkContext(jsc);
+		}
 		
 		setBatchViewsKeyspace(configuration.getString("wikitrends.batch.cassandra.keyspace"));
 		
@@ -60,15 +69,31 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 			List<Row> all = resultSet.all();
 			if(!all.isEmpty()){
 				Row row = all.get(0);
-				now = LocalDateTime.of(row.getInt("year"), row.getInt("month"), row.getInt("day"), row.getInt("hour"), 0).plusHours(1) ;
+				setCurrentTime(LocalDateTime.of(row.getInt("year"), row.getInt("month"), row.getInt("day"), row.getInt("hour"), 0).plusHours(1));
 			}else{
-				now = LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.starttime") * 1000), ZoneId.systemDefault());
+				setCurrentTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.starttime") * 1000), ZoneId.systemDefault()));
 			}
 		}
 
-		//		end = LocalDateTime.ofInstant(Instant.ofEpochMilli((System.currentTimeMillis() / 3600000) * 3600000), ZoneId.systemDefault());
-		end = LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.stoptime") * 1000), ZoneId.systemDefault());
-		//		end = LocalDateTime.of(2015, 11, 9, 12, 0) ;
+		//	end = LocalDateTime.ofInstant(Instant.ofEpochMilli((System.currentTimeMillis() / 3600000) * 3600000), ZoneId.systemDefault());
+		setStopTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.stoptime") * 1000), ZoneId.systemDefault()));
+		//	end = LocalDateTime.of(2015, 11, 9, 12, 0) ;
+	}
+	
+	public LocalDateTime getStopTime() {
+		return this.stopTime;
+	}
+	
+	public void setStopTime(LocalDateTime stopTime) {
+		this.stopTime = stopTime;
+	}
+	
+	public LocalDateTime getCurrentTime() {
+		return this.currentTime;
+	}
+	
+	public void setCurrentTime(LocalDateTime currentTime) {
+		this.currentTime = currentTime;
 	}
 
 	public String getBatchViewsKeyspace() {
@@ -78,73 +103,55 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 	public void setBatchViewsKeyspace(String batchViewsKeyspace) {
 		this.batchViewsKeyspace = batchViewsKeyspace;
 	}
-
-	public LocalDateTime getNow() {
-		return now;
-	}
-
-	public void setNow(LocalDateTime now) {
-		this.now = now;
-	}
-
-	public LocalDateTime getEnd() {
-		return end;
-	}
-
-	public void setEnd(LocalDateTime end) {
-		this.end = end;
-	}
 	
-	@Deprecated
-	public void run(JavaSparkContext sc) {
-//		processEditorsRanking(sc);
-//		processTopPages(sc);
-//		processTopIdioms(sc);
-//		processTopContentPages(sc);
-		
-//		JavaRDD<BatchLayer1Output<Integer>> serverRanking = processRanking(sc, serverRDD);
-//		saveServerRanking(sc, serverRanking);
-//
-//		processStatistics(sc, wikipediaEdits);
-	
-	}
-	
-	@Override
-	public void run() {
-
+	public void createJavaSparkContext(Configuration configuration) {
 		SparkConf conf = new SparkConf();
 		conf.setAppName(configuration.getString("wikitrends.batch.id"));
-
+		
 		Iterator<String> keys = configuration.getKeys();
 		while (keys.hasNext()) {
 			String key = keys.next();
 			conf.set(key, configuration.getString(key));
 		}
+		
+		sc = new JavaSparkContext(conf);
+	}
+	
+	public void setJavaSparkContext(JavaSparkContext javaSparkContext) {
+		this.sc = javaSparkContext;
+	}
+	
+	public JavaSparkContext getJavaSparkContext() {
+		return this.sc;
+	}
+	
+	@Override
+	public void run() {
 
-		try(JavaSparkContext sc = new JavaSparkContext(conf);
-				Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
+		try (Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
 				Session session = cluster.newSession();) {
 
-			new TopEditorsBatch1(configuration).process(sc);
-			new TopContentPagesBatch1(configuration).process(sc);
-			new TopPagesBatch1(configuration).process(sc);
-			new TopIdiomsBatch1(configuration).process(sc);
-			new AbsoluteValuesBatch1(configuration).process(sc);
-
-			while(now.isBefore(end)){
-				this.run(sc);
-				session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", "servers_ranking", now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour());
-				now = now.plusHours(1);
+			while(getCurrentTime().isBefore(getStopTime())){
+				new TopEditorsBatch1(configuration, null).process();
+				new TopContentPagesBatch1(configuration, null).process();
+				new TopPagesBatch1(configuration, null).process();
+				new TopIdiomsBatch1(configuration, null).process();
+				new AbsoluteValuesBatch1(configuration, null).process();
+				
+				// insert new record for time_status of processing
+				session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", "servers_ranking", currentTime.getYear(), currentTime.getMonthValue(), currentTime.getDayOfMonth(), currentTime.getHour());
+				
+				setCurrentTime(getCurrentTime().plusHours(1));
 			}
 		}
 
 	}
 	
-	public JavaRDD<EditType> read(JavaSparkContext sc) {
-		JavaRDD<EditType> wikipediaEdits = javaFunctions(sc).cassandraTable("master_dataset", "edits")
+	public JavaRDD<EditType> read() {
+		JavaRDD<EditType> wikipediaEdits = javaFunctions(getJavaSparkContext()).cassandraTable("master_dataset", "edits")
 				.select("event_time", "common_event_bot", "common_event_title", "common_server_name", "common_event_user",
 						"common_event_namespace", "edit_minor", "edit_length")
-				.where("year = ? and month = ? and day = ? and hour = ?", now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour())
+				.where("year = ? and month = ? and day = ? and hour = ?", getCurrentTime().getYear(), getCurrentTime().getMonthValue(), getCurrentTime().getDayOfMonth(), getCurrentTime().getHour())
 				.map(new Function<CassandraRow, EditType>() {
 					private static final long serialVersionUID = 1L;
 
@@ -166,34 +173,14 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 		return wikipediaEdits;
 	}
 	
-	protected JavaRDD<TopClass> processRankingEntry(JavaSparkContext sc, JavaPairRDD<String,Integer> pairRDD) {
+	protected JavaRDD<TopClass> transformToTopEntry(JavaPairRDD<String,Integer> pairRDD) {
 		JavaRDD<TopClass> result = pairRDD
 				.reduceByKey( (a,b) -> a+b )
-				.map( edit -> new TopClass(edit._1, (long) edit._2, now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour()) );
+				.map( edit -> new TopClass(edit._1, (long) edit._2, getCurrentTime().getYear(), getCurrentTime().getMonthValue(), getCurrentTime().getDayOfMonth(), getCurrentTime().getHour()) );
 		
 		return result;
 	}
 	
-//	/**
-//	 * Processes WikiMedia database changes currently modeled as {@link JsonObject}s and generates a ranking based on given key.
-//	 *    
-//	 * @param sc {@link JavaSparkContext}
-//	 * @param pairRDD input as a {@link JavaRDD}
-//	 * @param key ranking key
-//	 * @param path HDFS output path.
-//	 * @return 
-//	 */
-//	@Deprecated
-//	protected JavaRDD<BatchLayer1Output<Integer>> processRanking(JavaSparkContext sc, JavaPairRDD<String,Integer> pairRDD) {
-//		JavaRDD<BatchLayer1Output<Integer>> result = pairRDD
-//				.reduceByKey( (a,b) -> a+b )
-//				.mapToPair( edit -> edit.swap() )
-//				.sortByKey(false)
-//				.map( edit -> new BatchLayer1Output<Integer>(edit._2, edit._1) );
-//		
-//		return result;
-//	}
-	
-	public abstract void process(JavaSparkContext sc);
+	public abstract void process();
 	
 }

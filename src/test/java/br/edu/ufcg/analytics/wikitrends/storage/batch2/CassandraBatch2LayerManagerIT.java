@@ -44,7 +44,10 @@ public class CassandraBatch2LayerManagerIT {
         cluster = Cluster.builder().addContactPoints(testHosts).build();
         session = cluster.newSession();
         
-        new CassandraServingLayer2Manager().createTables(session);
+        CassandraServingLayer2Manager serving2Manager = new CassandraServingLayer2Manager();
+		serving2Manager.dropTables(session);
+        serving2Manager.createTables(session);
+        
         session.execute("USE results;");
         
         dataGen = new BatchViews2DataGenerator(sc);

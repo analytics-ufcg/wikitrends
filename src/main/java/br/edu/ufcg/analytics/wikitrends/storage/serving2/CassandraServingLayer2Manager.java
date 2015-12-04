@@ -21,14 +21,14 @@ public class CassandraServingLayer2Manager implements Serializable {
             session.execute("CREATE KEYSPACE results WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
             
             session.execute("CREATE TABLE IF NOT EXISTS results." +
-								"ranking" +
+								"top_editor" +
 								"(id TEXT," +
-								"name TEXT," +
+								"editor TEXT," +
 								"count BIGINT," +
 								
 								"PRIMARY KEY((id), count, name)" +
 								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
-					);
+            		);
             
             session.execute("CREATE TABLE IF NOT EXISTS results." +
 								"top_idiom" +
@@ -84,6 +84,17 @@ public class CassandraServingLayer2Manager implements Serializable {
 								"PRIMARY KEY(id)" +
 								");"
 					);
+            
+            
+            session.execute("CREATE TABLE IF NOT EXISTS results." +
+								"ranking" +
+								"(id TEXT," +
+								"name TEXT," +
+								"count BIGINT," +
+								
+								"PRIMARY KEY((id), count, name)" +
+								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
+            		);
 	}
 	
 	

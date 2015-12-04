@@ -18,18 +18,21 @@ public class CassandraServingLayer1Manager implements Serializable {
 		
 		session.execute("CREATE KEYSPACE batch_views WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
 
-		session.execute("CREATE TABLE IF NOT EXISTS batch_views.users_ranking(" + 
-				"name TEXT," +
-				"count BIGINT," +
-				"year INT," +
-				"month INT," +
-				"day INT," +
-				"hour INT," +
-				"PRIMARY KEY((year, month, day, hour), count, name)) " + 
-				"WITH CLUSTERING ORDER BY (count DESC, name ASC);"
-				);
+		session.execute("CREATE TABLE IF NOT EXISTS batch_views." + 
+								"top_editors" + 
+								"(name TEXT," +
+								"count BIGINT," +
+								
+								"year INT," +
+								"month INT," +
+								"day INT," +
+								"hour INT," +
+								
+								"PRIMARY KEY((year, month, day, hour), count, name)) " + 
+								"WITH CLUSTERING ORDER BY (count DESC, name ASC);"
+							);
 
-            session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
+        session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
 								"top_idioms" +
 								
 								"(name TEXT," +
@@ -44,7 +47,7 @@ public class CassandraServingLayer1Manager implements Serializable {
 								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
             		);
            
-            session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
+        session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
 								"top_pages" +
 								
 								"(name TEXT," +
@@ -59,7 +62,7 @@ public class CassandraServingLayer1Manager implements Serializable {
 								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
             		);
             
-            session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
+        session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
 								"top_content_pages" +
 								
 								"(name TEXT," +
@@ -74,7 +77,7 @@ public class CassandraServingLayer1Manager implements Serializable {
 								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
             		);
             
-            session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
+        session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
 					            "absolute_values" +
 								"(id UUID," +
 								"edits_data MAP<TEXT,BIGINT>," +
@@ -96,32 +99,43 @@ public class CassandraServingLayer1Manager implements Serializable {
 				);
             
             
+        session.execute("CREATE TABLE IF NOT EXISTS batch_views.users_ranking(" + 
+							"name TEXT," +
+							"count BIGINT," +
+							
+							"year INT," +
+							"month INT," +
+							"day INT," +
+							"hour INT," +
+							
+							"PRIMARY KEY((year, month, day, hour), count, name)) " + 
+							"WITH CLUSTERING ORDER BY (count DESC, name ASC);"
+        		);
             
-            
-            session.execute("CREATE TABLE IF NOT EXISTS batch_views.servers_ranking (" + 
-            		"year INT," +
-            		"month INT," +
-            		"day INT," +
-            		"hour INT," +
-            		
-            		"name TEXT," +
-            		"count INT," +
-            		
-            		"PRIMARY KEY((year, month, day, hour), count, name)) " + 
-            		"WITH CLUSTERING ORDER BY (count DESC, name ASC);"
-            		);
+        session.execute("CREATE TABLE IF NOT EXISTS batch_views.servers_ranking (" + 
+		            		"year INT," +
+		            		"month INT," +
+		            		"day INT," +
+		            		"hour INT," +
+		            		
+		            		"name TEXT," +
+		            		"count INT," +
+		            		
+		            		"PRIMARY KEY((year, month, day, hour), count, name)) " + 
+		            		"WITH CLUSTERING ORDER BY (count DESC, name ASC);"
+            	);
            
-            session.execute("CREATE TABLE IF NOT EXISTS batch_views.status (" + 
-            		"id TEXT," +
-            		
-            		"year INT," +
-            		"month INT," +
-            		"day INT," +
-            		"hour INT," +
-            		
-            		"PRIMARY KEY((id), year, month, day, hour)) " + 
-            		"WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
-            		);
+        session.execute("CREATE TABLE IF NOT EXISTS batch_views.status (" + 
+		            		"id TEXT," +
+		            		
+		            		"year INT," +
+		            		"month INT," +
+		            		"day INT," +
+		            		"hour INT," +
+		            		
+		            		"PRIMARY KEY((id), year, month, day, hour)) " + 
+		            		"WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
+            	);
 
 	}
 

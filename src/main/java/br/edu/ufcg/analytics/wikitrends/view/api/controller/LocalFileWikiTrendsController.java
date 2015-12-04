@@ -17,6 +17,7 @@ import br.edu.ufcg.analytics.wikitrends.view.api.controller.beans.RankingRow;
  *
  */
 @RestController
+@Deprecated
 public class LocalFileWikiTrendsController implements WikiTrendsController {
 
 	/* (non-Javadoc)

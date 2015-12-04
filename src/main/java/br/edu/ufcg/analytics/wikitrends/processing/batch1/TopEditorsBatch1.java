@@ -24,17 +24,17 @@ public class TopEditorsBatch1 extends BatchLayer1Job {
 	private static final long serialVersionUID = 1367256477428803167L;
 	private String usersTable;
 
-	public TopEditorsBatch1(Configuration configuration) {
-		super(configuration);
+	public TopEditorsBatch1(Configuration configuration, JavaSparkContext jsc) {
+		super(configuration, jsc);
 		
-		usersTable = configuration.getString("wikitrends.batch.cassandra.table.users");
+		usersTable = configuration.getString("wikitrends.batch.cassandra.table.editors");
 	}
 	
 	@Override
-	public JavaRDD<EditType> read(JavaSparkContext sc) {
-		JavaRDD<EditType> wikipediaEdits = javaFunctions(sc).cassandraTable("master_dataset", "edits")
+	public JavaRDD<EditType> read() {
+		JavaRDD<EditType> wikipediaEdits = javaFunctions(getJavaSparkContext()).cassandraTable("master_dataset", "edits")
 				.select("common_event_bot", "common_server_name", "common_event_user", "common_event_namespace", "edit_minor")
-				.where("year = ? and month = ? and day = ? and hour = ?", getNow().getYear(), getNow().getMonthValue(), getNow().getDayOfMonth(), getNow().getHour())
+				.where("year = ? and month = ? and day = ? and hour = ?", getCurrentTime().getYear(), getCurrentTime().getMonthValue(), getCurrentTime().getDayOfMonth(), getCurrentTime().getHour())
 				.map(row -> {
 					EditType edit = new EditType();
 					edit.setCommon_event_bot(row.getBoolean("common_event_bot"));
@@ -48,8 +48,8 @@ public class TopEditorsBatch1 extends BatchLayer1Job {
 	}
 	
 	@Override
-	public void process(JavaSparkContext sc) {
-		JavaRDD<EditType> wikipediaEdits = read(sc)
+	public void process() {
+		JavaRDD<EditType> wikipediaEdits = read()
 				.filter(edit -> edit.getCommon_server_name().endsWith("wikipedia.org"))
 				.cache();
 
@@ -63,7 +63,7 @@ public class TopEditorsBatch1 extends BatchLayer1Job {
 					return pairs;
 				});
 		
-		JavaRDD<TopClass> userRanking = processRankingEntry(sc, userRDD);
+		JavaRDD<TopClass> userRanking = transformToTopEntry(userRDD);
 		
 		CassandraJavaUtil.javaFunctions(userRanking)
 			.writerBuilder(getBatchViewsKeyspace(), usersTable, mapToRow(TopClass.class))

@@ -21,14 +21,14 @@ public class TopContentPagesBatch1 extends BatchLayer1Job {
 
 	private String contentPagesTable;
 
-	public TopContentPagesBatch1(Configuration configuration) {
-		super(configuration);
+	public TopContentPagesBatch1(Configuration configuration, JavaSparkContext jsc) {
+		super(configuration, jsc);
 		
 		contentPagesTable = configuration.getString("wikitrends.batch.cassandra.table.contentpages");
 	}
 
-	public void process(JavaSparkContext sc) {
-		JavaRDD<EditType> wikipediaEdits = read(sc)
+	public void process() {
+		JavaRDD<EditType> wikipediaEdits = read()
 				.filter(edit -> edit.getCommon_server_name().endsWith("wikipedia.org"))
 				.cache();
 		
@@ -43,7 +43,7 @@ public class TopContentPagesBatch1 extends BatchLayer1Job {
 				return pairs;
 			});
 		
-		JavaRDD<TopClass> contentTitleRanking = processRankingEntry(sc, contentTitleRDD);
+		JavaRDD<TopClass> contentTitleRanking = transformToTopEntry(contentTitleRDD);
 		
 		CassandraJavaUtil.javaFunctions(contentTitleRanking)
 			.writerBuilder(getBatchViewsKeyspace(), contentPagesTable, mapToRow(TopClass.class))
