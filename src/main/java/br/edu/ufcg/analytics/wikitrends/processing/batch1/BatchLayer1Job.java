@@ -44,20 +44,21 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 	private String[] seeds;
 
 	private String batchViewsKeyspace;
-
-	private JavaSparkContext sc;
+	
+	// transient: do not serialize this variable
+	private transient JavaSparkContext sc;
 	
 	/**
 	 * Default constructor
 	 * @param configuration 
 	 */
 	public BatchLayer1Job(Configuration configuration, JavaSparkContext jsc) {
-		if(jsc == null) {
-			createJavaSparkContext(configuration);
-		}
-		else {
-			setJavaSparkContext(jsc);
-		}
+//		if(jsc == null) {
+		createJavaSparkContext(configuration);
+//		}
+//		else {
+//			setJavaSparkContext(jsc);
+//		}
 		
 		setBatchViewsKeyspace(configuration.getString("wikitrends.batch.cassandra.keyspace"));
 		
@@ -106,20 +107,20 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 	
 	public void createJavaSparkContext(Configuration configuration) {
 		SparkConf conf = new SparkConf();
-		conf.setAppName(configuration.getString("wikitrends.batch.id"));
+		String appName = configuration.getString("wikitrends.job.batch.id");
+		String master_host = configuration.getString("spark.master.host");
 		
 		Iterator<String> keys = configuration.getKeys();
 		while (keys.hasNext()) {
 			String key = keys.next();
 			conf.set(key, configuration.getString(key));
 		}
-		
-		sc = new JavaSparkContext(conf);
+		sc = new JavaSparkContext(master_host, appName, conf);
 	}
 	
-	public void setJavaSparkContext(JavaSparkContext javaSparkContext) {
-		this.sc = javaSparkContext;
-	}
+//	public void setJavaSparkContext(JavaSparkContext javaSparkContext) {
+//		this.sc = javaSparkContext;
+//	}
 	
 	public JavaSparkContext getJavaSparkContext() {
 		return this.sc;
@@ -182,5 +183,9 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 	}
 	
 	public abstract void process();
+	
+	public void finalizeSparkContext() {
+		this.sc.close();
+	}
 	
 }

@@ -68,6 +68,8 @@ public class TopEditorsBatch1 extends BatchLayer1Job {
 		CassandraJavaUtil.javaFunctions(userRanking)
 			.writerBuilder(getBatchViewsKeyspace(), usersTable, mapToRow(TopClass.class))
 			.saveToCassandra();
+		
+		finalizeSparkContext();
 	}
 
 }

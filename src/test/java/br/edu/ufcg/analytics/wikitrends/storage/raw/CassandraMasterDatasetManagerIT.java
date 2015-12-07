@@ -79,7 +79,7 @@ public class CassandraMasterDatasetManagerIT {
 			conf.set("spark.cassandra.connection.host", seedNode);
 
 			try (JavaSparkContext sc = new JavaSparkContext("local", "test", conf);) {
-				manager.populateFrom(seedNode, inputFile, sc);
+				manager.populateFrom(seedNode, inputFile);
 			}
 			
 			try(Session session = cluster.newSession();){
@@ -109,7 +109,7 @@ public class CassandraMasterDatasetManagerIT {
 			conf.set("spark.cassandra.connection.host", seedNode);
 
 			try (JavaSparkContext sc = new JavaSparkContext("local", "test", conf);) {
-				manager.populateFrom(seedNode, inputFile, sc);
+				manager.populateFrom(seedNode, inputFile);
 			}
 			
 			try(Session session = cluster.newSession();){
