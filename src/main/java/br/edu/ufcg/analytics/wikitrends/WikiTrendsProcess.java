@@ -7,7 +7,7 @@ import java.io.Serializable;
  * 
  * @author Ricardo Ara&eacute;jo Santos - ricoaraujosantos@gmail.com
  */
-public interface WikiTrendsProcess extends Serializable{
+public interface WikiTrendsProcess extends Serializable {
 
 	/**
 	 * Triggers the execution of this activity.

@@ -35,6 +35,7 @@ public class SmallDataBatch1IT {
 	private static final String SEED_NODE = "localhost";
 	private static final String INPUT_FILE = "src/test/resources/small_test_data.json";
 	private static final String TEST_CONFIGURATION_FILE = "src/test/resources/small_test_wikitrends.properties";
+	private PropertiesConfiguration configuration;
 	private JavaSparkContext sc;
 	private Cluster cluster;
 	private Session session;
@@ -46,12 +47,9 @@ public class SmallDataBatch1IT {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		String[] testHosts = SEED_NODE.split(",");
-
-		SparkConf conf = new SparkConf();
-		conf.set("spark.cassandra.connection.host", SEED_NODE);
-		sc = new JavaSparkContext("local", "small-data-batch1-test", conf);
-
+		configuration = new PropertiesConfiguration(TEST_CONFIGURATION_FILE);
+		
+		String[] testHosts = configuration.getString("spark.cassandra.connection.host").split(",");
 		cluster = Cluster.builder().addContactPoints(testHosts).build();
 		
 		master_dataset_manager = new CassandraMasterDatasetManager();
@@ -66,8 +64,16 @@ public class SmallDataBatch1IT {
 		serving_layer_manager.createTables(session);
 
 		session.execute("USE batch_views");
-
-		master_dataset_manager.populateFrom(SEED_NODE, INPUT_FILE, sc);
+		
+//		String[] testHosts = SEED_NODE.split(",");
+//		SparkConf conf = new SparkConf();
+//		conf.set("spark.cassandra.connection.host", SEED_NODE);
+//		sc = new JavaSparkContext(configuration.getString("spark.master.host"),
+//								  configuration.getString("wikitrends.job.batch.id"), 
+//								  conf);
+		
+//		master_dataset_manager.populateFrom(SEED_NODE, INPUT_FILE);
+		master_dataset_manager.populateFrom(INPUT_FILE, configuration);
 	}
 
 	/**
@@ -75,10 +81,10 @@ public class SmallDataBatch1IT {
 	 */
 	@After
 	public void tearDown() throws Exception {
-		master_dataset_manager.dropTables(session);
-		serving_layer_manager.dropTables(session);
+//		master_dataset_manager.dropTables(session);
+//		serving_layer_manager.dropTables(session);
 		
-		sc.close();
+//		sc.close();
 		session.close();
 		cluster.close();
 	}
@@ -88,8 +94,8 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessTopEditors() throws ConfigurationException {
-		TopEditorsBatch1 job1 = new TopEditorsBatch1(new PropertiesConfiguration(TEST_CONFIGURATION_FILE), this.sc);
-		job1.setJavaSparkContext(this.sc);
+		TopEditorsBatch1 job1 = new TopEditorsBatch1(configuration, null);
+//		job1.setJavaSparkContext(this.sc);
 		job1.process();
 		
 		assertEquals(11, session.execute("SELECT count(1) FROM batch_views.top_editors").one().getLong("count"));
@@ -121,7 +127,7 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessTopPages() throws ConfigurationException {
-		TopPagesBatch1 job2 = new TopPagesBatch1(new PropertiesConfiguration(TEST_CONFIGURATION_FILE), this.sc);
+		TopPagesBatch1 job2 = new TopPagesBatch1(configuration, null);
 		job2.process();
 		
 		ResultSet resultSet = session.execute("SELECT count(1) FROM top_pages");
@@ -150,27 +156,27 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessTopIdioms() throws ConfigurationException {
-		TopIdiomsBatch1 job3 = new TopIdiomsBatch1(new PropertiesConfiguration(TEST_CONFIGURATION_FILE), this.sc);
-		job3.setJavaSparkContext(this.sc);
+		TopIdiomsBatch1 job3 = new TopIdiomsBatch1(configuration, null);
+//		job3.setJavaSparkContext(this.sc);
 		job3.process();
 		
 		ResultSet resultSet = session.execute("SELECT count(1) FROM top_idioms");
-		assertEquals(490, resultSet.one().getLong("count"));
+		assertEquals(45, resultSet.one().getLong("count"));
 		
 		resultSet = session.execute("SELECT count(*) FROM top_idioms WHERE count >= 3 ALLOW FILTERING");
-		assertEquals(3, resultSet.one().getLong("count"));
+		assertEquals(19, resultSet.one().getLong("count"));
 		
 		resultSet = session.execute("SELECT count(*) FROM top_idioms WHERE count = 2 ALLOW FILTERING");
-		assertEquals(14, resultSet.one().getLong("count"));
+		assertEquals(12, resultSet.one().getLong("count"));
 		
-		resultSet = session.execute("SELECT * FROM top_idioms WHERE count = 3 AND name = 'Marie Antoinette' ALLOW FILTERING");
+		resultSet = session.execute("SELECT * FROM top_idioms WHERE count = 115 AND name = 'en.wikipedia.org' ALLOW FILTERING");
 		List<Row> list = resultSet.all();
 		assertTrue(list.size() == 1);
-		assertTrue(list.get(0).getLong("count") == 3L);
+		assertTrue(list.get(0).getLong("count") == 115L);
 		
-		resultSet = session.execute("SELECT * FROM top_idioms WHERE count = 3 AND name = 'Simone Zaza' ALLOW FILTERING");
+		resultSet = session.execute("SELECT * FROM top_idioms WHERE count = 55 AND name = 'it.wikipedia.org' ALLOW FILTERING");
 		List<Row> list2 = resultSet.all();
 		assertTrue(list2.size() == 1);
-		assertTrue(list2.get(0).getString("name").equals("Simone Zaza"));
+		assertTrue(list2.get(0).getString("name").equals("it.wikipedia.org"));
 	}
 }

@@ -48,5 +48,7 @@ public class TopContentPagesBatch1 extends BatchLayer1Job {
 		CassandraJavaUtil.javaFunctions(contentTitleRanking)
 			.writerBuilder(getBatchViewsKeyspace(), contentPagesTable, mapToRow(TopClass.class))
 			.saveToCassandra();
+		
+		finalizeSparkContext();
 	}
 }

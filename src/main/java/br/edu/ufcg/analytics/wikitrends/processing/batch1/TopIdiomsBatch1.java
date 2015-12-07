@@ -48,5 +48,7 @@ public class TopIdiomsBatch1 extends BatchLayer1Job {
 		CassandraJavaUtil.javaFunctions(serverRanking)
 			.writerBuilder(getBatchViewsKeyspace(), serversTable, mapToRow(TopClass.class))
 			.saveToCassandra();
+		
+		finalizeSparkContext();
 	}
 }

@@ -62,7 +62,7 @@ public class BigDataBatch1IT {
 			conf.set("spark.cassandra.connection.host", SEED_NODE);
 
 			try (JavaSparkContext sc = new JavaSparkContext("local", "test", conf);) {
-				manager.populateFrom(SEED_NODE, INPUT_FILE, sc);
+				manager.populateFrom(SEED_NODE, INPUT_FILE);
 			}
 		}
 	}
