@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -18,16 +20,42 @@ import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import br.edu.ufcg.analytics.wikitrends.storage.CassandraManager;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.LogType;
 
-public class CassandraMasterDatasetManager implements Serializable {
+public class CassandraMasterDatasetManager extends CassandraManager implements Serializable {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 6066687152165846375L;
+	private transient JavaSparkContext sc;
+	private Configuration configuration;
+	
+	public CassandraMasterDatasetManager(Configuration configuration) {
+		try {
+			if(configuration == null) {
+				this.configuration = new PropertiesConfiguration(getMigrationConfigFilePath());
+			}
+			else {
+				this.configuration = configuration;
+			}
+		} catch (ConfigurationException e) {
+			e.printStackTrace();
+		}
+		createJavaSparkContext();
+	}
 
+	private void createJavaSparkContext() {
+		SparkConf conf = new SparkConf();
+		conf.set("spark.cassandra.connection.host", this.configuration.getString("spark.cassandra.connection.host"));	
+		String masterHost = configuration.getString("spark.master.host"); 
+		String appName = configuration.getString("wikitrends.migration.app.name");
+		
+		this.sc = new JavaSparkContext(masterHost, appName, conf);
+	}
+	
 	/**
 	 * @param session Opened {@link Session} to a cassandra DB.
 	 */
@@ -96,6 +124,7 @@ public class CassandraMasterDatasetManager implements Serializable {
 		//				"PRIMARY KEY((edit_id), year, month, day, hour)," +
 		//				") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
 		//				);
+		
 		session.execute("CREATE TABLE IF NOT EXISTS master_dataset.edits("+ 
 				//				"edit_uuid UUID," + 
 				"edit_id INT," +
@@ -136,67 +165,29 @@ public class CassandraMasterDatasetManager implements Serializable {
 		session.execute("DROP KEYSPACE IF EXISTS master_dataset");
 	}
 
-	public void populateFrom(String cassandraSeedHostname, String originFile) {
-		SparkConf conf = new SparkConf();
-		conf.setAppName("wikitrends-migrate-master");
-		conf.set("spark.cassandra.connection.host", cassandraSeedHostname);	
-		String appName = "wikitrends-migrate-master";
-		String masterHost = "local"; 
+	public void populate() {
+		String originFile = configuration.getString("wikitrends.migration.originfile");
 		
-		try(JavaSparkContext sc = new JavaSparkContext(conf);) {
-	
-			JavaRDD<JsonObject> oldMasterDataset = sc.textFile(originFile)
-					.map(l -> new JsonParser().parse(l).getAsJsonObject());
-	
-			JavaRDD<EditType> edits = oldMasterDataset.filter(change -> {
-				String type = change.get("type").getAsString();
-				return "edit".equals(type) || "new".equals(type);
-			}).map(change -> parseEditFromJSON(change));
-	
-			CassandraJavaUtil.javaFunctions(edits).writerBuilder("master_dataset", "edits", mapToRow(EditType.class))
+		JavaRDD<JsonObject> oldMasterDataset = this.sc.textFile(originFile)
+				.map(l -> new JsonParser().parse(l).getAsJsonObject());
+
+		JavaRDD<EditType> edits = oldMasterDataset.filter(change -> {
+			String type = change.get("type").getAsString();
+			return "edit".equals(type) || "new".equals(type);
+		}).map(change -> parseEditFromJSON(change));
+
+		CassandraJavaUtil.javaFunctions(edits).writerBuilder("master_dataset", "edits", mapToRow(EditType.class))
+		.saveToCassandra();
+
+		JavaRDD<LogType> logs = oldMasterDataset.filter(change -> {
+			String type = change.get("type").getAsString();
+			return "log".equals(type);
+		}).map(change -> parseLogFromJSON(change));
+
+		CassandraJavaUtil.javaFunctions(logs)
+			.writerBuilder("master_dataset", "logs", mapToRow(LogType.class))
 			.saveToCassandra();
-	
-			JavaRDD<LogType> logs = oldMasterDataset.filter(change -> {
-				String type = change.get("type").getAsString();
-				return "log".equals(type);
-			}).map(change -> parseLogFromJSON(change));
-	
-			CassandraJavaUtil.javaFunctions(logs)
-				.writerBuilder("master_dataset", "logs", mapToRow(LogType.class))
-				.saveToCassandra();
 		
-		}
-	}
-	
-	public void populateFrom(String originFile, Configuration configuration) {
-		SparkConf conf = new SparkConf();
-		conf.set("spark.cassandra.connection.host", configuration.getString("spark.cassandra.connection.host"));	
-		String masterHost = "local"; 
-		String appName = "wikitrends-migrate-master";
-		
-		try(JavaSparkContext sc = new JavaSparkContext(masterHost, appName ,conf);) {
-	
-			JavaRDD<JsonObject> oldMasterDataset = sc.textFile(originFile)
-					.map(l -> new JsonParser().parse(l).getAsJsonObject());
-	
-			JavaRDD<EditType> edits = oldMasterDataset.filter(change -> {
-				String type = change.get("type").getAsString();
-				return "edit".equals(type) || "new".equals(type);
-			}).map(change -> parseEditFromJSON(change));
-	
-			CassandraJavaUtil.javaFunctions(edits).writerBuilder("master_dataset", "edits", mapToRow(EditType.class))
-			.saveToCassandra();
-	
-			JavaRDD<LogType> logs = oldMasterDataset.filter(change -> {
-				String type = change.get("type").getAsString();
-				return "log".equals(type);
-			}).map(change -> parseLogFromJSON(change));
-	
-			CassandraJavaUtil.javaFunctions(logs)
-				.writerBuilder("master_dataset", "logs", mapToRow(LogType.class))
-				.saveToCassandra();
-		
-		}
 	}
 
 	private LogType parseLogFromJSON(JsonObject obj) {
@@ -257,17 +248,25 @@ public class CassandraMasterDatasetManager implements Serializable {
 	 */
 	public static void main(String[] args) {
 
-		if (args.length < 2) {
+		if (args.length < 1) {
 			System.err.println(
-					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager CREATE|POPULATE <seed_address>");
+					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager CREATE|POPULATE");
 			System.exit(1);
 		}
 
 		String operation = args[0];
-		String seedNode = args[1];
-
-		CassandraMasterDatasetManager manager = new CassandraMasterDatasetManager();
-
+		
+		// FIXME
+		Configuration configuration = null;
+		try {
+			configuration = new PropertiesConfiguration("src/test/resources/small_test_wikitrends.properties");
+		} catch (ConfigurationException e) {
+			e.printStackTrace();
+		}
+		
+		CassandraMasterDatasetManager manager = new CassandraMasterDatasetManager(configuration);
+		String seedNode = manager.configuration.getString("spark.cassandra.connection.host");
+		
 		switch (operation) {
 		case "CREATE":
 			try (Cluster cluster = Cluster.builder().addContactPoints(seedNode).build();
@@ -284,16 +283,15 @@ public class CassandraMasterDatasetManager implements Serializable {
 		case "POPULATE":
 			if (args.length < 2) {
 				System.err.println(
-						"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager POPULATE <seed_address> <input_file>");
+						"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager POPULATE");
 				System.exit(1);
 			}
-			String inputFile = args[2];
 
-			manager.populateFrom(seedNode, inputFile);
+			manager.populate();
 			
 			break;
 		default:
-			System.err.println("Unsupported operation. Choose CREATE OR POPULATE");
+			System.err.println("Unsupported operation. Choose CREATE, DROP or POPULATE");
 			break;
 		}
 

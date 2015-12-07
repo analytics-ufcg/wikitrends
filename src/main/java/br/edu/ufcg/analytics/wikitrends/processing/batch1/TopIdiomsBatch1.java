@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
 
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
@@ -21,8 +20,8 @@ public class TopIdiomsBatch1 extends BatchLayer1Job {
 	
 	private String serversTable;
 
-	public TopIdiomsBatch1(Configuration configuration, JavaSparkContext jsc) {
-		super(configuration, jsc);
+	public TopIdiomsBatch1(Configuration configuration) {
+		super(configuration);
 		
 		serversTable = configuration.getString("wikitrends.batch.cassandra.table.servers");
 	}

@@ -52,13 +52,8 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 	 * Default constructor
 	 * @param configuration 
 	 */
-	public BatchLayer1Job(Configuration configuration, JavaSparkContext jsc) {
-//		if(jsc == null) {
+	public BatchLayer1Job(Configuration configuration) {
 		createJavaSparkContext(configuration);
-//		}
-//		else {
-//			setJavaSparkContext(jsc);
-//		}
 		
 		setBatchViewsKeyspace(configuration.getString("wikitrends.batch.cassandra.keyspace"));
 		
@@ -118,10 +113,6 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 		sc = new JavaSparkContext(master_host, appName, conf);
 	}
 	
-//	public void setJavaSparkContext(JavaSparkContext javaSparkContext) {
-//		this.sc = javaSparkContext;
-//	}
-	
 	public JavaSparkContext getJavaSparkContext() {
 		return this.sc;
 	}
@@ -133,11 +124,11 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 				Session session = cluster.newSession();) {
 
 			while(getCurrentTime().isBefore(getStopTime())){
-				new TopEditorsBatch1(configuration, null).process();
-				new TopContentPagesBatch1(configuration, null).process();
-				new TopPagesBatch1(configuration, null).process();
-				new TopIdiomsBatch1(configuration, null).process();
-				new AbsoluteValuesBatch1(configuration, null).process();
+				new TopEditorsBatch1(configuration).process();
+				new TopContentPagesBatch1(configuration).process();
+				new TopPagesBatch1(configuration).process();
+				new TopIdiomsBatch1(configuration).process();
+				new AbsoluteValuesBatch1(configuration).process();
 				
 				// insert new record for time_status of processing
 				session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", "servers_ranking", currentTime.getYear(), currentTime.getMonthValue(), currentTime.getDayOfMonth(), currentTime.getHour());

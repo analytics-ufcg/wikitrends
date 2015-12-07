@@ -11,7 +11,6 @@ import java.util.Set;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
 
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
@@ -24,8 +23,8 @@ public class AbsoluteValuesBatch1 extends BatchLayer1Job {
 
 	private String absoluteValuesTable;
 
-	public AbsoluteValuesBatch1(Configuration configuration, JavaSparkContext jsc) {
-		super(configuration, jsc);
+	public AbsoluteValuesBatch1(Configuration configuration) {
+		super(configuration);
 		
 		absoluteValuesTable = configuration.getString("wikitrends.batch.cassandra.table.absolutevalues");
 	}

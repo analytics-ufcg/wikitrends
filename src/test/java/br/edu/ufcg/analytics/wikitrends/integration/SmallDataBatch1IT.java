@@ -8,8 +8,6 @@ import java.util.List;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,15 +30,13 @@ import br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1M
  */
 public class SmallDataBatch1IT {
 
-	private static final String SEED_NODE = "localhost";
-	private static final String INPUT_FILE = "src/test/resources/small_test_data.json";
 	private static final String TEST_CONFIGURATION_FILE = "src/test/resources/small_test_wikitrends.properties";
 	private PropertiesConfiguration configuration;
-	private JavaSparkContext sc;
 	private Cluster cluster;
 	private Session session;
 	private CassandraMasterDatasetManager master_dataset_manager;
 	private CassandraServingLayer1Manager serving_layer_manager;
+	private String seedNode;
 	
 	/**
 	 * @throws java.lang.Exception
@@ -51,6 +47,8 @@ public class SmallDataBatch1IT {
 		
 		String[] testHosts = configuration.getString("spark.cassandra.connection.host").split(",");
 		cluster = Cluster.builder().addContactPoints(testHosts).build();
+		
+		seedNode = configuration.getString("spark.cassandra.connection.host");
 		
 		master_dataset_manager = new CassandraMasterDatasetManager();
 		serving_layer_manager = new CassandraServingLayer1Manager();
@@ -65,15 +63,7 @@ public class SmallDataBatch1IT {
 
 		session.execute("USE batch_views");
 		
-//		String[] testHosts = SEED_NODE.split(",");
-//		SparkConf conf = new SparkConf();
-//		conf.set("spark.cassandra.connection.host", SEED_NODE);
-//		sc = new JavaSparkContext(configuration.getString("spark.master.host"),
-//								  configuration.getString("wikitrends.job.batch.id"), 
-//								  conf);
-		
-//		master_dataset_manager.populateFrom(SEED_NODE, INPUT_FILE);
-		master_dataset_manager.populateFrom(INPUT_FILE, configuration);
+		master_dataset_manager.populate();
 	}
 
 	/**
@@ -84,7 +74,6 @@ public class SmallDataBatch1IT {
 //		master_dataset_manager.dropTables(session);
 //		serving_layer_manager.dropTables(session);
 		
-//		sc.close();
 		session.close();
 		cluster.close();
 	}
@@ -94,8 +83,7 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessTopEditors() throws ConfigurationException {
-		TopEditorsBatch1 job1 = new TopEditorsBatch1(configuration, null);
-//		job1.setJavaSparkContext(this.sc);
+		TopEditorsBatch1 job1 = new TopEditorsBatch1(configuration);
 		job1.process();
 		
 		assertEquals(11, session.execute("SELECT count(1) FROM batch_views.top_editors").one().getLong("count"));
@@ -107,7 +95,7 @@ public class SmallDataBatch1IT {
 		job1.setCurrentTime(LocalDateTime.of(2015, 11, 9, 11, 00));//FIXME wrong date
 		job1.process();
 	
-		try (Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
+		try (Cluster cluster = Cluster.builder().addContactPoints(seedNode).build();
 				Session session = cluster.newSession();) {
 			
 			assertEquals(327, session.execute("SELECT count(1) FROM batch_views.users_ranking").one().getLong("count"));
@@ -127,7 +115,7 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessTopPages() throws ConfigurationException {
-		TopPagesBatch1 job2 = new TopPagesBatch1(configuration, null);
+		TopPagesBatch1 job2 = new TopPagesBatch1(configuration);
 		job2.process();
 		
 		ResultSet resultSet = session.execute("SELECT count(1) FROM top_pages");
@@ -156,8 +144,7 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessTopIdioms() throws ConfigurationException {
-		TopIdiomsBatch1 job3 = new TopIdiomsBatch1(configuration, null);
-//		job3.setJavaSparkContext(this.sc);
+		TopIdiomsBatch1 job3 = new TopIdiomsBatch1(configuration);
 		job3.process();
 		
 		ResultSet resultSet = session.execute("SELECT count(1) FROM top_idioms");
