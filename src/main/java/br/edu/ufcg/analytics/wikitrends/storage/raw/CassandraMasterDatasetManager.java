@@ -30,7 +30,6 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 	 * 
 	 */
 	private static final long serialVersionUID = 6066687152165846375L;
-	private transient JavaSparkContext sc;
 	private Configuration configuration;
 	
 	public CassandraMasterDatasetManager(Configuration configuration) {
@@ -44,16 +43,14 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
 		}
-		createJavaSparkContext();
 	}
 
-	private void createJavaSparkContext() {
+	private JavaSparkContext createJavaSparkContext() {
 		SparkConf conf = new SparkConf();
-		conf.set("spark.cassandra.connection.host", this.configuration.getString("spark.cassandra.connection.host"));	
-		String masterHost = configuration.getString("spark.master.host"); 
-		String appName = configuration.getString("wikitrends.migration.app.name");
+		conf.set("spark.connection.host", this.configuration.getString("spark.cassandra.connection.host"));	
+		conf.setAppName(configuration.getString("wikitrends.migration.app.name"));
 		
-		this.sc = new JavaSparkContext(masterHost, appName, conf);
+		return new JavaSparkContext(conf);
 	}
 	
 	/**
@@ -165,10 +162,10 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 		session.execute("DROP KEYSPACE IF EXISTS master_dataset");
 	}
 
-	public void populate() {
+	public void populate(JavaSparkContext sc) {
 		String originFile = configuration.getString("wikitrends.migration.originfile");
 		
-		JavaRDD<JsonObject> oldMasterDataset = this.sc.textFile(originFile)
+		JavaRDD<JsonObject> oldMasterDataset = sc.textFile(originFile)
 				.map(l -> new JsonParser().parse(l).getAsJsonObject());
 
 		JavaRDD<EditType> edits = oldMasterDataset.filter(change -> {
@@ -255,6 +252,7 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 		}
 
 		String operation = args[0];
+		String seed = args[1];
 		
 		// FIXME
 		Configuration configuration = null;
@@ -287,7 +285,11 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 				System.exit(1);
 			}
 
-			manager.populate();
+
+			SparkConf conf = new SparkConf();
+			conf.set("spark.connection.host", seed);	
+			conf.setAppName(configuration.getString("wikitrends.migration.app.name"));
+			manager.populate(new JavaSparkContext(conf));
 			
 			break;
 		default:
