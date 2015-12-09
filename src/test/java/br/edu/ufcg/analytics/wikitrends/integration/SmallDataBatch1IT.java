@@ -8,8 +8,6 @@ import java.util.List;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -88,7 +86,7 @@ public class SmallDataBatch1IT {
 	 * @throws java.lang.Exception
 	 */
 	@Before
-	public void setUp() throws Exception {
+	public void openCassandraSession() throws Exception {
 
 		configuration = new PropertiesConfiguration(TEST_CONFIGURATION_FILE);
 
@@ -102,7 +100,7 @@ public class SmallDataBatch1IT {
 	 * @throws java.lang.Exception
 	 */
 	@After
-	public void tearDown() throws Exception {
+	public void closeCassandraSession() throws Exception {
 		session.close();
 		cluster.close();
 	}
