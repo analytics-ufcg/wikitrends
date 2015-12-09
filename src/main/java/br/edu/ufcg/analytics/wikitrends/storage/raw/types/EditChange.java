@@ -1,6 +1,8 @@
 package br.edu.ufcg.analytics.wikitrends.storage.raw.types;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,10 +27,9 @@ public class EditChange extends WikimediaChange implements Serializable {
 	}
 
 	public EditChange(UUID uuid, Integer id, String serverUrl, String serverName, String serverScriptPath, String wiki, String type,
-			Integer namespace, String user, Boolean bot, String comment, String title, Date eventTimestamp, Boolean minor, Boolean patrolled, Map<String, Long> length,
+			Integer namespace, String user, Boolean bot, String comment, String title, LocalDateTime eventTimestamp, Boolean minor, Boolean patrolled, Map<String, Long> length,
 			Map<String, Long> revision) {
-		super(uuid, id, serverUrl, serverName, serverScriptPath, wiki, type, namespace, user, bot, comment, title, eventTimestamp.getYear(), eventTimestamp.getMonth(),
-				eventTimestamp.getDay(), eventTimestamp.getHours(), eventTimestamp);
+		super(uuid, id, serverUrl, serverName, serverScriptPath, wiki, type, namespace, user, bot, comment, title, eventTimestamp);
 		this.minor = minor;
 		this.patrolled = patrolled;
 		this.length = length;
@@ -151,7 +152,7 @@ public class EditChange extends WikimediaChange implements Serializable {
 				object.get("server_script_path").getAsString(), object.get("wiki").getAsString(),
 				object.get("type").getAsString(), object.get("namespace").getAsInt(), object.get("user").getAsString(),
 				object.get("bot").getAsBoolean(), object.get("comment").getAsString(),
-				object.get("title").getAsString(), new DateTime(object.get("timestamp").getAsLong() * 1000L).toDate(),
+				object.get("title").getAsString(), LocalDateTime.ofEpochSecond(object.get("timestamp").getAsLong(), 0, ZoneOffset.UTC),
 				object.get("minor").getAsBoolean(), patrolled,
 				lengthMap, revisionMap);
 	}

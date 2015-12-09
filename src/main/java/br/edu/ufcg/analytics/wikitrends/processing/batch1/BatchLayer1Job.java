@@ -39,7 +39,7 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 
 	protected transient Configuration configuration;
 	
-	private LocalDateTime currentTime;
+	private static LocalDateTime currentTime;
 	private LocalDateTime stopTime;
 	private String[] seeds;
 
@@ -133,7 +133,7 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 				// insert new record for time_status of processing
 				session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", "servers_ranking", currentTime.getYear(), currentTime.getMonthValue(), currentTime.getDayOfMonth(), currentTime.getHour());
 				
-				setCurrentTime(getCurrentTime().plusHours(1));
+				this.setCurrentTime(getCurrentTime().plusHours(1));
 			}
 		}
 
