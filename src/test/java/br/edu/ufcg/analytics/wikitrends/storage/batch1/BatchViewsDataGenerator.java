@@ -54,13 +54,14 @@ public class BatchViewsDataGenerator {
         	distinct_servers.add("server" + String.valueOf(i));
         	
         	AbsoluteValuesShot avs = new AbsoluteValuesShot(m, 
-        														distinct_pages,
-																distinct_editors,
-																distinct_servers,
-																origin+(i*100000)
-																);
-        	
-        	avs.setEventTimestamp(new DateTime(2014, 5, 23, i+1, i+2).toDate());
+    														distinct_pages,
+															distinct_editors,
+															distinct_servers,
+															origin+(i*100000),
+															2014,
+															5,
+															23,
+															i+1);
         	
         	listAbsoluteValues.add(avs);
         }

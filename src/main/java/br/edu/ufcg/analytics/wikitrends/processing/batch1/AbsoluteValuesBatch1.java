@@ -3,6 +3,7 @@ package br.edu.ufcg.analytics.wikitrends.processing.batch1;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -43,17 +44,17 @@ public class AbsoluteValuesBatch1 extends BatchLayer1Job {
 		Set<String> distincts_editors_set = distinctEditors(wikipediaEdits);
 		Set<String> distincts_servers_set = distinctServers(wikipediaEdits);
 
-		//		System.out.println(distincts_pages_set.size()); // 359185
-		//		System.out.println(distincts_editors_set.size()); // 57978
-		//		System.out.println(distincts_servers_set.size()); // 215
-
 		Long smaller_origin = getOrigin(wikipediaEdits); 
 
 		List<AbsoluteValuesShot> output = Arrays.asList(new AbsoluteValuesShot(edits_data, 
 				distincts_pages_set,
 				distincts_editors_set,
 				distincts_servers_set,
-				smaller_origin));
+				smaller_origin,
+				getCurrentTime().getYear(),
+				getCurrentTime().getMonthValue(),
+				getCurrentTime().getDayOfMonth(),
+				getCurrentTime().getHour()));
 		
 		CassandraJavaUtil.javaFunctions(getJavaSparkContext().parallelize(output))
 			.writerBuilder(getBatchViewsKeyspace(), absoluteValuesTable, mapToRow(AbsoluteValuesShot.class))
@@ -98,7 +99,17 @@ public class AbsoluteValuesBatch1 extends BatchLayer1Job {
 	}
 
 	private Long getOrigin(JavaRDD<EditChange> wikipediaEdits) {
-		return wikipediaEdits.first().getEventTimestamp().getTime();
+//		Comparator<EditChange> comp = new Comparator<EditChange>() {
+//
+//			@Override
+//			public EditChange compare(EditChange ec1, EditChange ec2) {
+//				if( ec1.getEventTimestamp().getTime() < ec2.getEventTimestamp().getTime() ) {
+//					return ec1;
+//				}
+//			}
+//		}
+//		return wikipediaEdits.min(comp).getEventTimestamp().getTime();
+		return 0L; //FIXME
 	}
 
 }

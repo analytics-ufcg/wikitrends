@@ -32,7 +32,7 @@ public class TopContentPagesBatch1 extends BatchLayer1Job {
 				.cache();
 		
 		JavaPairRDD<String, Integer> contentTitleRDD = wikipediaEdits
-			.filter(edits -> "0".equals(edits.getNamespace()))
+			.filter(edits -> 0 == edits.getNamespace())
 			.mapPartitionsToPair( iterator -> {
 				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
 				while(iterator.hasNext()){

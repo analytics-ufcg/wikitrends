@@ -5,6 +5,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -19,6 +21,8 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
+import br.edu.ufcg.analytics.wikitrends.processing.batch1.AbsoluteValuesBatch1;
+import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopContentPagesBatch1;
 import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopEditorsBatch1;
 import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopIdiomsBatch1;
 import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopPagesBatch1;
@@ -111,6 +115,34 @@ public class SmallDataBatch1IT {
 		}
 	}
 	
+	/**
+	 * @throws ConfigurationException
+	 */
+	@Test
+	public void testProcessTopIdioms() throws ConfigurationException {
+		TopIdiomsBatch1 job3 = new TopIdiomsBatch1(configuration);
+		job3.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
+		job3.process();
+		
+		ResultSet resultSet = session.execute("SELECT count(1) FROM top_idioms");
+		assertEquals(45, resultSet.one().getLong("count"));
+		
+		resultSet = session.execute("SELECT count(*) FROM top_idioms WHERE count >= 3 ALLOW FILTERING");
+		assertEquals(19, resultSet.one().getLong("count"));
+		
+		resultSet = session.execute("SELECT count(*) FROM top_idioms WHERE count = 2 ALLOW FILTERING");
+		assertEquals(12, resultSet.one().getLong("count"));
+		
+		resultSet = session.execute("SELECT * FROM top_idioms WHERE count = 115 AND name = 'en.wikipedia.org' ALLOW FILTERING");
+		List<Row> list = resultSet.all();
+		assertTrue(list.size() == 1);
+		assertTrue(list.get(0).getLong("count") == 115L);
+		
+		resultSet = session.execute("SELECT * FROM top_idioms WHERE count = 55 AND name = 'it.wikipedia.org' ALLOW FILTERING");
+		List<Row> list2 = resultSet.all();
+		assertTrue(list2.size() == 1);
+		assertTrue(list2.get(0).getString("name").equals("it.wikipedia.org"));
+	}
 	
 	/**
 	 * @throws ConfigurationException
@@ -118,6 +150,7 @@ public class SmallDataBatch1IT {
 	@Test
 	public void testProcessTopPages() throws ConfigurationException {
 		TopPagesBatch1 job2 = new TopPagesBatch1(configuration);
+		job2.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
 		job2.process();
 		
 		ResultSet resultSet = session.execute("SELECT count(1) FROM top_pages");
@@ -140,32 +173,64 @@ public class SmallDataBatch1IT {
 		assertTrue(list2.get(0).getString("name").equals("Simone Zaza"));
 	}
 	
+	/**
+	 * @throws ConfigurationException
+	 */
+	@Test
+	public void testProcessTopContentPages() throws ConfigurationException {
+		TopContentPagesBatch1 job4 = new TopContentPagesBatch1(configuration);
+		job4.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
+		job4.process();
+		
+		ResultSet resultSet = session.execute("SELECT count(1) FROM top_content_pages");
+		assertEquals(385, resultSet.one().getLong("count"));
+		
+		resultSet = session.execute("SELECT count(*) FROM top_content_pages WHERE count >= 3 ALLOW FILTERING");
+		assertEquals(3, resultSet.one().getLong("count"));
+		
+		resultSet = session.execute("SELECT count(*) FROM top_content_pages WHERE count = 2 ALLOW FILTERING");
+		assertEquals(11, resultSet.one().getLong("count"));
+		
+		resultSet = session.execute("SELECT * FROM top_content_pages WHERE count = 3 AND name = 'Marie Antoinette' ALLOW FILTERING");
+		List<Row> list = resultSet.all();
+		assertTrue(list.size() == 1);
+		assertTrue(list.get(0).getLong("count") == 3L);
+		
+		resultSet = session.execute("SELECT * FROM top_content_pages WHERE count = 3 AND name = 'Simone Zaza' ALLOW FILTERING");
+		List<Row> list2 = resultSet.all();
+		assertTrue(list2.size() == 1);
+		assertTrue(list2.get(0).getString("name").equals("Simone Zaza"));
+	}
+	
 	
 	/**
 	 * @throws ConfigurationException
 	 */
 	@Test
-	public void testProcessTopIdioms() throws ConfigurationException {
-		TopIdiomsBatch1 job3 = new TopIdiomsBatch1(configuration);
-		job3.process();
+	public void testProcessAbsoluteValues() throws ConfigurationException {
+		AbsoluteValuesBatch1 job5 = new AbsoluteValuesBatch1(configuration);
+		job5.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
+		job5.process();
 		
-		ResultSet resultSet = session.execute("SELECT count(1) FROM top_idioms");
-		assertEquals(45, resultSet.one().getLong("count"));
-		
-		resultSet = session.execute("SELECT count(*) FROM top_idioms WHERE count >= 3 ALLOW FILTERING");
-		assertEquals(19, resultSet.one().getLong("count"));
-		
-		resultSet = session.execute("SELECT count(*) FROM top_idioms WHERE count = 2 ALLOW FILTERING");
-		assertEquals(12, resultSet.one().getLong("count"));
-		
-		resultSet = session.execute("SELECT * FROM top_idioms WHERE count = 115 AND name = 'en.wikipedia.org' ALLOW FILTERING");
+		ResultSet resultSet = session.execute("SELECT * FROM absolute_values WHERE year = 2015 AND month = 11 AND day = 9 AND hour = 14");
 		List<Row> list = resultSet.all();
-		assertTrue(list.size() == 1);
-		assertTrue(list.get(0).getLong("count") == 115L);
 		
-		resultSet = session.execute("SELECT * FROM top_idioms WHERE count = 55 AND name = 'it.wikipedia.org' ALLOW FILTERING");
-		List<Row> list2 = resultSet.all();
-		assertTrue(list2.size() == 1);
-		assertTrue(list2.get(0).getString("name").equals("it.wikipedia.org"));
+		assertTrue(list.size() == 1);
+		Map<String, Long> edits_data = list.get(0).getMap("edits_data", String.class, Long.class);
+		assertEquals((long)edits_data.get("all_edits"), (long)510);
+		assertEquals((long)edits_data.get("minor_edits"), (long)154);
+		assertEquals((long)edits_data.get("average_size"), (long)401);
+		
+		Set<String> distinct_editors_set = list.get(0).getSet("distinct_editors_set", String.class);
+		Set<String> distinct_pages_set = list.get(0).getSet("distinct_pages_set", String.class);
+		Set<String> distinct_servers_set = list.get(0).getSet("distinct_servers_set", String.class);
+		
+		assertEquals(distinct_editors_set.size(), 312);
+		assertEquals(distinct_pages_set.size(), 490);
+		assertEquals(distinct_servers_set.size(), 45);
+		
+		Long smaller_origin = list.get(0).getLong("smaller_origin");
+		
+		assertEquals((long)smaller_origin, (long)1447078824000L);
 	}
 }

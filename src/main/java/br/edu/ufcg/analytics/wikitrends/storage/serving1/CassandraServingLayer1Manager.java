@@ -82,9 +82,9 @@ public class CassandraServingLayer1Manager implements Serializable {
 								"(id UUID," +
 								"edits_data MAP<TEXT,BIGINT>," +
 								
-								"distincts_pages_set SET<TEXT>," +
-								"distincts_editors_set SET<TEXT>," +
-								"distincts_servers_set SET<TEXT>," +
+								"distinct_pages_set SET<TEXT>," +
+								"distinct_editors_set SET<TEXT>," +
+								"distinct_servers_set SET<TEXT>," +
 
 								"smaller_origin BIGINT," +
 
@@ -92,7 +92,6 @@ public class CassandraServingLayer1Manager implements Serializable {
 								"month INT," +
 								"day INT," +
 								"hour INT," +
-								"event_time TIMESTAMP," +
 
 								"PRIMARY KEY((year, month, day, hour), id)," +
 								") WITH CLUSTERING ORDER BY (id DESC);"

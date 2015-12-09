@@ -1,12 +1,9 @@
 package br.edu.ufcg.analytics.wikitrends.storage.serving1.types;
 
 import java.io.Serializable;
-import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
-import org.joda.time.DateTime;
 
 /**
  * 
@@ -23,36 +20,36 @@ public class AbsoluteValuesShot implements Serializable {
     	private Integer day;
     	private Integer month;
     	private Integer year;
-        private Date event_time;
         
         private Map<String, Long> edits_data;
 
-        private Set<String> distincts_pages_set;
-		private Set<String> distincts_editors_set;
-		private Set<String> distincts_servers_set;
+        private Set<String> distinct_pages_set;
+		private Set<String> distinct_editors_set;
+		private Set<String> distinct_servers_set;
 
 		private Long smaller_origin;
 
 		public AbsoluteValuesShot(Map<String, Long> edits_data, 
-        							Set<String> distincts_pages_set, 
-        							Set<String> distincts_editors_set, 
-        							Set<String> distincts_servers_set, 
-        							Long smaller_origin) {
+        							Set<String> distinct_pages_set, 
+        							Set<String> distinct_editors_set, 
+        							Set<String> distinct_servers_set, 
+        							Long smaller_origin,
+        							Integer year, 
+        							Integer month, 
+        							Integer day, 
+        							Integer hour) {
             
         	this.id = UUID.randomUUID();
             this.edits_data = edits_data;
-            this.distincts_pages_set = distincts_pages_set;
-            this.distincts_editors_set = distincts_editors_set;
-            this.distincts_servers_set = distincts_servers_set;
+            this.distinct_pages_set = distinct_pages_set;
+            this.distinct_editors_set = distinct_editors_set;
+            this.distinct_servers_set = distinct_servers_set;
             this.smaller_origin = smaller_origin;
             
-            DateTime date = new DateTime();
-            setEventTimestamp(date.toDate());
-            
-    		setYear(date.getYear());
-    		setMonth(date.getMonthOfYear());
-    		setDay(date.getDayOfMonth());
-    		setHour(date.getHourOfDay());
+    		setYear(year);
+    		setMonth(month);
+    		setDay(day);
+    		setHour(hour);
         }
         
 		public void setid(UUID id) {
@@ -95,42 +92,28 @@ public class AbsoluteValuesShot implements Serializable {
 			this.hour = hour;
 		}
 		
-		public Date getEventTimestamp() {
-			return event_time;
+		public Set<String> getDistinct_pages_set() {
+			return distinct_pages_set;
 		}
 
-		public void setEventTimestamp(Date event_time) {
-			this.event_time = event_time;
-			
-			DateTime date = new DateTime(event_time);
-			setYear(date.getYear());
-    		setMonth(date.getMonthOfYear());
-    		setDay(date.getDayOfMonth());
-    		setHour(date.getHourOfDay());
+		public void setDistinct_pages_set(Set<String> distinct_pages_set) {
+			this.distinct_pages_set = distinct_pages_set;
 		}
 
-		public Set<String> getDistincts_pages_set() {
-			return distincts_pages_set;
+		public Set<String> getDistinct_editors_set() {
+			return distinct_editors_set;
 		}
 
-		public void setDistincts_pages_set(Set<String> distincts_pages_set) {
-			this.distincts_pages_set = distincts_pages_set;
+		public void setDistinct_editors_set(Set<String> distinct_editors_set) {
+			this.distinct_editors_set = distinct_editors_set;
 		}
 
-		public Set<String> getDistincts_editors_set() {
-			return distincts_editors_set;
+		public Set<String> getDistinct_servers_set() {
+			return distinct_servers_set;
 		}
 
-		public void setDistincts_editors_set(Set<String> distincts_editors_set) {
-			this.distincts_editors_set = distincts_editors_set;
-		}
-
-		public Set<String> getDistincts_servers_set() {
-			return distincts_servers_set;
-		}
-
-		public void setDistincts_servers_set(Set<String> distincts_servers_set) {
-			this.distincts_servers_set = distincts_servers_set;
+		public void setDistinct_servers_set(Set<String> distinct_servers_set) {
+			this.distinct_servers_set = distinct_servers_set;
 		}
 
 		public Map<String, Long> getEdits_data() {
@@ -151,11 +134,10 @@ public class AbsoluteValuesShot implements Serializable {
 
 		@Override
 		public String toString() {
-			return "AbsoluteValueShot2 [id=" + id + ", hour=" + hour + ", day=" + day + ", month=" + month + ", year="
-					+ year + ", event_time=" + event_time + ", edits_data=" + edits_data + ", distincts_pages_set="
-					+ distincts_pages_set + ", distincts_editors_set=" + distincts_editors_set
-					+ ", distincts_servers_set=" + distincts_servers_set + ", smaller_origin=" + smaller_origin
-					+ ", toString()=" + super.toString() + "]";
+			return "AbsoluteValuesShot [id=" + id + ", hour=" + hour + ", day=" + day + ", month=" + month + ", year="
+					+ year + ", edits_data=" + edits_data + ", distincts_pages_set=" + distinct_pages_set
+					+ ", distincts_editors_set=" + distinct_editors_set + ", distincts_servers_set="
+					+ distinct_servers_set + ", smaller_origin=" + smaller_origin + "]";
 		}
 
     }
