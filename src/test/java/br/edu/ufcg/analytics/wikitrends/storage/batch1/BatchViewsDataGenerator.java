@@ -60,7 +60,7 @@ public class BatchViewsDataGenerator {
 																origin+(i*100000)
 																);
         	
-        	avs.setEvent_time(new DateTime(2014, 5, 23, i+1, i+2).toDate());
+        	avs.setEventTimestamp(new DateTime(2014, 5, 23, i+1, i+2).toDate());
         	
         	listAbsoluteValues.add(avs);
         }

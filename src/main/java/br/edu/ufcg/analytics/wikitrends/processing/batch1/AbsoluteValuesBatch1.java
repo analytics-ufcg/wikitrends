@@ -14,7 +14,7 @@ import org.apache.spark.api.java.JavaRDD;
 
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
-import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
+import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.AbsoluteValuesShot;
 
 public class AbsoluteValuesBatch1 extends BatchLayer1Job {
@@ -30,8 +30,8 @@ public class AbsoluteValuesBatch1 extends BatchLayer1Job {
 	}
 
 	public void process() {
-		JavaRDD<EditType> wikipediaEdits = read()
-				.filter(edit -> edit.getCommon_server_name().endsWith("wikipedia.org"))
+		JavaRDD<EditChange> wikipediaEdits = read()
+				.filter(edit -> edit.getServerName().endsWith("wikipedia.org"))
 				.cache();
 		
 		Map<String, Long> edits_data = new HashMap<String, Long>();
@@ -61,19 +61,19 @@ public class AbsoluteValuesBatch1 extends BatchLayer1Job {
 	}
 	
 
-	private Long countAllEdits(JavaRDD<EditType> wikipediaEdits) {
+	private Long countAllEdits(JavaRDD<EditChange> wikipediaEdits) {
 		return wikipediaEdits.count();
 	}
 
-	private Long countMinorEdits(JavaRDD<EditType> wikipediaEdits) {
+	private Long countMinorEdits(JavaRDD<EditChange> wikipediaEdits) {
 		return wikipediaEdits.filter(edit -> {
-			return edit.getEditMinor() != null && edit.getEditMinor();
+			return edit.getMinor() != null && edit.getMinor();
 		}).count();
 	}
 
-	private Long calcAverageEditLength(JavaRDD<EditType> wikipediaEdits) {
+	private Long calcAverageEditLength(JavaRDD<EditChange> wikipediaEdits) {
 		JavaRDD<Long> result = wikipediaEdits.map( edit -> {
-			Map<String, Long> length = edit.getEdit_length();
+			Map<String, Long> length = edit.getLength();
 			long oldLength = length.containsKey("old")? length.get("old"): 0;
 			long newLength = length.containsKey("new")? length.get("new"): 0;
 			return newLength - oldLength;
@@ -81,24 +81,24 @@ public class AbsoluteValuesBatch1 extends BatchLayer1Job {
 		return result.reduce((a, b) -> a+b) / result.count();
 	}
 
-	private Set<String> distinctPages(JavaRDD<EditType> wikipediaEdits) {
-		return new HashSet<String>(wikipediaEdits.map(edit -> edit.getCommon_event_title()).distinct().collect());
+	private Set<String> distinctPages(JavaRDD<EditChange> wikipediaEdits) {
+		return new HashSet<String>(wikipediaEdits.map(edit -> edit.getTitle()).distinct().collect());
 	}
 
-	private Set<String> distinctServers(JavaRDD<EditType> wikipediaEdits) {
-		return new HashSet<String>(wikipediaEdits.map(edit -> edit.getCommon_server_name()).distinct().collect());
+	private Set<String> distinctServers(JavaRDD<EditChange> wikipediaEdits) {
+		return new HashSet<String>(wikipediaEdits.map(edit -> edit.getServerName()).distinct().collect());
 	}
 
-	private Set<String> distinctEditors(JavaRDD<EditType> wikipediaEdits) {
+	private Set<String> distinctEditors(JavaRDD<EditChange> wikipediaEdits) {
 		return new HashSet<String>(
 				wikipediaEdits.filter(edit -> {
-					return edit.getCommon_event_bot() != null && !edit.getCommon_event_bot();
+					return edit.getBot() != null && !edit.getBot();
 				})
-				.map(edit -> edit.getCommon_event_user()).distinct().collect());
+				.map(edit -> edit.getUser()).distinct().collect());
 	}
 
-	private Long getOrigin(JavaRDD<EditType> wikipediaEdits) {
-		return wikipediaEdits.first().getEvent_time().getTime();
+	private Long getOrigin(JavaRDD<EditChange> wikipediaEdits) {
+		return wikipediaEdits.first().getEventTimestamp().getTime();
 	}
 
 }

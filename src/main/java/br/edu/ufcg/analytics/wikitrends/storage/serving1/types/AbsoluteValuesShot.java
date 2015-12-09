@@ -47,7 +47,7 @@ public class AbsoluteValuesShot implements Serializable {
             this.smaller_origin = smaller_origin;
             
             DateTime date = new DateTime();
-            setEvent_time(date.toDate());
+            setEventTimestamp(date.toDate());
             
     		setYear(date.getYear());
     		setMonth(date.getMonthOfYear());
@@ -95,11 +95,11 @@ public class AbsoluteValuesShot implements Serializable {
 			this.hour = hour;
 		}
 		
-		public Date getEvent_time() {
+		public Date getEventTimestamp() {
 			return event_time;
 		}
 
-		public void setEvent_time(Date event_time) {
+		public void setEventTimestamp(Date event_time) {
 			this.event_time = event_time;
 			
 			DateTime date = new DateTime(event_time);

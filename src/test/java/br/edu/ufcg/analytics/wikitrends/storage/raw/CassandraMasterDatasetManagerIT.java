@@ -38,10 +38,17 @@ public class CassandraMasterDatasetManagerIT {
 		session = cluster.newSession();
 
 		master_dataset_manager = new CassandraMasterDatasetManager();
+		master_dataset_manager.dropTables(session);
+		master_dataset_manager.createTables(session);
+		session.execute("USE master_dataset;");
+
 	}
 
 	@After
 	public void stop() {
+		
+		master_dataset_manager.dropTables(session);
+		
 		session.close();
 		cluster.close();
 	}
@@ -51,9 +58,6 @@ public class CassandraMasterDatasetManagerIT {
 	 */
 	@Test
 	public void testEmptyEditsTableCreation() {
-		master_dataset_manager.dropTables(session);
-		master_dataset_manager.createTables(session);
-		session.execute("USE master_dataset;");
 		ResultSet resultSet = session.execute("SELECT * FROM edits;");
 		assertTrue(resultSet.all().isEmpty());
 	}
@@ -63,9 +67,6 @@ public class CassandraMasterDatasetManagerIT {
 	 */
 	@Test
 	public void testEmptyLogsTableCreation() {
-		master_dataset_manager.dropTables(session);
-		master_dataset_manager.createTables(session);
-		session.execute("USE master_dataset;");
 		ResultSet resultSet = session.execute("SELECT * FROM logs;");
 		assertTrue(resultSet.all().isEmpty());
 	}
@@ -76,8 +77,6 @@ public class CassandraMasterDatasetManagerIT {
 	@Test
 	public void testPopulateEdits() {
 
-		master_dataset_manager.createTables(session);
-		
 		System.setProperty("spark.cassandra.connection.host", SEED_NODE);
 		System.setProperty("spark.master", "local");
 		System.setProperty("spark.app.name", "migrate-test");
@@ -93,8 +92,6 @@ public class CassandraMasterDatasetManagerIT {
 	 */
 	@Test
 	public void testPopulateLogs() {
-
-		master_dataset_manager.createTables(session);
 
 		System.setProperty("spark.cassandra.connection.host", SEED_NODE);
 		System.setProperty("spark.master", "local");

@@ -10,7 +10,7 @@ import org.apache.spark.api.java.JavaRDD;
 
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
-import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
+import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
 import scala.Tuple2;
 
@@ -27,17 +27,17 @@ public class TopContentPagesBatch1 extends BatchLayer1Job {
 	}
 
 	public void process() {
-		JavaRDD<EditType> wikipediaEdits = read()
-				.filter(edit -> edit.getCommon_server_name().endsWith("wikipedia.org"))
+		JavaRDD<EditChange> wikipediaEdits = read()
+				.filter(edit -> edit.getServerName().endsWith("wikipedia.org"))
 				.cache();
 		
 		JavaPairRDD<String, Integer> contentTitleRDD = wikipediaEdits
-			.filter(edits -> "0".equals(edits.getCommon_event_namespace()))
+			.filter(edits -> "0".equals(edits.getNamespace()))
 			.mapPartitionsToPair( iterator -> {
 				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
 				while(iterator.hasNext()){
-					EditType edit = iterator.next();
-					pairs.add(new Tuple2<String, Integer>(edit.getCommon_event_title(), 1));
+					EditChange edit = iterator.next();
+					pairs.add(new Tuple2<String, Integer>(edit.getTitle(), 1));
 				}
 				return pairs;
 			});

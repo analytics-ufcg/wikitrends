@@ -11,7 +11,7 @@ import org.apache.spark.api.java.JavaRDD;
 
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
-import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
+import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
 import scala.Tuple2;
 
@@ -30,17 +30,17 @@ public class TopEditorsBatch1 extends BatchLayer1Job {
 	}
 	
 	@Override
-	public JavaRDD<EditType> read() {
-		JavaRDD<EditType> wikipediaEdits = javaFunctions(getJavaSparkContext()).cassandraTable("master_dataset", "edits")
-				.select("common_event_bot", "common_server_name", "common_event_user", "common_event_namespace", "edit_minor")
+	public JavaRDD<EditChange> read() {
+		JavaRDD<EditChange> wikipediaEdits = javaFunctions(getJavaSparkContext()).cassandraTable("master_dataset", "edits")
+				.select("bot", "server_name", "user", "namespace", "minor")
 				.where("year = ? and month = ? and day = ? and hour = ?", getCurrentTime().getYear(), getCurrentTime().getMonthValue(), getCurrentTime().getDayOfMonth(), getCurrentTime().getHour())
 				.map(row -> {
-					EditType edit = new EditType();
-					edit.setCommon_event_bot(row.getBoolean("common_event_bot"));
-					edit.setCommon_server_name(row.getString("common_server_name"));
-					edit.setCommon_event_user(row.getString("common_event_user"));
-					edit.setCommon_event_namespace(row.getInt("common_event_namespace"));
-					edit.setEditMinor(row.getBoolean("edit_minor"));
+					EditChange edit = new EditChange();
+					edit.setBot(row.getBoolean("bot"));
+					edit.setServerName(row.getString("server_name"));
+					edit.setUser(row.getString("user"));
+					edit.setNamespace(row.getInt("namespace"));
+					edit.setMinor(row.getBoolean("minor"));
 					return edit;
 				});
 		return wikipediaEdits;
@@ -48,16 +48,16 @@ public class TopEditorsBatch1 extends BatchLayer1Job {
 	
 	@Override
 	public void process() {
-		JavaRDD<EditType> wikipediaEdits = read()
-				.filter(edit -> edit.getCommon_server_name().endsWith("wikipedia.org"))
+		JavaRDD<EditChange> wikipediaEdits = read()
+				.filter(edit -> edit.getServerName().endsWith("wikipedia.org"))
 				.cache();
 
 		JavaPairRDD<String, Integer> userRDD = wikipediaEdits
 				.mapPartitionsToPair( iterator -> {
 					ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
 					while(iterator.hasNext()){
-						EditType edit = iterator.next();
-						pairs.add(new Tuple2<String, Integer>(edit.getCommon_event_user(), 1));
+						EditChange edit = iterator.next();
+						pairs.add(new Tuple2<String, Integer>(edit.getUser(), 1));
 					}
 					return pairs;
 				});

@@ -22,7 +22,7 @@ import com.datastax.spark.connector.japi.CassandraRow;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
-import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditType;
+import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
@@ -139,25 +139,24 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 
 	}
 	
-	public JavaRDD<EditType> read() {
-		JavaRDD<EditType> wikipediaEdits = javaFunctions(getJavaSparkContext()).cassandraTable("master_dataset", "edits")
-				.select("event_time", "common_event_bot", "common_event_title", "common_server_name", "common_event_user",
-						"common_event_namespace", "edit_minor", "edit_length")
+	public JavaRDD<EditChange> read() {
+		JavaRDD<EditChange> wikipediaEdits = javaFunctions(getJavaSparkContext()).cassandraTable("master_dataset", "edits")
+				.select("event_timestamp", "bot", "title", "server_name", "user", "namespace", "minor", "length")
 				.where("year = ? and month = ? and day = ? and hour = ?", getCurrentTime().getYear(), getCurrentTime().getMonthValue(), getCurrentTime().getDayOfMonth(), getCurrentTime().getHour())
-				.map(new Function<CassandraRow, EditType>() {
+				.map(new Function<CassandraRow, EditChange>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public EditType call(CassandraRow v1) throws Exception {
-						EditType edit = new EditType();
-						edit.setEvent_time(v1.getDate("event_time"));
-						edit.setCommon_event_bot(v1.getBoolean("common_event_bot"));
-						edit.setCommon_event_title(v1.getString("common_event_title"));
-						edit.setCommon_event_user(v1.getString("common_event_user"));
-						edit.setCommon_event_namespace(v1.getInt("common_event_namespace"));
-						edit.setCommon_server_name(v1.getString("common_server_name"));
-						edit.setEditMinor(v1.getBoolean("edit_minor"));
-						edit.setEdit_length(v1.getMap("edit_length", CassandraJavaUtil.typeConverter(String.class), CassandraJavaUtil.typeConverter(Long.class)));
+					public EditChange call(CassandraRow v1) throws Exception {
+						EditChange edit = new EditChange();
+						edit.setEventTimestamp(v1.getDate("event_timestamp"));
+						edit.setBot(v1.getBoolean("bot"));
+						edit.setTitle(v1.getString("title"));
+						edit.setUser(v1.getString("user"));
+						edit.setNamespace(v1.getInt("namespace"));
+						edit.setServerName(v1.getString("server_name"));
+						edit.setMinor(v1.getBoolean("minor"));
+						edit.setLength(v1.getMap("length", CassandraJavaUtil.typeConverter(String.class), CassandraJavaUtil.typeConverter(Long.class)));
 						return edit;
 					}
 
