@@ -2,11 +2,13 @@ package br.edu.ufcg.analytics.wikitrends.ingestion;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 import org.apache.commons.configuration.Configuration;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsConfigurationException;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
@@ -86,7 +88,10 @@ public class Ingestor implements WikiTrendsProcess {
 
 			@Override
 			public void on(String eventName, IOAcknowledge eventAcknowledge, JsonElement... eventArguments) {
-				producer.sendMessage(eventArguments[0].toString());
+				JsonObject jsonObject = eventArguments[0].getAsJsonObject();
+				jsonObject.addProperty("uuid", UUID.randomUUID().toString());
+				
+				producer.sendMessage(jsonObject.toString());
 			}			
 		});
 	}
