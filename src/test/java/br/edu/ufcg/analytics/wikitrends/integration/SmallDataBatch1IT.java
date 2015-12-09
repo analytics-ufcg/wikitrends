@@ -100,7 +100,7 @@ public class SmallDataBatch1IT {
 	 * @throws java.lang.Exception
 	 */
 	@After
-	public void tearDown() throws Exception {
+	public void closeCassandraSession() throws Exception {
 		session.close();
 		cluster.close();
 	}
