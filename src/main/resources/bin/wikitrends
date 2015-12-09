@@ -142,7 +142,7 @@ speed)
     start)
 	    echo "Submitting speed layer job"
 		source ${ENV_VAR_FILE}
-		spark-submit --supervise --deploy-mode cluster --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${JAR_ADDRESS} SPEED
+		spark-submit --supervise --deploy-mode cluster --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} --conf spark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} ${JAR_ADDRESS} SPEED
 	    echo "Finished submitting speed layer job"
         ;;
     stop)

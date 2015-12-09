@@ -4,7 +4,6 @@ package br.edu.ufcg.analytics.wikitrends.processing.speed;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
@@ -92,11 +91,6 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 		SparkConf conf;
 		conf = new SparkConf();
 		conf.setAppName(configuration.getString("wikitrends.speed.id"));
-		Iterator<String> keys = configuration.getKeys();
-		while (keys.hasNext()) {
-			String key = keys.next();
-			conf.set(key, configuration.getString(key));
-		}
 		
 		try(JavaStreamingContext ssc = new JavaStreamingContext(conf, Durations.seconds(30))){
 		    Map<String, Integer> topicMap = new HashMap<String, Integer>();
