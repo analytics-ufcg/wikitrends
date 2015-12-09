@@ -14,7 +14,7 @@ public class RawWikimediaChange implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = -3037162272247309636L;
-	private UUID uuid;
+	private UUID nonce;
 	private Integer year;
 	private Integer month;
 	private Integer day;
@@ -27,9 +27,9 @@ public class RawWikimediaChange implements Serializable {
 		// TODO Auto-generated constructor stub
 	}
 	
-	public RawWikimediaChange(UUID uuid, LocalDateTime eventTimestamp, String content) {
+	public RawWikimediaChange(UUID nonce, LocalDateTime eventTimestamp, String content) {
 		
-		this.uuid = uuid;
+		this.nonce = nonce;
 		this.eventTimestamp = Date.from(eventTimestamp.toInstant(ZoneOffset.UTC));
 		setYear(eventTimestamp.getYear());
 		setMonth(eventTimestamp.getMonthValue());
@@ -41,15 +41,15 @@ public class RawWikimediaChange implements Serializable {
 	/**
 	 * @return the uuid
 	 */
-	public UUID getUuid() {
-		return uuid;
+	public UUID getNonce() {
+		return nonce;
 	}
 
 	/**
-	 * @param uuid the uuid to set
+	 * @param nonce the uuid to set
 	 */
-	public void setUuid(UUID uuid) {
-		this.uuid = uuid;
+	public void setNonce(UUID nonce) {
+		this.nonce = nonce;
 	}
 
 	/**
@@ -141,7 +141,7 @@ public class RawWikimediaChange implements Serializable {
 	 */
 	@Override
 	public String toString() {
-		return "RawWikimediaChange [uuid=" + uuid + ", year=" + year + ", month=" + month + ", day=" + day + ", hour="
+		return "RawWikimediaChange [nonce=" + nonce + ", year=" + year + ", month=" + month + ", day=" + day + ", hour="
 				+ hour + ", eventTimestamp=" + eventTimestamp + ", content=" + content + "]";
 	}
 	
