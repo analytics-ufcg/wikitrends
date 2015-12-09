@@ -3,6 +3,7 @@ package br.edu.ufcg.analytics.wikitrends.processing.batch1;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 import org.apache.commons.configuration.Configuration;
@@ -25,15 +26,17 @@ public class TopEditorsBatch1 extends BatchLayer1Job {
 
 	public TopEditorsBatch1(Configuration configuration) {
 		super(configuration);
-		
-		usersTable = configuration.getString("wikitrends.batch.cassandra.table.editors");
+		this.usersTable = configuration.getString("wikitrends.batch.cassandra.table.editors");
 	}
 	
 	@Override
 	public JavaRDD<EditChange> read() {
+		
+		LocalDateTime currentTime = getCurrentTime();
+		
 		JavaRDD<EditChange> wikipediaEdits = javaFunctions(getJavaSparkContext()).cassandraTable("master_dataset", "edits")
 				.select("bot", "server_name", "user", "namespace", "minor")
-				.where("year = ? and month = ? and day = ? and hour = ?", getCurrentTime().getYear(), getCurrentTime().getMonthValue(), getCurrentTime().getDayOfMonth(), getCurrentTime().getHour())
+				.where("year = ? and month = ? and day = ? and hour = ?", currentTime.getYear(), currentTime.getMonthValue(), currentTime.getDayOfMonth(), currentTime.getHour())
 				.map(row -> {
 					EditChange edit = new EditChange();
 					edit.setBot(row.getBoolean("bot"));

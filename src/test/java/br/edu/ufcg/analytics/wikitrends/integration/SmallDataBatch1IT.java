@@ -33,15 +33,15 @@ import br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1M
 public class SmallDataBatch1IT {
 
 	private static final String TEST_CONFIGURATION_FILE = "src/test/resources/small_test_wikitrends.properties";
+	private static final String INPUT_FILE = "src/test/resources/small_test_data.json";
+	private static final String SEED_NODE = "localhost";
+
 	private PropertiesConfiguration configuration;
 	private Cluster cluster;
 	private Session session;
 	private CassandraMasterDatasetManager master_dataset_manager;
 	private CassandraServingLayer1Manager serving_layer_manager;
-	private String seedNode;
 	
-	private static final String INPUT_FILE = "src/test/resources/small_test_data.json";
-	private static final String SEED_NODE = "localhost";
 
 	
 	/**
@@ -55,17 +55,14 @@ public class SmallDataBatch1IT {
 		System.setProperty("spark.app.name", "small-test");
 
 		
+		
+		cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
+		session = cluster.newSession();
+		
+		
 		configuration = new PropertiesConfiguration(TEST_CONFIGURATION_FILE);
-		
-		String[] testHosts = configuration.getString("spark.cassandra.connection.host").split(",");
-		cluster = Cluster.builder().addContactPoints(testHosts).build();
-		
-		seedNode = configuration.getString("spark.cassandra.connection.host");
-		
 		master_dataset_manager = new CassandraMasterDatasetManager();
 		serving_layer_manager = new CassandraServingLayer1Manager();
-		
-		session = cluster.newSession();
 		
 		master_dataset_manager.dropTables(session);
 		serving_layer_manager.dropTables(session);
@@ -83,8 +80,8 @@ public class SmallDataBatch1IT {
 	 */
 	@After
 	public void tearDown() throws Exception {
-		master_dataset_manager.dropTables(session);
-		serving_layer_manager.dropTables(session);
+//		master_dataset_manager.dropTables(session);
+//		serving_layer_manager.dropTables(session);
 		
 		session.close();
 		cluster.close();
@@ -95,26 +92,19 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessTopEditors() throws ConfigurationException {
+		
 		TopEditorsBatch1 job1 = new TopEditorsBatch1(configuration);
-		job1.process();
-		
-		assertEquals(11, session.execute("SELECT count(1) FROM batch_views.top_editors").one().getLong("count"));
-		assertEquals(126, session.execute("SELECT sum(count) as ranking_sum FROM batch_views.top_editors").one().getLong("ranking_sum"));
-
-//		Configuration configuration = new PropertiesConfiguration(TEST_CONFIGURATION_FILE);
-//		CassandraIncrementalBatchLayer1Job job = new CassandraIncrementalBatchLayer1Job(configuration);
-		
-		job1.setCurrentTime(LocalDateTime.of(2015, 11, 9, 11, 00));//FIXME wrong date
+		job1.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));//FIXME wrong date
 		job1.process();
 	
-		try (Cluster cluster = Cluster.builder().addContactPoints(seedNode).build();
+		try (Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
 				Session session = cluster.newSession();) {
 			
-			assertEquals(327, session.execute("SELECT count(1) FROM batch_views.users_ranking").one().getLong("count"));
-			assertEquals(510, session.execute("SELECT sum(count) as ranking_sum FROM batch_views.users_ranking").one().getLong("ranking_sum"));
+			assertEquals(327, session.execute("SELECT count(1) FROM batch_views.top_editors").one().getLong("count"));
+			assertEquals(510, session.execute("SELECT sum(count) as ranking_sum FROM batch_views.top_editors").one().getLong("ranking_sum"));
 
-			long rankingMax = session.execute("SELECT max(count) as ranking_max FROM batch_views.users_ranking").one().getLong("ranking_max");
-			long rankingFirst = session.execute("SELECT count as ranking_max FROM batch_views.users_ranking LIMIT 1").one().getLong("ranking_max");
+			long rankingMax = session.execute("SELECT max(count) as ranking_max FROM batch_views.top_editors").one().getLong("ranking_max");
+			long rankingFirst = session.execute("SELECT count as ranking_max FROM batch_views.top_editors LIMIT 1").one().getLong("ranking_max");
 			
 			assertEquals(31, rankingMax);
 			assertEquals(31, rankingFirst);

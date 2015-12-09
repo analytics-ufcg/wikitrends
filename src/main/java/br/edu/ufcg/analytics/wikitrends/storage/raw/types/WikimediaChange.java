@@ -1,6 +1,8 @@
 package br.edu.ufcg.analytics.wikitrends.storage.raw.types;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.UUID;
 
@@ -37,8 +39,7 @@ public abstract class WikimediaChange implements Serializable {
 	}
 	
 	public WikimediaChange(UUID nonce, Integer id, String serverUrl, String serverName, String serverScriptPath, String wiki, String type,
-			Integer namespace, String user, Boolean bot, String comment, String title, Integer year, Integer month,
-			Integer day, Integer hour, Date eventTimestamp) {
+			Integer namespace, String user, Boolean bot, String comment, String title, LocalDateTime eventTimestamp) {
 		
 		this.nonce = nonce;
 		this.id = id;
@@ -52,11 +53,11 @@ public abstract class WikimediaChange implements Serializable {
 		this.bot = bot;
 		this.comment = comment;
 		this.title = title;
-		this.year = year;
-		this.month = month;
-		this.day = day;
-		this.hour = hour;
-		this.eventTimestamp = eventTimestamp;
+		this.eventTimestamp = Date.from(eventTimestamp.toInstant(ZoneOffset.UTC));
+		setYear(eventTimestamp.getYear());
+		setMonth(eventTimestamp.getMonthValue());
+		setDay(eventTimestamp.getDayOfMonth());
+		setHour(eventTimestamp.getHour());
 	}
 	
 

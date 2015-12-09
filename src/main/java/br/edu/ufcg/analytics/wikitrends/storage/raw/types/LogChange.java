@@ -1,14 +1,11 @@
 package br.edu.ufcg.analytics.wikitrends.storage.raw.types;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
-import org.joda.time.DateTime;
-
 import com.google.gson.JsonObject;
-
-import akka.actor.dungeon.UndefinedUidActorRef;
 
 public class LogChange extends WikimediaChange implements Serializable {
 	
@@ -29,11 +26,10 @@ public class LogChange extends WikimediaChange implements Serializable {
 	
 	
 	public LogChange(UUID nonce, Integer id, String serverUrl, String serverName, String serverScriptPath, String wiki, String type,
-			Integer namespace, String user, Boolean bot, String comment, String title, Date eventTimestamp, Integer logId, 
+			Integer namespace, String user, Boolean bot, String comment, String title, LocalDateTime eventTimestamp, Integer logId, 
 			String logType, String logAction, String logParams, String logActionComment) {
 		
-		super(nonce, id, serverUrl, serverName, serverScriptPath, wiki, type, namespace, user, bot, comment, title, eventTimestamp.getYear(), eventTimestamp.getMonth(),
-				eventTimestamp.getDay(), eventTimestamp.getHours(), eventTimestamp);
+		super(nonce, id, serverUrl, serverName, serverScriptPath, wiki, type, namespace, user, bot, comment, title, eventTimestamp);
 		this.logId = logId;
 		this.logType = logType;
 		this.logAction = logAction;
@@ -162,7 +158,7 @@ public class LogChange extends WikimediaChange implements Serializable {
 				object.get("server_script_path").getAsString(), object.get("wiki").getAsString(),
 				object.get("type").getAsString(), object.get("namespace").getAsInt(), object.get("user").getAsString(),
 				object.get("bot").getAsBoolean(), object.get("comment").getAsString(), object.get("title").getAsString(),
-				new DateTime(object.get("timestamp").getAsLong() * 1000L).toDate(),
+				LocalDateTime.ofEpochSecond(object.get("timestamp").getAsLong(), 0, ZoneOffset.UTC),
 				object.get("log_id").getAsInt(), log_type, object.get("log_action").getAsString(), log_params,
 				object.get("log_action_comment").getAsString());
 	}
