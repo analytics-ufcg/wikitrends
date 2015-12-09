@@ -26,6 +26,7 @@ import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.LogChange;
+import br.edu.ufcg.analytics.wikitrends.storage.raw.types.RawWikimediaChange;
 import scala.Tuple2;
 
 /**
@@ -64,15 +65,22 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 		JavaDStream<JsonObject> linesAsJsonObjects = lines.
 	    		map(l -> new JsonParser().parse(l._2).getAsJsonObject());
 		
+		JavaDStream<RawWikimediaChange> changesDStream = linesAsJsonObjects.
+				map(change -> RawWikimediaChange.parseRawWikimediaChange(change));
+		
 		JavaDStream<EditChange> editsDStream = linesAsJsonObjects.filter(change -> {
 			String type = change.get("type").getAsString();
-			return "edit".equals(type) || "new".equals(type);
+			return !("log".equals(type));
 		}).map(change -> EditChange.parseEditChange(change));
 	    
 	    JavaDStream<LogChange> logsDStream = linesAsJsonObjects.filter(change -> {
 			String type = change.get("type").getAsString();
 			return "log".equals(type);
 		}).map(change -> LogChange.parseLogChange(change));
+	    
+	    CassandraStreamingJavaUtil.javaFunctions(changesDStream).
+	    	writerBuilder("master_dataset", "change", mapToRow(RawWikimediaChange.class)).
+	    	saveToCassandra();
 	    
 	    CassandraStreamingJavaUtil.javaFunctions(editsDStream).
 	    	writerBuilder("master_dataset", "edits", mapToRow(EditChange.class)).
