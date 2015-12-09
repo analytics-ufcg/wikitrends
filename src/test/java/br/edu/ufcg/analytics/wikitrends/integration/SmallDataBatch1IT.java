@@ -41,6 +41,7 @@ public class SmallDataBatch1IT {
 	private String seedNode;
 	
 	private static final String INPUT_FILE = "src/test/resources/small_test_data.json";
+	private static final String SEED_NODE = "localhost";
 
 	
 	/**
@@ -48,6 +49,12 @@ public class SmallDataBatch1IT {
 	 */
 	@Before
 	public void setUp() throws Exception {
+		
+		System.setProperty("spark.cassandra.connection.host", SEED_NODE);
+		System.setProperty("spark.master", "local");
+		System.setProperty("spark.app.name", "small-test");
+
+		
 		configuration = new PropertiesConfiguration(TEST_CONFIGURATION_FILE);
 		
 		String[] testHosts = configuration.getString("spark.cassandra.connection.host").split(",");
@@ -68,12 +75,7 @@ public class SmallDataBatch1IT {
 
 		session.execute("USE batch_views");
 		
-		SparkConf conf = new SparkConf();
-		conf.set("spark.cassandra.connection.host", seedNode);
-
-		try (JavaSparkContext sc = new JavaSparkContext("local", "test", conf);) {
-			master_dataset_manager.populate(INPUT_FILE);
-		}
+		master_dataset_manager.populate(INPUT_FILE);
 	}
 
 	/**
