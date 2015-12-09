@@ -2,7 +2,6 @@ package br.edu.ufcg.analytics.wikitrends.ingestion;
 
 import java.util.Properties;
 
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;

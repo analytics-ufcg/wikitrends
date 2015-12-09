@@ -3,7 +3,6 @@ package br.edu.ufcg.analytics.wikitrends.storage.raw;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.UUID;
 
 import org.apache.commons.configuration.Configuration;
@@ -171,7 +170,7 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 		JavaRDD<EditType> edits = oldMasterDataset.filter(change -> {
 			String type = change.get("type").getAsString();
 			return "edit".equals(type) || "new".equals(type);
-		}).map(change -> parseEditFromJSON(change));
+		}).map(change -> EditType.parseEditFromJSON(change));
 
 		CassandraJavaUtil.javaFunctions(edits).writerBuilder("master_dataset", "edits", mapToRow(EditType.class))
 		.saveToCassandra();
@@ -203,38 +202,6 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 				obj.get("log_id").getAsInt(), obj.get("log_action").getAsString(), log_type, log_params,
 				obj.get("log_action_comment").getAsString());
 		return lt;
-	}
-
-	private EditType parseEditFromJSON(JsonObject obj) {
-		JsonObject length = obj.get("length").getAsJsonObject();
-
-		HashMap<String, Long> lengthMap = new HashMap<>(2);
-		if (!length.get("new").isJsonNull()) {
-			lengthMap.put("new", length.get("new").getAsLong());
-		}
-		if (!length.get("old").isJsonNull()) {
-			lengthMap.put("old", length.get("old").getAsLong());
-		}
-
-		JsonObject review = obj.get("revision").getAsJsonObject();
-
-		HashMap<String, Long> revisionMap = new HashMap<>(2);
-		if (!review.get("new").isJsonNull()) {
-			revisionMap.put("new", review.get("new").getAsLong());
-		}
-		if (!review.get("old").isJsonNull()) {
-			revisionMap.put("old", review.get("old").getAsLong());
-		}
-
-		Boolean patrolled = obj.has("patrolled") && !obj.get("patrolled").isJsonNull()
-				? obj.get("patrolled").getAsBoolean() : null;
-
-				return new EditType(obj.get("server_url").getAsString(), obj.get("server_name").getAsString(),
-						obj.get("server_script_path").getAsString(), obj.get("wiki").getAsString(),
-						obj.get("type").getAsString(), obj.get("namespace").getAsInt(), obj.get("user").getAsString(),
-						obj.get("bot").getAsBoolean(), obj.get("comment").getAsString(), obj.get("title").getAsString(),
-						new DateTime(obj.get("timestamp").getAsLong() * 1000L).toDate(), UUID.randomUUID(),
-						obj.get("id").getAsInt(), obj.get("minor").getAsBoolean(), patrolled, lengthMap, revisionMap);
 	}
 
 	/**
