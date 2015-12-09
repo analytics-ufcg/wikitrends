@@ -45,7 +45,6 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 
 		session.execute("CREATE TABLE IF NOT EXISTS master_dataset.change(" +
 				"nonce UUID," +
-				"id INT," +
 				"year INT," +
 				"month INT," +
 				"day INT," +

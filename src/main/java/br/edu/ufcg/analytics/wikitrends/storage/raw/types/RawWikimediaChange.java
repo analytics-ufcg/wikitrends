@@ -1,9 +1,10 @@
 package br.edu.ufcg.analytics.wikitrends.storage.raw.types;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
-
-import org.joda.time.DateTime;
+import java.util.UUID;
 
 import com.google.gson.JsonObject;
 
@@ -13,7 +14,7 @@ public class RawWikimediaChange implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = -3037162272247309636L;
-	private Integer id;
+	private UUID nonce;
 	private Integer year;
 	private Integer month;
 	private Integer day;
@@ -26,29 +27,43 @@ public class RawWikimediaChange implements Serializable {
 		// TODO Auto-generated constructor stub
 	}
 	
-	public RawWikimediaChange(Integer id, Date eventTimestamp, String content) {
+	public RawWikimediaChange(UUID nonce, LocalDateTime eventTimestamp, String content) {
 		
-		this.id = id;
-		this.year = eventTimestamp.getYear();
-		this.month = eventTimestamp.getMonth();
-		this.day = eventTimestamp.getDay();
-		this.hour = eventTimestamp.getHours();
-		this.eventTimestamp = eventTimestamp;
+		this.nonce = nonce;
+		this.eventTimestamp = Date.from(eventTimestamp.toInstant(ZoneOffset.UTC));
+		setYear(eventTimestamp.getYear());
+		setMonth(eventTimestamp.getMonthValue());
+		setDay(eventTimestamp.getDayOfMonth());
+		setHour(eventTimestamp.getHour());
 		this.content = content;
 	}
 
 	/**
-	 * @return the id
+	 * @return the uuid
 	 */
-	public Integer getId() {
-		return id;
+	public UUID getNonce() {
+		return nonce;
 	}
 
 	/**
-	 * @param id the id to set
+	 * @param nonce the uuid to set
 	 */
-	public void setId(Integer id) {
-		this.id = id;
+	public void setNonce(UUID nonce) {
+		this.nonce = nonce;
+	}
+
+	/**
+	 * @return the year
+	 */
+	public Integer getYear() {
+		return year;
+	}
+
+	/**
+	 * @param year the year to set
+	 */
+	public void setYear(Integer year) {
+		this.year = year;
 	}
 
 	/**
@@ -126,16 +141,15 @@ public class RawWikimediaChange implements Serializable {
 	 */
 	@Override
 	public String toString() {
-		return "RawWikimediaChange [id=" + id + ", year=" + year + ", month=" + month + ", day=" + day + ", hour="
+		return "RawWikimediaChange [nonce=" + nonce + ", year=" + year + ", month=" + month + ", day=" + day + ", hour="
 				+ hour + ", eventTimestamp=" + eventTimestamp + ", content=" + content + "]";
 	}
 	
-	public static RawWikimediaChange parseRawWikimediaChange(JsonObject object){
+	public static RawWikimediaChange parseRawWikimediaChange(JsonObject object) {
 
-		return new RawWikimediaChange(object.get("id").getAsInt(), new DateTime(object.get("timestamp").getAsLong() * 1000L).toDate(),
-				object.toString());
+		return new RawWikimediaChange(UUID.fromString(object.get("uuid").getAsString()),
+				LocalDateTime.ofEpochSecond(object.get("timestamp").getAsLong(), 0, ZoneOffset.UTC), object.toString());
 	}
-
 	
 	
 	

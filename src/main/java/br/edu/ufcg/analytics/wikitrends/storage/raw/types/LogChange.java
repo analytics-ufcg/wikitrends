@@ -12,7 +12,6 @@ public class LogChange extends WikimediaChange implements Serializable {
 
 	private static final long serialVersionUID = -2770336521820400965L;
 	
-//	private UUID log_uuid;
 	private Integer logId;
 	private String logType;
 	private String logAction;

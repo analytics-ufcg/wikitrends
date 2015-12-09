@@ -135,6 +135,8 @@ public class CassandraServingLayer1Manager implements Serializable {
 		            		"PRIMARY KEY((id), year, month, day, hour)) " + 
 		            		"WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
             	);
+        
+        
 
 	}
 

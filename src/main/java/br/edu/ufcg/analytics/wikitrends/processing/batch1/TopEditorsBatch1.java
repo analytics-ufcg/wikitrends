@@ -4,7 +4,6 @@ import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -56,14 +55,7 @@ public class TopEditorsBatch1 extends BatchLayer1Job {
 				.cache();
 
 		JavaPairRDD<String, Integer> userRDD = wikipediaEdits
-				.mapPartitionsToPair( iterator -> {
-					ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
-					while(iterator.hasNext()){
-						EditChange edit = iterator.next();
-						pairs.add(new Tuple2<String, Integer>(edit.getUser(), 1));
-					}
-					return pairs;
-				});
+				.mapToPair( edit -> new Tuple2<String, Integer>(edit.getUser(), 1) );
 		
 		JavaRDD<TopClass> userRanking = transformToTopEntry(userRDD);
 		

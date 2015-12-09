@@ -2,8 +2,6 @@ package br.edu.ufcg.analytics.wikitrends.processing.batch1;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
-import java.util.ArrayList;
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -33,14 +31,7 @@ public class TopIdiomsBatch1 extends BatchLayer1Job {
 				.cache();
 		
 		JavaPairRDD<String, Integer> serverRDD = wikipediaEdits
-			.mapPartitionsToPair( iterator -> {
-				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
-				while(iterator.hasNext()){
-					EditChange edit = iterator.next();
-					pairs.add(new Tuple2<String, Integer>(edit.getServerName(), 1));
-				}
-				return pairs;
-			});
+			.mapToPair( edit -> new Tuple2<String, Integer>(edit.getServerName(), 1));
 		
 		JavaRDD<TopClass> serverRanking = transformToTopEntry(serverRDD);
 		

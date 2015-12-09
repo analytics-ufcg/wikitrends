@@ -3,12 +3,9 @@ package br.edu.ufcg.analytics.wikitrends.storage.raw.types;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-
-import org.joda.time.DateTime;
 
 import com.google.gson.JsonObject;
 
@@ -16,7 +13,6 @@ public class EditChange extends WikimediaChange implements Serializable {
 	
 	private static final long serialVersionUID = 6352766661377046971L;
 
-//	private UUID edit_uuid; 
 	private Boolean minor;
 	private Boolean patrolled;
 	private Map<String, Long> length;
