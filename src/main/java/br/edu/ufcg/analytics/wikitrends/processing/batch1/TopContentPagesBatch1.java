@@ -2,8 +2,6 @@ package br.edu.ufcg.analytics.wikitrends.processing.batch1;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
-import java.util.ArrayList;
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -32,15 +30,8 @@ public class TopContentPagesBatch1 extends BatchLayer1Job {
 				.cache();
 		
 		JavaPairRDD<String, Integer> contentTitleRDD = wikipediaEdits
-			.filter(edits -> "0".equals(edits.getNamespace()))
-			.mapPartitionsToPair( iterator -> {
-				ArrayList<Tuple2<String, Integer>> pairs = new ArrayList<>();
-				while(iterator.hasNext()){
-					EditChange edit = iterator.next();
-					pairs.add(new Tuple2<String, Integer>(edit.getTitle(), 1));
-				}
-				return pairs;
-			});
+			.filter(edit -> "0".equals(edit.getNamespace()))
+			.mapToPair( edit -> new Tuple2<String, Integer>(edit.getTitle(), 1));
 		
 		JavaRDD<TopClass> contentTitleRanking = transformToTopEntry(contentTitleRDD);
 		
