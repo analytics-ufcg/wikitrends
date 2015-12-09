@@ -4,6 +4,10 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
 
+import org.joda.time.DateTime;
+
+import com.google.gson.JsonObject;
+
 public class LogType extends AbstractType implements Serializable {
 	private static final long serialVersionUID = -4354969409550959024L;
 
@@ -93,6 +97,24 @@ public class LogType extends AbstractType implements Serializable {
 		return "LogType [log_uuid=" + log_uuid + ", id=" + id + ", log_id=" + log_id + ", log_type=" + log_type
 				+ ", log_action=" + log_action + ", log_params=" + log_params + ", log_action_comment="
 				+ log_action_comment + ", toString()=" + super.toString() + "]";
+	}
+	
+	public static LogType parseLogType(JsonObject object){
+		LogType lt;
+		String log_params = object.has("log_params") ? object.get("log_params").toString() : null;
+
+		Integer id = object.has("id") && !object.get("id").isJsonNull() ? object.get("id").getAsInt() : null;
+
+		String log_type = object.has("log_type") ? object.get("log_type").getAsString() : null;
+
+		lt = new LogType(object.get("server_url").getAsString(), object.get("server_name").getAsString(),
+				object.get("server_script_path").getAsString(), object.get("wiki").getAsString(),
+				object.get("type").getAsString(), object.get("namespace").getAsInt(), object.get("user").getAsString(),
+				object.get("bot").getAsBoolean(), object.get("comment").getAsString(), object.get("title").getAsString(),
+				new DateTime(object.get("timestamp").getAsLong() * 1000L).toDate(), UUID.randomUUID(), id,
+				object.get("log_id").getAsInt(), object.get("log_action").getAsString(), log_type, log_params,
+				object.get("log_action_comment").getAsString());
+		return lt;
 	}
 
 	

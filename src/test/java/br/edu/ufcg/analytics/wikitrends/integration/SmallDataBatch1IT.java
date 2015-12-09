@@ -8,6 +8,8 @@ import java.util.List;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaSparkContext;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,6 +40,9 @@ public class SmallDataBatch1IT {
 	private CassandraServingLayer1Manager serving_layer_manager;
 	private String seedNode;
 	
+	private static final String INPUT_FILE = "src/test/resources/small_test_data.json";
+
+	
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -63,7 +68,12 @@ public class SmallDataBatch1IT {
 
 		session.execute("USE batch_views");
 		
-		master_dataset_manager.populate();
+		SparkConf conf = new SparkConf();
+		conf.set("spark.cassandra.connection.host", seedNode);
+
+		try (JavaSparkContext sc = new JavaSparkContext("local", "test", conf);) {
+			master_dataset_manager.populate(INPUT_FILE);
+		}
 	}
 
 	/**
@@ -71,8 +81,8 @@ public class SmallDataBatch1IT {
 	 */
 	@After
 	public void tearDown() throws Exception {
-//		master_dataset_manager.dropTables(session);
-//		serving_layer_manager.dropTables(session);
+		master_dataset_manager.dropTables(session);
+		serving_layer_manager.dropTables(session);
 		
 		session.close();
 		cluster.close();

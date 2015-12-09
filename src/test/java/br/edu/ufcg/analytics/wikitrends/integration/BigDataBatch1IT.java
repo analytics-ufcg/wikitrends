@@ -62,7 +62,7 @@ public class BigDataBatch1IT {
 			conf.set("spark.cassandra.connection.host", SEED_NODE);
 
 			try (JavaSparkContext sc = new JavaSparkContext("local", "test", conf);) {
-				manager.populateFrom(SEED_NODE, INPUT_FILE);
+				manager.populate(INPUT_FILE);
 			}
 		}
 	}
@@ -88,7 +88,7 @@ public class BigDataBatch1IT {
 	@Test
 	public void testProcessUsersTotalRanking() throws ConfigurationException {
 		Configuration configuration = new PropertiesConfiguration(TEST_CONFIGURATION_FILE);
-		TopEditorsBatch1 job = new TopEditorsBatch1(configuration, null);
+		TopEditorsBatch1 job = new TopEditorsBatch1(configuration);
 		
 		SparkConf conf = new SparkConf();
 		conf.set("spark.cassandra.connection.host", "localhost");

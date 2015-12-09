@@ -27,14 +27,17 @@ LOCAL_JAR_ADDRESS=${WIKITRENDS_HOME}/wikitrends-2.0-jar-with-dependencies.jar
 MASTER_ADDRESS=spark://master:7077
 TOTAL_EXECUTOR_CORES=2
 ENV_VAR_FILE=${HOME}/.profile
+CASSANDRA_HOST_SEEDS=localhost
 
 OPTIND=1         # Reset in case getopts has been used previously in the shell.
 
-while getopts "h?e:j:m:w:" opt; do
+while getopts "c:h?e:j:m:w:" opt; do
     case "$opt" in
     h|\?)
         show_help
         exit 0
+        ;;
+    c)  CASSANDRA_HOST_SEEDS=$OPTARG
         ;;
     e)  ENV_VAR_FILE=$OPTARG
         ;;
@@ -76,15 +79,21 @@ ingestor)
 master_dataset)
 	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager
 	case $2 in
-	createschema)
+	create)
 	    echo "Creating master dataset schema"
 		source ${ENV_VAR_FILE}
-		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3
+		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE
 	    echo "Master dataset created with success!"
 		;;
-	migrate)
+	drop)
+	    echo "Creating master dataset schema"
+		source ${ENV_VAR_FILE}
+		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP
+	    echo "Master dataset created with success!"
+		;;
+	populate)
 	    echo "Attempting to migrate master dataset from JSON file"
-		spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MANAGER_CLASS} ${LOCAL_JAR_ADDRESS} POPULATE $3 $4
+		spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --conf spark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} --class ${MANAGER_CLASS} ${LOCAL_JAR_ADDRESS} POPULATE $3
 		echo "Migration finished with success!"
 	    ;;
 	*)

@@ -2,19 +2,24 @@ package br.edu.ufcg.analytics.wikitrends.storage.raw.types;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.joda.time.DateTime;
+
+import com.google.gson.JsonObject;
+
 public class EditType extends AbstractType implements Serializable {
 	private static final long serialVersionUID = 6352766661377046971L;
-	
+
 	private UUID edit_uuid; 
 	private Integer edit_id;
 	private Boolean editMinor;
 	private Boolean edit_patrolled;
 	private Map<String, Long> edit_length;
 	private Map<String, Long> edit_revision;
-	
+
 	public EditType() {
 		super();
 	}
@@ -88,6 +93,39 @@ public class EditType extends AbstractType implements Serializable {
 		return "EditType [edit_uuid=" + edit_uuid + ", edit_id=" + edit_id + ", edit_minor=" + editMinor
 				+ ", edit_patrolled=" + edit_patrolled + ", edit_length=" + edit_length + ", edit_revision="
 				+ edit_revision + ", toString()=" + super.toString() + "]";
+	}
+
+	public static EditType parseEditType(JsonObject object) {
+		JsonObject length = object.get("length").getAsJsonObject();
+
+		HashMap<String, Long> lengthMap = new HashMap<>(2);
+		if (!length.get("new").isJsonNull()) {
+			lengthMap.put("new", length.get("new").getAsLong());
+		}
+		if (!length.get("old").isJsonNull()) {
+			lengthMap.put("old", length.get("old").getAsLong());
+		}
+
+		JsonObject review = object.get("revision").getAsJsonObject();
+
+		HashMap<String, Long> revisionMap = new HashMap<>(2);
+		if (!review.get("new").isJsonNull()) {
+			revisionMap.put("new", review.get("new").getAsLong());
+		}
+		if (!review.get("old").isJsonNull()) {
+			revisionMap.put("old", review.get("old").getAsLong());
+		}
+
+		Boolean patrolled = object.has("patrolled") && !object.get("patrolled").isJsonNull()
+				? object.get("patrolled").getAsBoolean() : null;
+
+		return new EditType(object.get("server_url").getAsString(), object.get("server_name").getAsString(),
+				object.get("server_script_path").getAsString(), object.get("wiki").getAsString(),
+				object.get("type").getAsString(), object.get("namespace").getAsInt(), object.get("user").getAsString(),
+				object.get("bot").getAsBoolean(), object.get("comment").getAsString(),
+				object.get("title").getAsString(), new DateTime(object.get("timestamp").getAsLong() * 1000L).toDate(),
+				UUID.randomUUID(), object.get("id").getAsInt(), object.get("minor").getAsBoolean(), patrolled,
+				lengthMap, revisionMap);
 	}
 
 }
