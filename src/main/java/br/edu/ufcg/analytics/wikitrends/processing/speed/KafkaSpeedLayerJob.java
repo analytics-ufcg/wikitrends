@@ -1,5 +1,6 @@
 package br.edu.ufcg.analytics.wikitrends.processing.speed;
 
+
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
 import java.util.HashMap;
@@ -17,7 +18,6 @@ import org.apache.spark.streaming.api.java.JavaPairReceiverInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka.KafkaUtils;
 
-import com.datastax.spark.connector.cql.CassandraConnector;
 import com.datastax.spark.connector.japi.CassandraStreamingJavaUtil;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -26,6 +26,7 @@ import com.google.gson.JsonParser;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
+import br.edu.ufcg.analytics.wikitrends.storage.raw.types.LogChange;
 import scala.Tuple2;
 
 /**
@@ -59,6 +60,29 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 		outputPath = String.format("hdfs://%s:%s/user/%s/%s/%s", HOST, PORT, USER, PATH, PREFIX);
 
 	}
+	
+	private void persistObjects(JavaPairReceiverInputDStream<String, String> lines) {
+		JavaDStream<JsonObject> linesAsJsonObjects = lines.
+	    		map(l -> new JsonParser().parse(l._2).getAsJsonObject());
+		
+		JavaDStream<EditChange> editsDStream = linesAsJsonObjects.filter(change -> {
+			String type = change.get("type").getAsString();
+			return "edit".equals(type) || "new".equals(type);
+		}).map(change -> EditChange.parseEditChange(change));
+	    
+	    JavaDStream<LogChange> logsDStream = linesAsJsonObjects.filter(change -> {
+			String type = change.get("type").getAsString();
+			return "log".equals(type);
+		}).map(change -> LogChange.parseLogChange(change));
+	    
+	    CassandraStreamingJavaUtil.javaFunctions(editsDStream).
+	    	writerBuilder("master_dataset", "edits", mapToRow(EditChange.class)).
+	    	saveToCassandra();
+	    
+	    CassandraStreamingJavaUtil.javaFunctions(logsDStream).
+	    	writerBuilder("master_dataset", "logs", mapToRow(LogChange.class)).
+	    	saveToCassandra();
+	}
 
 	/*@ (non-Javadoc)
 	 * @see br.edu.ufcg.analytics.wikitrends.spark.SparkJob#run()
@@ -74,8 +98,6 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 			conf.set(key, configuration.getString(key));
 		}
 		
-		CassandraConnector connector = CassandraConnector.apply(conf);
-
 		try(JavaStreamingContext ssc = new JavaStreamingContext(conf, Durations.seconds(30))){
 		    Map<String, Integer> topicMap = new HashMap<String, Integer>();
 		    String[] topics = configuration.getString("wikitrends.ingestion.kafka.topics").split(",");
@@ -83,27 +105,17 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 		      topicMap.put(topic, 3);
 		    }
 
-		    JavaPairReceiverInputDStream<String, String> lines =
+		    JavaPairReceiverInputDStream<String, String> streamingData =
 		            KafkaUtils.createStream(ssc, configuration.getString("wikitrends.ingestion.zookeepeer.servers"), 
 		            		configuration.getString("wikitrends.ingestion.kafka.consumergroup"), topicMap);
 		    
-		    JavaDStream<JsonObject> editsJsonObjects = lines.
-		    		map(l -> new JsonParser().parse(l._2).getAsJsonObject());
-		    
-		    JavaDStream<EditChange> editsDStream = editsJsonObjects.filter(change -> {
-				String type = change.get("type").getAsString();
-				return "edit".equals(type) || "new".equals(type);
-			}).map(change -> EditChange.parseEditChange(change));
-		    
-		    CassandraStreamingJavaUtil.javaFunctions(editsDStream).
-		    	writerBuilder("master_dataset", "edits", mapToRow(EditChange.class)).
-		    	saveToCassandra();
+		    persistObjects(streamingData);
 
-			JavaPairDStream<String, Integer> allEdits = lines
+			JavaPairDStream<String, Integer> allEdits = streamingData
 				.mapToPair(l -> new Tuple2<>("stream_all_edits", 1))
 				.reduceByKey((a, b) -> a + b, 1);
 			
-			JavaPairDStream<String, Integer> minorEdits = lines
+			JavaPairDStream<String, Integer> minorEdits = streamingData
 				.mapToPair(new PairFunction<Tuple2<String, String>, String, Integer>() {	
 					private static final long serialVersionUID = 1L;
 
