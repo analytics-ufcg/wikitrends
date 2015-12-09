@@ -1,26 +1,31 @@
 package br.edu.ufcg.analytics.wikitrends.processing.speed;
 
+import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.Durations;
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaPairReceiverInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka.KafkaUtils;
 
 import com.datastax.spark.connector.cql.CassandraConnector;
+import com.datastax.spark.connector.japi.CassandraStreamingJavaUtil;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
+import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
 import scala.Tuple2;
 
 /**
@@ -44,7 +49,7 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 	private String outputPath;
 
 	private transient Configuration configuration;
-
+	
 	/**
 	 * Default constructor
 	 */
@@ -81,6 +86,18 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 		    JavaPairReceiverInputDStream<String, String> lines =
 		            KafkaUtils.createStream(ssc, configuration.getString("wikitrends.ingestion.zookeepeer.servers"), 
 		            		configuration.getString("wikitrends.ingestion.kafka.consumergroup"), topicMap);
+		    
+		    JavaDStream<JsonObject> editsJsonObjects = lines.
+		    		map(l -> new JsonParser().parse(l._2).getAsJsonObject());
+		    
+		    JavaDStream<EditChange> editsDStream = editsJsonObjects.filter(change -> {
+				String type = change.get("type").getAsString();
+				return "edit".equals(type) || "new".equals(type);
+			}).map(change -> EditChange.parseEditChange(change));
+		    
+		    CassandraStreamingJavaUtil.javaFunctions(editsDStream).
+		    	writerBuilder("master_dataset", "edits", mapToRow(EditChange.class)).
+		    	saveToCassandra();
 
 			JavaPairDStream<String, Integer> allEdits = lines
 				.mapToPair(l -> new Tuple2<>("stream_all_edits", 1))
