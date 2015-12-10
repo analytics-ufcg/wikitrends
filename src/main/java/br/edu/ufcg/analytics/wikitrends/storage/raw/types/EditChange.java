@@ -140,9 +140,8 @@ public class EditChange extends WikimediaChange implements Serializable {
 		Boolean patrolled = object.has("patrolled") && !object.get("patrolled").isJsonNull()
 				? object.get("patrolled").getAsBoolean() : null;
 
-		UUID uuidFromBytes = object.has("uuid")? UUID.fromString(object.get("uuid").getAsString()): UUID.randomUUID();
 
-		return new EditChange(uuidFromBytes, object.get("id").getAsInt(), object.get("server_url").getAsString(), object.get("server_name").getAsString(),
+		return new EditChange(UUID.fromString(object.get("uuid").getAsString()), object.get("id").getAsInt(), object.get("server_url").getAsString(), object.get("server_name").getAsString(),
 				object.get("server_script_path").getAsString(), object.get("wiki").getAsString(),
 				object.get("type").getAsString(), object.get("namespace").getAsInt(), object.get("user").getAsString(),
 				object.get("bot").getAsBoolean(), object.get("comment").getAsString(),

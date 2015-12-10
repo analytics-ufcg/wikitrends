@@ -149,9 +149,8 @@ public class LogChange extends WikimediaChange implements Serializable {
 
 		String log_type = object.has("log_type") ? object.get("log_type").getAsString() : null;
 		
-		UUID uuidFromBytes = object.has("uuid")? UUID.fromString(object.get("uuid").getAsString()): UUID.randomUUID();
 
-		return new LogChange(uuidFromBytes, id , object.get("server_url").getAsString(), object.get("server_name").getAsString(),
+		return new LogChange(UUID.fromString(object.get("uuid").getAsString()), id , object.get("server_url").getAsString(), object.get("server_name").getAsString(),
 				object.get("server_script_path").getAsString(), object.get("wiki").getAsString(),
 				object.get("type").getAsString(), object.get("namespace").getAsInt(), object.get("user").getAsString(),
 				object.get("bot").getAsBoolean(), object.get("comment").getAsString(), object.get("title").getAsString(),
