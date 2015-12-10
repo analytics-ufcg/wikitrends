@@ -22,6 +22,11 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
+import br.edu.ufcg.analytics.wikitrends.processing.batch1.AbsoluteValuesBatch1;
+import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopContentPagesBatch1;
+import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopEditorsBatch1;
+import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopIdiomsBatch1;
+import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopPagesBatch1;
 import br.edu.ufcg.analytics.wikitrends.processing.batch2.AbsoluteValuesBatch2;
 import br.edu.ufcg.analytics.wikitrends.processing.batch2.TopContentPagesBatch2;
 import br.edu.ufcg.analytics.wikitrends.processing.batch2.TopEditorsBatch2;
@@ -58,10 +63,14 @@ public class SmallDataBatch2IT {
 		cleanMasterDataset();
 
 		try(
-				Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
-				Session session = cluster.newSession();
-				){
-
+			Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
+			Session session = cluster.newSession();
+			){
+			
+			new CassandraMasterDatasetManager().dropTables(session);
+			new CassandraServingLayer1Manager().dropTables(session);
+			new CassandraServingLayer2Manager().dropTables(session);
+			
 			new CassandraMasterDatasetManager().createTables(session);
 			new CassandraServingLayer1Manager().createTables(session);
 			new CassandraServingLayer2Manager().createTables(session);
@@ -78,12 +87,12 @@ public class SmallDataBatch2IT {
 	@AfterClass
 	public static void cleanMasterDataset() throws Exception {
 
-		try (Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
-				Session session = cluster.newSession();) {
-			new CassandraMasterDatasetManager().dropTables(session);
-			new CassandraServingLayer1Manager().dropTables(session);
-			new CassandraServingLayer2Manager().dropTables(session);
-		}
+//		try (Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
+//				Session session = cluster.newSession();) {
+//			new CassandraMasterDatasetManager().dropTables(session);
+//			new CassandraServingLayer1Manager().dropTables(session);
+//			new CassandraServingLayer2Manager().dropTables(session);
+//		}
 
 	}
 
@@ -117,10 +126,13 @@ public class SmallDataBatch2IT {
 	 */
 	@Test
 	public void testProcessTopEditors() throws ConfigurationException {
-
-		TopEditorsBatch2 job = new TopEditorsBatch2(configuration);
-		job.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
-		job.process();
+		TopEditorsBatch1 job1 = new TopEditorsBatch1(configuration);
+		job1.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
+		job1.process();
+		
+		TopEditorsBatch2 job2 = new TopEditorsBatch2(configuration);
+		job2.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
+		job2.process();
 
 		assertEquals(327, session.execute("SELECT count(1) FROM top_editor").one().getLong("count"));
 		assertEquals(510, session.execute("SELECT sum(count) as ranking_sum FROM top_editor").one().getLong("ranking_sum"));
@@ -137,9 +149,13 @@ public class SmallDataBatch2IT {
 	 */
 	@Test
 	public void testProcessTopIdioms() throws ConfigurationException {
-		TopIdiomsBatch2 job3 = new TopIdiomsBatch2(configuration);
-		job3.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
-		job3.process();
+		TopIdiomsBatch1 job1 = new TopIdiomsBatch1(configuration);
+		job1.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
+		job1.process();
+		
+		TopIdiomsBatch2 job2 = new TopIdiomsBatch2(configuration);
+		job2.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
+		job2.process();
 		
 		ResultSet resultSet = session.execute("SELECT count(1) FROM top_idiom");
 		assertEquals(45, resultSet.one().getLong("count"));
@@ -159,6 +175,12 @@ public class SmallDataBatch2IT {
 		List<Row> list2 = resultSet.all();
 		assertTrue(list2.size() == 1);
 		assertTrue(list2.get(0).getString("name").equals("it.wikipedia.org"));
+		
+		long rankingMax = session.execute("SELECT max(count) as ranking_max FROM top_idiom").one().getLong("ranking_max");
+		long rankingFirst = session.execute("SELECT count as ranking_max FROM top_idiom LIMIT 1").one().getLong("ranking_max");
+
+		assertEquals(115, rankingMax);
+		assertEquals(115, rankingFirst);
 	}
 	
 	/**
@@ -166,6 +188,10 @@ public class SmallDataBatch2IT {
 	 */
 	@Test
 	public void testProcessTopPages() throws ConfigurationException {
+		TopPagesBatch1 job = new TopPagesBatch1(configuration);
+		job.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
+		job.process();
+		
 		TopPagesBatch2 job2 = new TopPagesBatch2(configuration);
 		job2.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
 		job2.process();
@@ -188,6 +214,12 @@ public class SmallDataBatch2IT {
 		List<Row> list2 = resultSet.all();
 		assertTrue(list2.size() == 1);
 		assertTrue(list2.get(0).getString("name").equals("Simone Zaza"));
+		
+		long rankingMax = session.execute("SELECT max(count) as ranking_max FROM top_page").one().getLong("ranking_max");
+		long rankingFirst = session.execute("SELECT count as ranking_max FROM top_page LIMIT 1").one().getLong("ranking_max");
+
+		assertEquals(3, rankingMax);
+		assertEquals(3, rankingFirst);
 	}
 
 	/**
@@ -195,9 +227,13 @@ public class SmallDataBatch2IT {
 	 */
 	@Test
 	public void testProcessTopContentPages() throws ConfigurationException {
-		TopContentPagesBatch2 job4 = new TopContentPagesBatch2(configuration);
-		job4.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
-		job4.process();
+		TopContentPagesBatch1 job1 = new TopContentPagesBatch1(configuration);
+		job1.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
+		job1.process();
+		
+		TopContentPagesBatch2 job2 = new TopContentPagesBatch2(configuration);
+		job2.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
+		job2.process();
 		
 		ResultSet resultSet = session.execute("SELECT count(1) FROM top_content_page");
 		assertEquals(385, resultSet.one().getLong("count"));
@@ -217,6 +253,12 @@ public class SmallDataBatch2IT {
 		List<Row> list2 = resultSet.all();
 		assertTrue(list2.size() == 1);
 		assertTrue(list2.get(0).getString("name").equals("Simone Zaza"));
+		
+		long rankingMax = session.execute("SELECT max(count) as ranking_max FROM top_content_page").one().getLong("ranking_max");
+		long rankingFirst = session.execute("SELECT count as ranking_max FROM top_content_page LIMIT 1").one().getLong("ranking_max");
+
+		assertEquals(3, rankingMax);
+		assertEquals(3, rankingFirst);
 	}
 	
 	
@@ -225,9 +267,13 @@ public class SmallDataBatch2IT {
 	 */
 	@Test
 	public void testProcessAbsoluteValues() throws ConfigurationException {
-		AbsoluteValuesBatch2 job5 = new AbsoluteValuesBatch2(configuration);
-		job5.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
-		job5.process();
+		AbsoluteValuesBatch1 job = new AbsoluteValuesBatch1(configuration);
+		job.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
+		job.process();
+		
+		AbsoluteValuesBatch2 job2 = new AbsoluteValuesBatch2(configuration);
+		job2.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
+		job2.process();
 		
 		ResultSet resultSet = session.execute("SELECT * FROM absolute_values WHERE year = 2015 AND month = 11 AND day = 9 AND hour = 14");
 		List<Row> list = resultSet.all();

@@ -2,16 +2,11 @@ package br.edu.ufcg.analytics.wikitrends.processing.batch2;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import org.apache.commons.configuration.Configuration;
 
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
-import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopPage;
+import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.TopResult;
 
 public class TopPagesBatch2 extends BatchLayer2Job_2 {
 	
@@ -27,16 +22,11 @@ public class TopPagesBatch2 extends BatchLayer2Job_2 {
 	
 	@Override
 	public void process() {
-		Map<String, Integer> mapTitleToCount = computeFullRankingFromPartial("top_pages");
+		CassandraJavaUtil.javaFunctions(computeFullRankingFromPartial("top_pages"))
+		.writerBuilder(getBatchViews2Keyspace(), topPagesTable, mapToRow(TopResult.class))
+		.saveToCassandra();
 		
-		List<ResultTopPage> rtpList = new ArrayList<ResultTopPage>();
-		for(Entry<String, Integer> entry : mapTitleToCount.entrySet()) {
-			rtpList.add(new ResultTopPage(entry.getKey(), entry.getValue()));
-		}
-		
-		CassandraJavaUtil.javaFunctions(getJavaSparkContext().parallelize(rtpList))
-			.writerBuilder(getBatchViews2Keyspace(), topPagesTable, mapToRow(ResultTopPage.class))
-			.saveToCassandra();
+		finalizeSparkContext();
 		
 	}
 

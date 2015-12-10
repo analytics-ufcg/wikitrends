@@ -20,6 +20,7 @@ import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultAbsoluteVal
  * @author Guilherme Gadelha
  * @author Ricardo Ara&eacute;jo Santos - ricoaraujosantos@gmail.com
  */
+@Deprecated
 public abstract class BatchLayer2Job implements WikiTrendsProcess {
 
 	

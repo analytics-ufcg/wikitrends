@@ -20,6 +20,8 @@ import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultAbsoluteVal
 
 public class AbsoluteValuesBatch2 extends BatchLayer2Job_2 {
 	
+	private static final long serialVersionUID = -8968582683538025373L;
+	
 	private String absoluteValuesTable;
 	
 	public AbsoluteValuesBatch2(Configuration configuration) {
@@ -174,12 +176,18 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job_2 {
 											distinct_pages_count,
 											distincts_editors_count,
 											distincts_servers_count,
-											smaller_origin);
+											smaller_origin,
+											getCurrentTime().getYear(),
+											getCurrentTime().getMonthValue(),
+											getCurrentTime().getDayOfMonth(),
+											getCurrentTime().getHour());
 		
 		List<ResultAbsoluteValuesShot> list = Arrays.asList(result);
 		CassandraJavaUtil.javaFunctions(sc.parallelize(list))
 								.writerBuilder(getBatchViews2Keyspace(), absoluteValuesTable, mapToRow(ResultAbsoluteValuesShot.class))
 								.saveToCassandra();
+		
+		finalizeSparkContext();
 	}
 	
 }

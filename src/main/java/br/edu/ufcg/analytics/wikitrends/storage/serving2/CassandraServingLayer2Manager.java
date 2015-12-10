@@ -18,54 +18,66 @@ public class CassandraServingLayer2Manager implements Serializable {
 	// Prepare the schema
 	public void createTables(Session session) {
                     
-            session.execute("CREATE KEYSPACE results WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
+            session.execute("CREATE KEYSPACE IF NOT EXISTS results WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
             
             session.execute("CREATE TABLE IF NOT EXISTS results." +
 								"top_editor" +
-								"(id TEXT," +
-								"editor TEXT," +
+								"(id UUID," +
+								"name TEXT," +
 								"count BIGINT," +
 								
-								"PRIMARY KEY((id), count, name)" +
+								"year INT," +
+								"month INT," +
+								"day INT," +
+								"hour INT," +
+								
+								"PRIMARY KEY((year, month, day, hour), count, name)" +
 								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
             		);
             
             session.execute("CREATE TABLE IF NOT EXISTS results." +
 								"top_idiom" +
 								"(id UUID," +
-								"idiom TEXT," +
-								"count INT," +
+								"name TEXT," +
+								"count BIGINT," +
 								
-								"PRIMARY KEY((id), count)" +
-								") WITH CLUSTERING ORDER BY (count DESC);"
-					);
-           
-            session.execute("CREATE TABLE IF NOT EXISTS results.servers_ranking" +
-								"(id text," +
-								"server_name TEXT," +
-								"count INT," +
-								"PRIMARY KEY((id), count, server_name)" +
-								") WITH CLUSTERING ORDER BY (count DESC, server_name ASC);"
+								"year INT," +
+								"month INT," +
+								"day INT," +
+								"hour INT," +
+								
+								"PRIMARY KEY((year, month, day, hour), count, name)" +
+								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
 					);
            
             session.execute("CREATE TABLE IF NOT EXISTS results." +
 								"top_page" +
 								"(id UUID," +
-								"page TEXT," +
+								"name TEXT," +
 								"count BIGINT," +
 								
-								"PRIMARY KEY((id), count)" +
-								") WITH CLUSTERING ORDER BY (count DESC);"
+								"year INT," +
+								"month INT," +
+								"day INT," +
+								"hour INT," +
+								
+								"PRIMARY KEY((year, month, day, hour), count, name)" +
+								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
             		);
             
             session.execute("CREATE TABLE IF NOT EXISTS results." +
 								"top_content_page" +
 								"(id UUID," +
-								"content_page TEXT," +
+								"name TEXT," +
 								"count BIGINT," +
 								
-								"PRIMARY KEY((id), count)" +
-								") WITH CLUSTERING ORDER BY (count DESC);"
+								"year INT," +
+								"month INT," +
+								"day INT," +
+								"hour INT," +
+								
+								"PRIMARY KEY((year, month, day, hour), count, name)" +
+								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
             		);
             
             session.execute("CREATE TABLE IF NOT EXISTS results." +
@@ -80,11 +92,23 @@ public class CassandraServingLayer2Manager implements Serializable {
 								"distinct_servers_count INT," +
 								
 								"smaller_origin BIGINT," +
+								
+								"year INT," +
+								"month INT," +
+								"day INT," +
+								"hour INT," +
 					
-								"PRIMARY KEY(id)" +
+								"PRIMARY KEY((year, month, day, hour), id)" +
 								");"
 					);
             
+            session.execute("CREATE TABLE IF NOT EXISTS results.servers_ranking" +
+								"(id text," +
+								"server_name TEXT," +
+								"count INT," +
+								"PRIMARY KEY((id), count, server_name)" +
+								") WITH CLUSTERING ORDER BY (count DESC, server_name ASC);"
+            		);
             
             session.execute("CREATE TABLE IF NOT EXISTS results." +
 								"ranking" +

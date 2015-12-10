@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.SparkConf;
@@ -22,14 +21,17 @@ import com.datastax.driver.core.Session;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.datastax.spark.connector.japi.CassandraRow;
 
+import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
-import br.edu.ufcg.analytics.wikitrends.processing.batch1.AbsoluteValuesBatch1;
-import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopContentPagesBatch1;
-import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopIdiomsBatch1;
-import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopPagesBatch1;
-import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
+import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.TopResult;
 import scala.Tuple2;
 
+/**
+ * {@link WikiTrendsProcess} implementation when a {@link WikiTrendsCommands#BATCH} is chosen. 
+ * 
+ * @author Guilherme Gadelha
+ * @author Ricardo Ara&eacute;jo Santos - ricoaraujosantos@gmail.com
+ */
 public abstract class BatchLayer2Job_2 implements WikiTrendsProcess {
 
 	private static final long serialVersionUID = 1218454132437246895L;
@@ -150,13 +152,17 @@ public abstract class BatchLayer2Job_2 implements WikiTrendsProcess {
 		
 	}
 	
-	public Map<String, Integer> computeFullRankingFromPartial(String tableName) {
+	public JavaRDD<TopResult> computeFullRankingFromPartial(String tableName) {
 		
-		JavaRDD<TopClass> fullRanking = javaFunctions(this.sc)
+		return javaFunctions(this.sc)
 			    .cassandraTable("batch_views", tableName, mapRowToTuple(String.class, Long.class))
-			    .select("id", "name")
+			    .select("name", "count")
 			    .mapToPair(row -> new Tuple2<String, Long>(row._1, row._2)).reduceByKey((a,b) -> a+b)
-			    .map( tuple -> new TopClass(tuple._1, tuple._2, 2015, 11, 9, 0));
+			    .map( tuple -> new TopResult(tuple._1, tuple._2, 
+			    		getCurrentTime().getYear(), 
+			    		getCurrentTime().getMonthValue(), 
+			    		getCurrentTime().getDayOfMonth(), 
+			    		getCurrentTime().getHour()));
 		
 //		javaFunctions(fullRanking).writerBuilder(servingKeyspace, tableName, rowWriterFactory);
 //		
@@ -166,7 +172,6 @@ public abstract class BatchLayer2Job_2 implements WikiTrendsProcess {
 //		
 //		CassandraJavaUtil.javaFunctions(sc).toJavaPairRDD(partialRankings, String.class, Long.class);
 		
-		return null;
     }
 		
 	public abstract void process();

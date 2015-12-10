@@ -26,13 +26,22 @@ public class ResultAbsoluteValuesShot implements Serializable {
 
 		private Long smaller_origin;
 
+		private Integer year;
+		private Integer month;
+		private Integer day;
+		private Integer hour;
+
 		public ResultAbsoluteValuesShot(Long all_edits,
 										Long minor_edits,
 										Long average_size,
 										Long distinct_pages_count, 
 										Integer distinct_editors_count, 
 										Integer distinct_servers_count, 
-										Long smaller_origin) {
+										Long smaller_origin,
+										Integer year,
+										Integer month,
+										Integer day,
+										Integer hour) {
             
         	this.id = UUID.randomUUID();
             this.all_edits = all_edits;
@@ -42,7 +51,11 @@ public class ResultAbsoluteValuesShot implements Serializable {
             this.distinct_editors_count = distinct_editors_count;
             this.distinct_servers_count = distinct_servers_count;
             this.smaller_origin = smaller_origin;
-
+            
+            this.year = year;
+            this.month = month;
+            this.day = day;
+            this.hour = hour;
 		}
         
 		public UUID getId() {
@@ -109,12 +122,44 @@ public class ResultAbsoluteValuesShot implements Serializable {
 			this.smaller_origin = smaller_origin;
 		}
 
+		public Integer getYear() {
+			return year;
+		}
+
+		public void setYear(Integer year) {
+			this.year = year;
+		}
+
+		public Integer getMonth() {
+			return month;
+		}
+
+		public void setMonth(Integer month) {
+			this.month = month;
+		}
+
+		public Integer getDay() {
+			return day;
+		}
+
+		public void setDay(Integer day) {
+			this.day = day;
+		}
+
+		public Integer getHour() {
+			return hour;
+		}
+
+		public void setHour(Integer hour) {
+			this.hour = hour;
+		}
+
 		@Override
 		public String toString() {
 			return "ResultAbsoluteValuesShot [id=" + id + ", all_edits=" + all_edits + ", minor_edits=" + minor_edits
-					+ ", average_size=" + average_size + ", distincts_pages_count=" + distinct_pages_count
-					+ ", distincts_editors_count=" + distinct_editors_count + ", distincts_servers_count="
-					+ distinct_servers_count + ", smaller_origin=" + smaller_origin + ", toString()="
-					+ super.toString() + "]";
+					+ ", average_size=" + average_size + ", distinct_pages_count=" + distinct_pages_count
+					+ ", distinct_editors_count=" + distinct_editors_count + ", distinct_servers_count="
+					+ distinct_servers_count + ", smaller_origin=" + smaller_origin + ", year=" + year + ", month="
+					+ month + ", day=" + day + ", hour=" + hour + "]";
 		}
     }
