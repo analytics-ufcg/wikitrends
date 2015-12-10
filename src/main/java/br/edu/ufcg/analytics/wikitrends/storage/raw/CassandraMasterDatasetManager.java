@@ -3,6 +3,7 @@ package br.edu.ufcg.analytics.wikitrends.storage.raw;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
@@ -17,6 +18,7 @@ import com.google.gson.JsonParser;
 import br.edu.ufcg.analytics.wikitrends.storage.CassandraManager;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.LogChange;
+import br.edu.ufcg.analytics.wikitrends.storage.raw.types.RawWikimediaChange;
 
 /**
  * @author Ricardo Araújo Santos - ricoaraujosantos@gmail.com
@@ -132,7 +134,18 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 		SparkConf conf = new SparkConf();
 		try(JavaSparkContext sc = new JavaSparkContext(conf);){
 			JavaRDD<JsonObject> oldMasterDataset = sc.textFile(source)
-					.map(l -> new JsonParser().parse(l).getAsJsonObject());
+					.map(l -> {
+						JsonObject jsonObject = new JsonParser().parse(l).getAsJsonObject();
+						jsonObject.addProperty("uuid", UUID.randomUUID().toString());
+						return jsonObject;
+					});
+			
+			JavaRDD<RawWikimediaChange> changes = oldMasterDataset.
+					map(change -> RawWikimediaChange.parseRawWikimediaChange(change));
+
+		    CassandraJavaUtil.javaFunctions(changes).
+	    	writerBuilder("master_dataset", "change", mapToRow(RawWikimediaChange.class)).
+	    	saveToCassandra();
 
 			JavaRDD<EditChange> edits = oldMasterDataset.filter(change -> {
 				String type = change.get("type").getAsString();
