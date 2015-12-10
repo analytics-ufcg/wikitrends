@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.integration;
+package br.edu.ufcg.analytics.wikitrends.integration.batch2;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -22,20 +22,21 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
-import br.edu.ufcg.analytics.wikitrends.processing.batch1.AbsoluteValuesBatch1;
-import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopContentPagesBatch1;
-import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopEditorsBatch1;
-import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopIdiomsBatch1;
-import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopPagesBatch1;
+import br.edu.ufcg.analytics.wikitrends.processing.batch2.AbsoluteValuesBatch2;
+import br.edu.ufcg.analytics.wikitrends.processing.batch2.TopContentPagesBatch2;
+import br.edu.ufcg.analytics.wikitrends.processing.batch2.TopEditorsBatch2;
+import br.edu.ufcg.analytics.wikitrends.processing.batch2.TopIdiomsBatch2;
+import br.edu.ufcg.analytics.wikitrends.processing.batch2.TopPagesBatch2;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager;
+import br.edu.ufcg.analytics.wikitrends.storage.serving2.CassandraServingLayer2Manager;
 
 /**
  * @author Guilherme Gadelha
  * @author Ricardo Araújo Santos - ricoaraujosantos@gmail.com
  *
  */
-public class SmallDataBatch1IT {
+public class SmallDataBatch2IT {
 
 	private static final String TEST_CONFIGURATION_FILE = "src/test/resources/small_test_wikitrends.properties";
 	private static final String INPUT_FILE = "src/test/resources/small_test_data.json";
@@ -44,8 +45,6 @@ public class SmallDataBatch1IT {
 	private PropertiesConfiguration configuration;
 	private Cluster cluster;
 	private Session session;
-
-
 
 	/**
 	 * @throws java.lang.Exception
@@ -65,6 +64,7 @@ public class SmallDataBatch1IT {
 
 			new CassandraMasterDatasetManager().createTables(session);
 			new CassandraServingLayer1Manager().createTables(session);
+			new CassandraServingLayer2Manager().createTables(session);
 
 		}
 
@@ -82,6 +82,7 @@ public class SmallDataBatch1IT {
 				Session session = cluster.newSession();) {
 			new CassandraMasterDatasetManager().dropTables(session);
 			new CassandraServingLayer1Manager().dropTables(session);
+			new CassandraServingLayer2Manager().dropTables(session);
 		}
 
 	}
@@ -97,7 +98,7 @@ public class SmallDataBatch1IT {
 
 		cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
 		session = cluster.newSession();
-		session.execute("USE batch_views");
+		session.execute("USE results");
 
 	}
 
@@ -117,15 +118,15 @@ public class SmallDataBatch1IT {
 	@Test
 	public void testProcessTopEditors() throws ConfigurationException {
 
-		TopEditorsBatch1 job = new TopEditorsBatch1(configuration);
+		TopEditorsBatch2 job = new TopEditorsBatch2(configuration);
 		job.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
 		job.process();
 
-		assertEquals(327, session.execute("SELECT count(1) FROM batch_views.top_editors").one().getLong("count"));
-		assertEquals(510, session.execute("SELECT sum(count) as ranking_sum FROM batch_views.top_editors").one().getLong("ranking_sum"));
+		assertEquals(327, session.execute("SELECT count(1) FROM top_editor").one().getLong("count"));
+		assertEquals(510, session.execute("SELECT sum(count) as ranking_sum FROM top_editor").one().getLong("ranking_sum"));
 
-		long rankingMax = session.execute("SELECT max(count) as ranking_max FROM batch_views.top_editors").one().getLong("ranking_max");
-		long rankingFirst = session.execute("SELECT count as ranking_max FROM batch_views.top_editors LIMIT 1").one().getLong("ranking_max");
+		long rankingMax = session.execute("SELECT max(count) as ranking_max FROM top_editor").one().getLong("ranking_max");
+		long rankingFirst = session.execute("SELECT count as ranking_max FROM top_editor LIMIT 1").one().getLong("ranking_max");
 
 		assertEquals(31, rankingMax);
 		assertEquals(31, rankingFirst);
@@ -136,25 +137,25 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessTopIdioms() throws ConfigurationException {
-		TopIdiomsBatch1 job3 = new TopIdiomsBatch1(configuration);
+		TopIdiomsBatch2 job3 = new TopIdiomsBatch2(configuration);
 		job3.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
 		job3.process();
 		
-		ResultSet resultSet = session.execute("SELECT count(1) FROM top_idioms");
+		ResultSet resultSet = session.execute("SELECT count(1) FROM top_idiom");
 		assertEquals(45, resultSet.one().getLong("count"));
 		
-		resultSet = session.execute("SELECT count(*) FROM top_idioms WHERE count >= 3 ALLOW FILTERING");
+		resultSet = session.execute("SELECT count(*) FROM top_idiom WHERE count >= 3 ALLOW FILTERING");
 		assertEquals(19, resultSet.one().getLong("count"));
 		
-		resultSet = session.execute("SELECT count(*) FROM top_idioms WHERE count = 2 ALLOW FILTERING");
+		resultSet = session.execute("SELECT count(*) FROM top_idiom WHERE count = 2 ALLOW FILTERING");
 		assertEquals(12, resultSet.one().getLong("count"));
 		
-		resultSet = session.execute("SELECT * FROM top_idioms WHERE count = 115 AND name = 'en.wikipedia.org' ALLOW FILTERING");
+		resultSet = session.execute("SELECT * FROM top_idiom WHERE count = 115 AND name = 'en.wikipedia.org' ALLOW FILTERING");
 		List<Row> list = resultSet.all();
 		assertTrue(list.size() == 1);
 		assertTrue(list.get(0).getLong("count") == 115L);
 		
-		resultSet = session.execute("SELECT * FROM top_idioms WHERE count = 55 AND name = 'it.wikipedia.org' ALLOW FILTERING");
+		resultSet = session.execute("SELECT * FROM top_idiom WHERE count = 55 AND name = 'it.wikipedia.org' ALLOW FILTERING");
 		List<Row> list2 = resultSet.all();
 		assertTrue(list2.size() == 1);
 		assertTrue(list2.get(0).getString("name").equals("it.wikipedia.org"));
@@ -165,25 +166,25 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessTopPages() throws ConfigurationException {
-		TopPagesBatch1 job2 = new TopPagesBatch1(configuration);
+		TopPagesBatch2 job2 = new TopPagesBatch2(configuration);
 		job2.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
 		job2.process();
 		
-		ResultSet resultSet = session.execute("SELECT count(1) FROM top_pages");
+		ResultSet resultSet = session.execute("SELECT count(1) FROM top_page");
 		assertEquals(490, resultSet.one().getLong("count"));
 
-		resultSet = session.execute("SELECT count(*) FROM top_pages WHERE count >= 3 ALLOW FILTERING");
+		resultSet = session.execute("SELECT count(*) FROM top_page WHERE count >= 3 ALLOW FILTERING");
 		assertEquals(3, resultSet.one().getLong("count"));
 
-		resultSet = session.execute("SELECT count(*) FROM top_pages WHERE count = 2 ALLOW FILTERING");
+		resultSet = session.execute("SELECT count(*) FROM top_page WHERE count = 2 ALLOW FILTERING");
 		assertEquals(14, resultSet.one().getLong("count"));
 
-		resultSet = session.execute("SELECT * FROM top_pages WHERE count = 3 AND name = 'Marie Antoinette' ALLOW FILTERING");
+		resultSet = session.execute("SELECT * FROM top_page WHERE count = 3 AND name = 'Marie Antoinette' ALLOW FILTERING");
 		List<Row> list = resultSet.all();
 		assertTrue(list.size() == 1);
 		assertTrue(list.get(0).getLong("count") == 3L);
 
-		resultSet = session.execute("SELECT * FROM top_pages WHERE count = 3 AND name = 'Simone Zaza' ALLOW FILTERING");
+		resultSet = session.execute("SELECT * FROM top_page WHERE count = 3 AND name = 'Simone Zaza' ALLOW FILTERING");
 		List<Row> list2 = resultSet.all();
 		assertTrue(list2.size() == 1);
 		assertTrue(list2.get(0).getString("name").equals("Simone Zaza"));
@@ -194,25 +195,25 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessTopContentPages() throws ConfigurationException {
-		TopContentPagesBatch1 job4 = new TopContentPagesBatch1(configuration);
+		TopContentPagesBatch2 job4 = new TopContentPagesBatch2(configuration);
 		job4.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
 		job4.process();
 		
-		ResultSet resultSet = session.execute("SELECT count(1) FROM top_content_pages");
+		ResultSet resultSet = session.execute("SELECT count(1) FROM top_content_page");
 		assertEquals(385, resultSet.one().getLong("count"));
 		
-		resultSet = session.execute("SELECT count(*) FROM top_content_pages WHERE count >= 3 ALLOW FILTERING");
+		resultSet = session.execute("SELECT count(*) FROM top_content_page WHERE count >= 3 ALLOW FILTERING");
 		assertEquals(3, resultSet.one().getLong("count"));
 		
-		resultSet = session.execute("SELECT count(*) FROM top_content_pages WHERE count = 2 ALLOW FILTERING");
+		resultSet = session.execute("SELECT count(*) FROM top_content_page WHERE count = 2 ALLOW FILTERING");
 		assertEquals(11, resultSet.one().getLong("count"));
 		
-		resultSet = session.execute("SELECT * FROM top_content_pages WHERE count = 3 AND name = 'Marie Antoinette' ALLOW FILTERING");
+		resultSet = session.execute("SELECT * FROM top_content_page WHERE count = 3 AND name = 'Marie Antoinette' ALLOW FILTERING");
 		List<Row> list = resultSet.all();
 		assertTrue(list.size() == 1);
 		assertTrue(list.get(0).getLong("count") == 3L);
 		
-		resultSet = session.execute("SELECT * FROM top_content_pages WHERE count = 3 AND name = 'Simone Zaza' ALLOW FILTERING");
+		resultSet = session.execute("SELECT * FROM top_content_page WHERE count = 3 AND name = 'Simone Zaza' ALLOW FILTERING");
 		List<Row> list2 = resultSet.all();
 		assertTrue(list2.size() == 1);
 		assertTrue(list2.get(0).getString("name").equals("Simone Zaza"));
@@ -224,7 +225,7 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessAbsoluteValues() throws ConfigurationException {
-		AbsoluteValuesBatch1 job5 = new AbsoluteValuesBatch1(configuration);
+		AbsoluteValuesBatch2 job5 = new AbsoluteValuesBatch2(configuration);
 		job5.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
 		job5.process();
 		

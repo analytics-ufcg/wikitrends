@@ -1,7 +1,7 @@
 /**
  * 
  */
-package br.edu.ufcg.analytics.wikitrends.integration;
+package br.edu.ufcg.analytics.wikitrends.integration.batch1;
 
 import static org.junit.Assert.assertEquals;
 
