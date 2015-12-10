@@ -2,6 +2,7 @@ package br.edu.ufcg.analytics.wikitrends.processing.batch1;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -99,17 +100,17 @@ public class AbsoluteValuesBatch1 extends BatchLayer1Job {
 	}
 
 	private Long getOrigin(JavaRDD<EditChange> wikipediaEdits) {
-//		Comparator<EditChange> comp = new Comparator<EditChange>() {
-//
-//			@Override
-//			public EditChange compare(EditChange ec1, EditChange ec2) {
-//				if( ec1.getEventTimestamp().getTime() < ec2.getEventTimestamp().getTime() ) {
-//					return ec1;
-//				}
-//			}
-//		}
-//		return wikipediaEdits.min(comp).getEventTimestamp().getTime();
-		return 0L; //FIXME
+		return wikipediaEdits.min(new EditChangeComparator()).getEventTimestamp().getTime();
 	}
+	
+	
+	private class EditChangeComparator implements Comparator<EditChange>, Serializable {
+		private static final long serialVersionUID = 270079506147530661L;
 
+		@Override
+		public int compare(EditChange o1, EditChange o2) {
+			return o1.getEventTimestamp().compareTo(o2.getEventTimestamp());
+		}
+	}
 }
+
