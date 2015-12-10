@@ -86,10 +86,10 @@ master_dataset)
 	    echo "Master dataset created with success!"
 		;;
 	drop)
-	    echo "Creating master dataset schema"
+	    echo "Dropping master dataset schema"
 		source ${ENV_VAR_FILE}
 		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP
-	    echo "Master dataset created with success!"
+	    echo "Master dataset dropped with success!"
 		;;
 	populate)
 	    echo "Attempting to migrate master dataset from JSON file"
