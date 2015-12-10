@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -245,7 +246,15 @@ public class SmallDataBatch1IT {
 		assertEquals(distinct_servers_set.size(), 45);
 		
 		Long smaller_origin = list.get(0).getLong("smaller_origin");
+		DateTime date = new DateTime(smaller_origin);
 		
-		assertEquals((long)smaller_origin, (long)1447078824000L);
+		assertEquals(((long)1447078806000L), (long)smaller_origin);
+		
+		assertEquals(9, date.getDayOfMonth());
+		assertEquals(11, date.getMonthOfYear());
+		assertEquals(2015, date.getYear());
+		assertEquals(11, date.getHourOfDay());
+		assertEquals(20, date.getMinuteOfHour());
+		assertEquals(6, date.getSecondOfMinute());
 	}
 }

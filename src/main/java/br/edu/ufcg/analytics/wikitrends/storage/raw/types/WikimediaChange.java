@@ -39,7 +39,7 @@ public abstract class WikimediaChange implements Serializable {
 	}
 	
 	public WikimediaChange(UUID nonce, Integer id, String serverUrl, String serverName, String serverScriptPath, String wiki, String type,
-			Integer namespace, String user, Boolean bot, String comment, String title, LocalDateTime eventTimestamp) {
+			Integer namespace, String user, Boolean bot, String comment, String title, Long eventTimestamp) {
 		
 		this.nonce = nonce;
 		this.id = id;
@@ -53,11 +53,14 @@ public abstract class WikimediaChange implements Serializable {
 		this.bot = bot;
 		this.comment = comment;
 		this.title = title;
-		this.eventTimestamp = Date.from(eventTimestamp.toInstant(ZoneOffset.UTC));
-		setYear(eventTimestamp.getYear());
-		setMonth(eventTimestamp.getMonthValue());
-		setDay(eventTimestamp.getDayOfMonth());
-		setHour(eventTimestamp.getHour());
+		
+		LocalDateTime et = LocalDateTime.ofEpochSecond(eventTimestamp, 0, ZoneOffset.UTC);
+		this.eventTimestamp = Date.from(et.toInstant(ZoneOffset.UTC));
+		
+		setYear(et.getYear());
+		setMonth(et.getMonthValue());
+		setDay(et.getDayOfMonth());
+		setHour(et.getHour());
 	}
 	
 

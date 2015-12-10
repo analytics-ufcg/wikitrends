@@ -1,8 +1,6 @@
 package br.edu.ufcg.analytics.wikitrends.storage.raw.types;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.UUID;
 
 import com.google.gson.JsonObject;
@@ -25,7 +23,7 @@ public class LogChange extends WikimediaChange implements Serializable {
 	
 	
 	public LogChange(UUID nonce, Integer id, String serverUrl, String serverName, String serverScriptPath, String wiki, String type,
-			Integer namespace, String user, Boolean bot, String comment, String title, LocalDateTime eventTimestamp, Integer logId, 
+			Integer namespace, String user, Boolean bot, String comment, String title, Long eventTimestamp, Integer logId, 
 			String logType, String logAction, String logParams, String logActionComment) {
 		
 		super(nonce, id, serverUrl, serverName, serverScriptPath, wiki, type, namespace, user, bot, comment, title, eventTimestamp);
@@ -157,7 +155,7 @@ public class LogChange extends WikimediaChange implements Serializable {
 				object.get("server_script_path").getAsString(), object.get("wiki").getAsString(),
 				object.get("type").getAsString(), object.get("namespace").getAsInt(), object.get("user").getAsString(),
 				object.get("bot").getAsBoolean(), object.get("comment").getAsString(), object.get("title").getAsString(),
-				LocalDateTime.ofEpochSecond(object.get("timestamp").getAsLong(), 0, ZoneOffset.UTC),
+				object.get("timestamp").getAsLong(),
 				object.get("log_id").getAsInt(), log_type, object.get("log_action").getAsString(), log_params,
 				object.get("log_action_comment").getAsString());
 	}
