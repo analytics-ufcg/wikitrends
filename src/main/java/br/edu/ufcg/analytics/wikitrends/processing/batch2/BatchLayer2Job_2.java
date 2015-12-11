@@ -20,6 +20,7 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.datastax.spark.connector.japi.CassandraRow;
+import com.datastax.spark.connector.types.TypeConverter;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
@@ -45,6 +46,8 @@ public abstract class BatchLayer2Job_2 implements WikiTrendsProcess {
 	private String[] seeds;
 	
 	private String batchViews2Keyspace;
+
+	private LocalDateTime startTime;
 	
 	public BatchLayer2Job_2(Configuration configuration) {
 		createJavaSparkContext(configuration);
@@ -84,6 +87,14 @@ public abstract class BatchLayer2Job_2 implements WikiTrendsProcess {
 	
 	public void setCurrentTime(LocalDateTime currentTime) {
 		this.currentTime = currentTime;
+	}
+	
+	public LocalDateTime getStartTime() {
+		return this.startTime;
+	}
+	
+	public void setStartTime(LocalDateTime startTime) {
+		this.startTime = startTime;
 	}
 
 	public String getBatchViews2Keyspace() {
@@ -135,7 +146,13 @@ public abstract class BatchLayer2Job_2 implements WikiTrendsProcess {
 		try (Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
 				Session session = cluster.newSession();) {
 
-			while(getCurrentTime().isBefore(getStopTime())){
+			while(getCurrentTime().isBefore(getStopTime())) {
+//				setStartTime(LocalDateTime.of(lastBatchExecutionStatus.getInt("year"),
+//											  lastBatchExecutionStatus.getInt("month"),
+//											  lastBatchExecutionStatus.getInt("day"),
+//											  lastBatchExecutionStatus.getInt("hour"),
+//											  0));
+				
 				new TopEditorsBatch2(configuration).process();
 				new TopContentPagesBatch2(configuration).process();
 				new TopPagesBatch2(configuration).process();

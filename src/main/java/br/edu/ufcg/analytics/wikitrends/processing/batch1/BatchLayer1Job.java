@@ -39,7 +39,7 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 
 	protected transient Configuration configuration;
 	
-	private static LocalDateTime currentTime;
+	private LocalDateTime currentTime;
 	private LocalDateTime stopTime;
 	private String[] seeds;
 
@@ -47,21 +47,26 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 	
 	// transient: do not serialize this variable
 	private transient JavaSparkContext sc;
-	
+
 	/**
-	 * Default constructor
+	 * Default constructor.
+	 * 
+	 * NOTE: It takes the currentTime from status table on DB and
+	 * add 1 hour to it. This currentTime is used to process the correct
+	 * data on process() function.
+	 * 
 	 * @param configuration 
 	 */
-	public BatchLayer1Job(Configuration configuration) {
+	public BatchLayer1Job(Configuration configuration, String processStatusID) {
 		createJavaSparkContext(configuration);
 		
 		setBatchViewsKeyspace(configuration.getString("wikitrends.batch.cassandra.keyspace"));
 		
-		seeds = configuration.getStringArray("spark.cassandra.connection.host");
+		setSeeds(configuration.getStringArray("spark.cassandra.connection.host"));
 
 		try (Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
 				Session session = cluster.newSession();) {
-			ResultSet resultSet = session.execute("SELECT * FROM batch_views.status WHERE id = ? LIMIT 1", "servers_ranking");
+			ResultSet resultSet = session.execute("SELECT * FROM batch_views.status WHERE id = ? LIMIT 1", processStatusID);
 			List<Row> all = resultSet.all();
 			if(!all.isEmpty()){
 				Row row = all.get(0);
@@ -72,10 +77,18 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 		}
 
 		//	end = LocalDateTime.ofInstant(Instant.ofEpochMilli((System.currentTimeMillis() / 3600000) * 3600000), ZoneId.systemDefault());
-		setStopTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.stoptime") * 1000), ZoneId.systemDefault()));
+		//  setStopTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.stoptime") * 1000), ZoneId.systemDefault()));
 		//	end = LocalDateTime.of(2015, 11, 9, 12, 0) ;
 	}
 	
+	public String[] getSeeds() {
+		return seeds;
+	}
+
+	public void setSeeds(String[] seeds) {
+		this.seeds = seeds;
+	}
+
 	public LocalDateTime getStopTime() {
 		return this.stopTime;
 	}
@@ -88,8 +101,8 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 		return this.currentTime;
 	}
 	
-	public void setCurrentTime(LocalDateTime currentTime) {
-		this.currentTime = currentTime;
+	public void setCurrentTime(LocalDateTime localDateTime) {
+		this.currentTime = localDateTime;
 	}
 
 	public String getBatchViewsKeyspace() {
@@ -118,6 +131,7 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 	}
 	
 	@Override
+	@Deprecated
 	public void run() {
 
 		try (Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
@@ -173,6 +187,8 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 	}
 	
 	public abstract void process();
+	
+	public abstract void run2();
 	
 	public void finalizeSparkContext() {
 		this.sc.close();

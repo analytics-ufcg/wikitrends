@@ -9,6 +9,8 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Session;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
@@ -17,6 +19,7 @@ import scala.Tuple2;
 
 public class TopEditorsBatch1 extends BatchLayer1Job {
 
+	private static final String TOP_EDITORS_STATUS_ID = "top_editors";
 	/**
 	 * @since December 3, 2015
 	 */
@@ -24,7 +27,7 @@ public class TopEditorsBatch1 extends BatchLayer1Job {
 	private String usersTable;
 
 	public TopEditorsBatch1(Configuration configuration) {
-		super(configuration);
+		super(configuration, TOP_EDITORS_STATUS_ID);
 		this.usersTable = configuration.getString("wikitrends.batch.cassandra.table.editors");
 	}
 	
@@ -63,7 +66,26 @@ public class TopEditorsBatch1 extends BatchLayer1Job {
 			.writerBuilder(getBatchViewsKeyspace(), usersTable, mapToRow(TopClass.class))
 			.saveToCassandra();
 		
-		finalizeSparkContext();
+	}
+
+	@Override
+	public void run2() {
+		try (Cluster cluster = Cluster.builder().addContactPoints(getSeeds()).build();
+				Session session = cluster.newSession();) {
+			
+			while(getCurrentTime().isBefore(getStopTime())) {
+				new TopIdiomsBatch1(configuration).process();
+			
+				session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+										TOP_EDITORS_STATUS_ID, 
+										getCurrentTime().getYear(), 
+										getCurrentTime().getMonthValue(), 
+										getCurrentTime().getDayOfMonth(), 
+										getCurrentTime().getHour());
+				
+				this.setCurrentTime(getCurrentTime().plusHours(1));
+			}
+		}
 	}
 
 }

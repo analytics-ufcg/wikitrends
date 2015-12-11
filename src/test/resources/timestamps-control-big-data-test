@@ -1,0 +1,11 @@
+timestamps: 
+
+lines in file big_test_data2.json and respective time intervals on UTC timezone
+
+lines 1-500 => 
+		{ Sat Nov  7 15:37:49 UTC 2015 | Sat Nov  7 15:38:23 UTC 2015 }
+lines 501-7150 => 
+		{ Sat Nov  7 16:09:28 UTC 2015 | Sat Nov  7 16:16:52 UTC 2015 }
+lines 7151-11611 =>
+		{ Sat Nov  7 17:08:25 UTC 2015 | Sat Nov  7 17:12:40 UTC 2015 }
+

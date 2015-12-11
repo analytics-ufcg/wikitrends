@@ -2,10 +2,14 @@ package br.edu.ufcg.analytics.wikitrends.processing.batch1;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
+import java.time.LocalDateTime;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Session;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
@@ -15,11 +19,13 @@ import scala.Tuple2;
 public class TopPagesBatch1 extends BatchLayer1Job {
 
 	private static final long serialVersionUID = 8312361071938353760L;
+
+	private static final String TOP_PAGES_STATUS_ID = "top_pages";
 	
 	private String pagesTable;
 
 	public TopPagesBatch1(Configuration configuration) {
-		super(configuration);
+		super(configuration, TOP_PAGES_STATUS_ID);
 		
 		pagesTable = configuration.getString("wikitrends.batch.cassandra.table.pages");
 	}
@@ -39,6 +45,25 @@ public class TopPagesBatch1 extends BatchLayer1Job {
 			.writerBuilder(getBatchViewsKeyspace(), pagesTable, mapToRow(TopClass.class))
 			.saveToCassandra();
 		
-		finalizeSparkContext();
+	}
+
+	@Override
+	public void run2() {
+		try (Cluster cluster = Cluster.builder().addContactPoints(getSeeds()).build();
+				Session session = cluster.newSession();) {
+			
+			while(getCurrentTime().isBefore(getStopTime())) {
+				new TopIdiomsBatch1(configuration).process();
+			
+				session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+										TOP_PAGES_STATUS_ID, 
+										getCurrentTime().getYear(), 
+										getCurrentTime().getMonthValue(), 
+										getCurrentTime().getDayOfMonth(), 
+										getCurrentTime().getHour());
+				
+				this.setCurrentTime(getCurrentTime().plusHours(1));
+			}
+		}
 	}
 }

@@ -45,7 +45,7 @@ public class SmallDataBatch1IT {
 	private Cluster cluster;
 	private Session session;
 
-
+	private static LocalDateTime currentTime;
 
 	/**
 	 * @throws java.lang.Exception
@@ -62,13 +62,18 @@ public class SmallDataBatch1IT {
 				Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
 				Session session = cluster.newSession();
 				){
-
+			
+			new CassandraMasterDatasetManager().dropTables(session);
+			new CassandraServingLayer1Manager().dropTables(session);
+			
 			new CassandraMasterDatasetManager().createTables(session);
 			new CassandraServingLayer1Manager().createTables(session);
 
 		}
 
 		new CassandraMasterDatasetManager().populate(INPUT_FILE);
+		
+		setCurrentTime(LocalDateTime.of(2015, 11, 9, 13, 00));
 	}
 	
 	/**
@@ -78,11 +83,11 @@ public class SmallDataBatch1IT {
 	@AfterClass
 	public static void cleanMasterDataset() throws Exception {
 
-		try (Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
-				Session session = cluster.newSession();) {
-			new CassandraMasterDatasetManager().dropTables(session);
-			new CassandraServingLayer1Manager().dropTables(session);
-		}
+//		try (Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
+//				Session session = cluster.newSession();) {
+//			new CassandraMasterDatasetManager().dropTables(session);
+//			new CassandraServingLayer1Manager().dropTables(session);
+//		}
 
 	}
 
@@ -110,16 +115,30 @@ public class SmallDataBatch1IT {
 		cluster.close();
 	}
 
+	private static void setCurrentTime(LocalDateTime cTime) {
+		currentTime = cTime;
+	}
 
+	public static LocalDateTime getCurrentTime() {
+		return currentTime;
+	}
+	
 	/**
 	 * @throws ConfigurationException
 	 */
 	@Test
 	public void testProcessTopEditors() throws ConfigurationException {
-
+		
+		session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+										"top_editors", 
+										getCurrentTime().getYear(), 
+										getCurrentTime().getMonthValue(), 
+										getCurrentTime().getDayOfMonth(), 
+										getCurrentTime().getHour());
+		
 		TopEditorsBatch1 job = new TopEditorsBatch1(configuration);
-		job.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
 		job.process();
+		job.finalizeSparkContext();
 
 		assertEquals(327, session.execute("SELECT count(1) FROM batch_views.top_editors").one().getLong("count"));
 		assertEquals(510, session.execute("SELECT sum(count) as ranking_sum FROM batch_views.top_editors").one().getLong("ranking_sum"));
@@ -136,9 +155,16 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessTopIdioms() throws ConfigurationException {
-		TopIdiomsBatch1 job3 = new TopIdiomsBatch1(configuration);
-		job3.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
-		job3.process();
+		session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+				"top_idioms", 
+				getCurrentTime().getYear(), 
+				getCurrentTime().getMonthValue(), 
+				getCurrentTime().getDayOfMonth(), 
+				getCurrentTime().getHour());
+		
+		TopIdiomsBatch1 job = new TopIdiomsBatch1(configuration);
+		job.process();
+		job.finalizeSparkContext();
 		
 		ResultSet resultSet = session.execute("SELECT count(1) FROM top_idioms");
 		assertEquals(45, resultSet.one().getLong("count"));
@@ -165,9 +191,16 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessTopPages() throws ConfigurationException {
-		TopPagesBatch1 job2 = new TopPagesBatch1(configuration);
-		job2.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
-		job2.process();
+		session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+				"top_pages", 
+				getCurrentTime().getYear(), 
+				getCurrentTime().getMonthValue(), 
+				getCurrentTime().getDayOfMonth(), 
+				getCurrentTime().getHour());
+		
+		TopPagesBatch1 job = new TopPagesBatch1(configuration);
+		job.process();
+		job.finalizeSparkContext();
 		
 		ResultSet resultSet = session.execute("SELECT count(1) FROM top_pages");
 		assertEquals(490, resultSet.one().getLong("count"));
@@ -194,9 +227,16 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessTopContentPages() throws ConfigurationException {
-		TopContentPagesBatch1 job4 = new TopContentPagesBatch1(configuration);
-		job4.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
-		job4.process();
+		session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+				"top_content_pages", 
+				getCurrentTime().getYear(), 
+				getCurrentTime().getMonthValue(), 
+				getCurrentTime().getDayOfMonth(), 
+				getCurrentTime().getHour());
+		
+		TopContentPagesBatch1 job = new TopContentPagesBatch1(configuration);
+		job.process();
+		job.finalizeSparkContext();
 		
 		ResultSet resultSet = session.execute("SELECT count(1) FROM top_content_pages");
 		assertEquals(385, resultSet.one().getLong("count"));
@@ -224,9 +264,16 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessAbsoluteValues() throws ConfigurationException {
-		AbsoluteValuesBatch1 job5 = new AbsoluteValuesBatch1(configuration);
-		job5.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
-		job5.process();
+		session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+				"absolute_values", 
+				getCurrentTime().getYear(), 
+				getCurrentTime().getMonthValue(), 
+				getCurrentTime().getDayOfMonth(), 
+				getCurrentTime().getHour());
+		
+		AbsoluteValuesBatch1 job = new AbsoluteValuesBatch1(configuration);
+		job.process();
+		job.finalizeSparkContext();
 		
 		ResultSet resultSet = session.execute("SELECT * FROM absolute_values WHERE year = 2015 AND month = 11 AND day = 9 AND hour = 14");
 		List<Row> list = resultSet.all();
