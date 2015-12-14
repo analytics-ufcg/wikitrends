@@ -20,10 +20,10 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.datastax.spark.connector.japi.CassandraRow;
-import com.datastax.spark.connector.types.TypeConverter;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
+import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.TopResult;
 import scala.Tuple2;
 
@@ -40,25 +40,29 @@ public abstract class BatchLayer2Job_2 implements WikiTrendsProcess {
 	protected transient JavaSparkContext sc;
 	protected transient Configuration configuration;
 	
-	private static LocalDateTime currentTime;
+	private LocalDateTime currentTime;
 	private LocalDateTime stopTime;
 	
 	private String[] seeds;
 	
 	private String batchViews2Keyspace;
 
-	private LocalDateTime startTime;
+	private String PROCESS_STATUS_ID;
+	private String PROCESS_RESULT_ID;
 	
-	public BatchLayer2Job_2(Configuration configuration) {
+	public BatchLayer2Job_2(Configuration configuration, JobStatusID processStatusId, ProcessResultID pId) {
 		createJavaSparkContext(configuration);
 		
-		setBatchViews2Keyspace(configuration.getString("wikitrends.serving.cassandra.keyspace"));
+		setBatchViews2Keyspace(configuration.getString("wikitrends.serving2.cassandra.keyspace"));
+		
+		setProcessStatusID(processStatusId);
+		setProcessResultID(pId);
 		
 		seeds = configuration.getStringArray("spark.cassandra.connection.host");
 
 		try (Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
 				Session session = cluster.newSession();) {
-			ResultSet resultSet = session.execute("SELECT * FROM batch_views.status WHERE id = ? LIMIT 1", "servers_ranking");
+			ResultSet resultSet = session.execute("SELECT * FROM job_times.status WHERE id = ? LIMIT 1", getProcessStatusID());
 			List<Row> all = resultSet.all();
 			if(!all.isEmpty()){
 				Row row = all.get(0);
@@ -69,8 +73,33 @@ public abstract class BatchLayer2Job_2 implements WikiTrendsProcess {
 		}
 
 		//	end = LocalDateTime.ofInstant(Instant.ofEpochMilli((System.currentTimeMillis() / 3600000) * 3600000), ZoneId.systemDefault());
-		setStopTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.stoptime") * 1000), ZoneId.systemDefault()));
+		//	setStopTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.stoptime") * 1000), ZoneId.systemDefault()));
 		//	end = LocalDateTime.of(2015, 11, 9, 12, 0) ;
+	}
+	
+	
+	public void setProcessResultID(ProcessResultID pId) {
+		this.PROCESS_RESULT_ID = pId.getID();
+	}
+	
+	public String getProcessResultID() {
+		return this.PROCESS_RESULT_ID;
+	}
+
+	public String getProcessStatusID() {
+		return PROCESS_STATUS_ID;
+	}
+
+	public void setProcessStatusID(JobStatusID processStatusId) {
+		this.PROCESS_STATUS_ID = processStatusId.getStatus_id();
+	}
+
+	public String[] getSeeds() {
+		return seeds;
+	}
+
+	public void setSeeds(String[] seeds) {
+		this.seeds = seeds;
 	}
 	
 	public LocalDateTime getStopTime() {
@@ -89,14 +118,6 @@ public abstract class BatchLayer2Job_2 implements WikiTrendsProcess {
 		this.currentTime = currentTime;
 	}
 	
-	public LocalDateTime getStartTime() {
-		return this.startTime;
-	}
-	
-	public void setStartTime(LocalDateTime startTime) {
-		this.startTime = startTime;
-	}
-
 	public String getBatchViews2Keyspace() {
 		return batchViews2Keyspace;
 	}
@@ -126,6 +147,7 @@ public abstract class BatchLayer2Job_2 implements WikiTrendsProcess {
 	 * @see br.edu.ufcg.analytics.wikitrends.spark.SparkJob#run()
 	 */
 	@Override
+	@Deprecated
 	public void run() {
 
 		SparkConf conf = new SparkConf();
@@ -166,32 +188,38 @@ public abstract class BatchLayer2Job_2 implements WikiTrendsProcess {
 				
 			}
 		}
-		
 	}
 	
 	public JavaRDD<TopResult> computeFullRankingFromPartial(String tableName) {
-		
 		return javaFunctions(this.sc)
-			    .cassandraTable("batch_views", tableName, mapRowToTuple(String.class, Long.class))
+			    .cassandraTable("batch_views1", tableName, mapRowToTuple(String.class, Long.class))
 			    .select("name", "count")
 			    .mapToPair(row -> new Tuple2<String, Long>(row._1, row._2)).reduceByKey((a,b) -> a+b)
-			    .map( tuple -> new TopResult(tuple._1, tuple._2, 
-			    		getCurrentTime().getYear(), 
-			    		getCurrentTime().getMonthValue(), 
-			    		getCurrentTime().getDayOfMonth(), 
-			    		getCurrentTime().getHour()));
-		
-//		javaFunctions(fullRanking).writerBuilder(servingKeyspace, tableName, rowWriterFactory);
-//		
-//		JavaRDD<Tuple2<String, Long>> partialRankings = javaFunctions(sc)
-//				.cassandraTable("batch_views", tableName, mapRowTo(mapColumnTo(String.class), mapColumnTo(Long.class)))
-//				.select("name", "count");
-//		
-//		CassandraJavaUtil.javaFunctions(sc).toJavaPairRDD(partialRankings, String.class, Long.class);
-		
+			    .map( tuple -> new TopResult(getProcessResultID(), tuple._1, tuple._2));
     }
 		
 	public abstract void process();
+	
+	public void run2() {
+		try (Cluster cluster = Cluster.builder().addContactPoints(getSeeds()).build();
+				Session session = cluster.newSession();) {
+			
+			while(getCurrentTime().isBefore(getStopTime())) {
+				process();
+			
+				session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+										PROCESS_STATUS_ID, 
+										getCurrentTime().getYear(), 
+										getCurrentTime().getMonthValue(), 
+										getCurrentTime().getDayOfMonth(), 
+										getCurrentTime().getHour());
+				
+				this.setCurrentTime(getCurrentTime().plusHours(1));
+			}
+		} finally {
+			finalizeSparkContext();
+		}
+	}
 	
 	public void finalizeSparkContext() {
 		this.sc.close();

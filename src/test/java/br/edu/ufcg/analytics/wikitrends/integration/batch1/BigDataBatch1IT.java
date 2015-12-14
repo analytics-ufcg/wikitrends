@@ -4,16 +4,12 @@
 package br.edu.ufcg.analytics.wikitrends.integration.batch1;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -25,9 +21,10 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
+import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
 import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopEditorsBatch1;
 import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopIdiomsBatch1;
-import br.edu.ufcg.analytics.wikitrends.processing.batch2.CassandraBatchLayer2Job;
+import br.edu.ufcg.analytics.wikitrends.storage.CassandraJobTimesStatusManager;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.CassandraServingLayer2Manager;
@@ -67,6 +64,10 @@ public class BigDataBatch1IT {
 			new CassandraMasterDatasetManager().dropTables(session);
 			new CassandraServingLayer1Manager().dropTables(session);
 			new CassandraServingLayer2Manager().dropTables(session);
+			
+			new CassandraJobTimesStatusManager().dropTables(session);
+			
+			new CassandraJobTimesStatusManager().createTables(session);
 			
 			new CassandraMasterDatasetManager().createTables(session);
 			new CassandraServingLayer1Manager().createTables(session);
@@ -173,8 +174,8 @@ public class BigDataBatch1IT {
 	 */
 	@Test
 	public void testRunTopIdioms() throws ConfigurationException {
-		session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
-				"top_idioms", 
+		session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+				JobStatusID.TOP_IDIOMS_BATCH_1.getStatus_id(), 
 				getCurrentTime().getYear(), 
 				getCurrentTime().getMonthValue(), 
 				getCurrentTime().getDayOfMonth(), 
@@ -184,7 +185,7 @@ public class BigDataBatch1IT {
 		job.setStopTime(getStopTime());
 		job.run2();
 		
-		session.execute("USE batch_views");
+		session.execute("USE batch_views1");
 		ResultSet resultSet = session.execute("SELECT count(1) FROM top_idioms");
 		assertEquals(162, resultSet.one().getLong("count"));
 		
@@ -192,16 +193,15 @@ public class BigDataBatch1IT {
 		assertEquals(107, resultSet.one().getLong("count"));
 		
 		resultSet = session.execute("SELECT count(*) FROM top_idioms WHERE count = 2 ALLOW FILTERING");
-		assertEquals(12, resultSet.one().getLong("count"));
+		assertEquals(18, resultSet.one().getLong("count"));
 		
-		resultSet = session.execute("SELECT * FROM top_idioms WHERE count = 115 AND name = 'en.wikipedia.org' ALLOW FILTERING");
+		resultSet = session.execute("SELECT * FROM top_idioms WHERE count = 560 ALLOW FILTERING");
 		List<Row> list = resultSet.all();
-		assertTrue(list.size() == 1);
-		assertTrue(list.get(0).getLong("count") == 115L);
-		
-		resultSet = session.execute("SELECT * FROM top_idioms WHERE count = 55 AND name = 'it.wikipedia.org' ALLOW FILTERING");
-		List<Row> list2 = resultSet.all();
-		assertTrue(list2.size() == 1);
-		assertTrue(list2.get(0).getString("name").equals("it.wikipedia.org"));
+		assertEquals(list.size(), 1);
+		assertEquals(list.get(0).getString("name"), "en.wikipedia.org");
+		assertEquals(list.get(0).getInt("year"), 2015);
+		assertEquals(list.get(0).getInt("month"), 11);
+		assertEquals(list.get(0).getInt("day"), 7);
+		assertEquals(list.get(0).getInt("hour"), 17);
 	}
 }

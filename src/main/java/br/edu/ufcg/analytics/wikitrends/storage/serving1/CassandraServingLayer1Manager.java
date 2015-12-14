@@ -16,9 +16,9 @@ public class CassandraServingLayer1Manager implements Serializable {
 
 	public void createTables(Session session) {
 		
-		session.execute("CREATE KEYSPACE batch_views WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
+		session.execute("CREATE KEYSPACE batch_views1 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
 
-		session.execute("CREATE TABLE IF NOT EXISTS batch_views." + 
+		session.execute("CREATE TABLE IF NOT EXISTS batch_views1." + 
 								"top_editors" + 
 								"(name TEXT," +
 								"count BIGINT," +
@@ -32,7 +32,7 @@ public class CassandraServingLayer1Manager implements Serializable {
 								"WITH CLUSTERING ORDER BY (count DESC, name ASC);"
 							);
 
-        session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
+        session.execute("CREATE TABLE IF NOT EXISTS batch_views1." +
 								"top_idioms" +
 								
 								"(name TEXT," +
@@ -47,7 +47,7 @@ public class CassandraServingLayer1Manager implements Serializable {
 								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
             		);
            
-        session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
+        session.execute("CREATE TABLE IF NOT EXISTS batch_views1." +
 								"top_pages" +
 								
 								"(name TEXT," +
@@ -62,7 +62,7 @@ public class CassandraServingLayer1Manager implements Serializable {
 								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
             		);
             
-        session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
+        session.execute("CREATE TABLE IF NOT EXISTS batch_views1." +
 								"top_content_pages" +
 								
 								"(name TEXT," +
@@ -77,7 +77,7 @@ public class CassandraServingLayer1Manager implements Serializable {
 								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
             		);
             
-        session.execute("CREATE TABLE IF NOT EXISTS batch_views." +
+        session.execute("CREATE TABLE IF NOT EXISTS batch_views1." +
 					            "absolute_values" +
 								"(id UUID," +
 								"edits_data MAP<TEXT,BIGINT>," +
@@ -98,7 +98,7 @@ public class CassandraServingLayer1Manager implements Serializable {
 				);
             
             
-        session.execute("CREATE TABLE IF NOT EXISTS batch_views.users_ranking(" + 
+        session.execute("CREATE TABLE IF NOT EXISTS batch_views1.users_ranking(" + 
 							"name TEXT," +
 							"count BIGINT," +
 							
@@ -111,7 +111,7 @@ public class CassandraServingLayer1Manager implements Serializable {
 							"WITH CLUSTERING ORDER BY (count DESC, name ASC);"
         		);
             
-        session.execute("CREATE TABLE IF NOT EXISTS batch_views.servers_ranking (" + 
+        session.execute("CREATE TABLE IF NOT EXISTS batch_views1.servers_ranking (" + 
 		            		"year INT," +
 		            		"month INT," +
 		            		"day INT," +
@@ -124,7 +124,7 @@ public class CassandraServingLayer1Manager implements Serializable {
 		            		"WITH CLUSTERING ORDER BY (count DESC, name ASC);"
             	);
            
-        session.execute("CREATE TABLE IF NOT EXISTS batch_views.status (" + 
+        session.execute("CREATE TABLE IF NOT EXISTS batch_views1.status (" + 
 		            		"id TEXT," +
 		            		
 		            		"year INT," +
@@ -149,7 +149,7 @@ public class CassandraServingLayer1Manager implements Serializable {
 	 */
 	public void dropTables(Session session) {
 	
-		session.execute("DROP KEYSPACE IF EXISTS batch_views");
+		session.execute("DROP KEYSPACE IF EXISTS batch_views1");
 	}
 
 	/**

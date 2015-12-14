@@ -22,6 +22,7 @@ import com.datastax.spark.connector.japi.CassandraRow;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
+import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
 
@@ -48,6 +49,8 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 	// transient: do not serialize this variable
 	private transient JavaSparkContext sc;
 
+	private String PROCESS_STATUS_ID;
+
 	/**
 	 * Default constructor.
 	 * 
@@ -57,16 +60,18 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 	 * 
 	 * @param configuration 
 	 */
-	public BatchLayer1Job(Configuration configuration, String processStatusID) {
+	public BatchLayer1Job(Configuration configuration, JobStatusID processStatusId) {
 		createJavaSparkContext(configuration);
 		
-		setBatchViewsKeyspace(configuration.getString("wikitrends.batch.cassandra.keyspace"));
+		setProcessStatusID(processStatusId);
+		
+		setBatchViewsKeyspace(configuration.getString("wikitrends.serving1.cassandra.keyspace"));
 		
 		setSeeds(configuration.getStringArray("spark.cassandra.connection.host"));
 
 		try (Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
 				Session session = cluster.newSession();) {
-			ResultSet resultSet = session.execute("SELECT * FROM batch_views.status WHERE id = ? LIMIT 1", processStatusID);
+			ResultSet resultSet = session.execute("SELECT * FROM job_times.status WHERE id = ? LIMIT 1", getProcessStatusID());
 			List<Row> all = resultSet.all();
 			if(!all.isEmpty()){
 				Row row = all.get(0);
@@ -81,6 +86,14 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 		//	end = LocalDateTime.of(2015, 11, 9, 12, 0) ;
 	}
 	
+	public String getProcessStatusID() {
+		return PROCESS_STATUS_ID;
+	}
+
+	public void setProcessStatusID(JobStatusID topIdiomsStatusId) {
+		this.PROCESS_STATUS_ID = topIdiomsStatusId.getStatus_id();
+	}
+
 	public String[] getSeeds() {
 		return seeds;
 	}
@@ -188,7 +201,26 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 	
 	public abstract void process();
 	
-	public abstract void run2();
+	public void run2() {
+		try (Cluster cluster = Cluster.builder().addContactPoints(getSeeds()).build();
+				Session session = cluster.newSession();) {
+			
+			while(getCurrentTime().isBefore(getStopTime())) {
+				process();
+			
+				session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+										PROCESS_STATUS_ID, 
+										getCurrentTime().getYear(), 
+										getCurrentTime().getMonthValue(), 
+										getCurrentTime().getDayOfMonth(), 
+										getCurrentTime().getHour());
+				
+				this.setCurrentTime(getCurrentTime().plusHours(1));
+			}
+		} finally {
+			finalizeSparkContext();
+		}
+	}
 	
 	public void finalizeSparkContext() {
 		this.sc.close();

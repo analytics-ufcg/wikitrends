@@ -13,13 +13,14 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
+import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
 import scala.Tuple2;
 
 public class TopEditorsBatch1 extends BatchLayer1Job {
 
-	private static final String TOP_EDITORS_STATUS_ID = "top_editors";
+	private static final JobStatusID TOP_EDITORS_STATUS_ID = JobStatusID.TOP_EDITORS_BATCH_1;
 	/**
 	 * @since December 3, 2015
 	 */
@@ -28,7 +29,7 @@ public class TopEditorsBatch1 extends BatchLayer1Job {
 
 	public TopEditorsBatch1(Configuration configuration) {
 		super(configuration, TOP_EDITORS_STATUS_ID);
-		this.usersTable = configuration.getString("wikitrends.batch.cassandra.table.editors");
+		this.usersTable = configuration.getString("wikitrends.serving1.cassandra.table.editors");
 	}
 	
 	@Override

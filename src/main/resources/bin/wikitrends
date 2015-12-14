@@ -138,6 +138,20 @@ serving_2)
 		;;    
     esac
     ;;
+job_times)
+	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.CassandraJobTimesStatusManager
+	case $2 in
+	createschema)
+	    echo "Creating serving layer 2 schema"
+		source ${ENV_VAR_FILE}
+		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3
+	    echo "Serving layer 2 schema created with success!"
+		;;
+	*)
+		show_help
+		;;    
+    esac
+    ;;
 speed)
 	MASTER_ADDRESS=${MASTER_ADDRESS%:*}:6066
     case $2 in

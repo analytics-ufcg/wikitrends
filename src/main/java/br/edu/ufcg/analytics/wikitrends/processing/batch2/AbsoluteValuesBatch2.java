@@ -16,6 +16,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.spark.connector.cql.CassandraConnector;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
+import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultAbsoluteValuesShot;
 
 public class AbsoluteValuesBatch2 extends BatchLayer2Job_2 {
@@ -23,11 +24,13 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job_2 {
 	private static final long serialVersionUID = -8968582683538025373L;
 	
 	private String absoluteValuesTable;
+	private final static JobStatusID ABS_VALUES_STATUS_ID = JobStatusID.ABS_VALUES_BATCH_2;
+	private final static ProcessResultID ABSOLUTE_VALUES_PROCESS_RESULT_ID = ProcessResultID.ABSOLUTE_VALUES;
 	
 	public AbsoluteValuesBatch2(Configuration configuration) {
-		super(configuration);
+		super(configuration, ABS_VALUES_STATUS_ID, ABSOLUTE_VALUES_PROCESS_RESULT_ID);
 		
-		absoluteValuesTable = configuration.getString("wikitrends.serving.cassandra.table.absolutevalue");
+		absoluteValuesTable = configuration.getString("wikitrends.serving2.cassandra.table.absolutevalues");
 	}
 	
 	
@@ -170,24 +173,19 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job_2 {
 		
 		Long smaller_origin = getSmallerOrigin(); 
 		
-		ResultAbsoluteValuesShot result = new ResultAbsoluteValuesShot(edits_data.get("all_edits"),
-											edits_data.get("minor_edits"),
-											edits_data.get("average_size"),
-											distinct_pages_count,
-											distincts_editors_count,
-											distincts_servers_count,
-											smaller_origin,
-											getCurrentTime().getYear(),
-											getCurrentTime().getMonthValue(),
-											getCurrentTime().getDayOfMonth(),
-											getCurrentTime().getHour());
+		ResultAbsoluteValuesShot result = new ResultAbsoluteValuesShot(getProcessResultID(),
+																		edits_data.get("all_edits"),
+																		edits_data.get("minor_edits"),
+																		edits_data.get("average_size"),
+																		distinct_pages_count,
+																		distincts_editors_count,
+																		distincts_servers_count,
+																		smaller_origin);
 		
 		List<ResultAbsoluteValuesShot> list = Arrays.asList(result);
 		CassandraJavaUtil.javaFunctions(sc.parallelize(list))
 								.writerBuilder(getBatchViews2Keyspace(), absoluteValuesTable, mapToRow(ResultAbsoluteValuesShot.class))
 								.saveToCassandra();
-		
-		finalizeSparkContext();
 	}
 	
 }

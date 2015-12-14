@@ -18,6 +18,7 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
+import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.AbsoluteValuesShot;
 
@@ -25,14 +26,14 @@ public class AbsoluteValuesBatch1 extends BatchLayer1Job {
 
 	private static final long serialVersionUID = 4394268380743075556L;
 
-	private static final String ABSOLUTE_VALUES_STATUS_ID = "absolute_values";
+	private static final JobStatusID ABSOLUTE_VALUES_STATUS_ID = JobStatusID.ABS_VALUES_BATCH_1;
 
 	private String absoluteValuesTable;
 
 	public AbsoluteValuesBatch1(Configuration configuration) {
 		super(configuration, ABSOLUTE_VALUES_STATUS_ID);
 		
-		absoluteValuesTable = configuration.getString("wikitrends.batch.cassandra.table.absolutevalues");
+		absoluteValuesTable = configuration.getString("wikitrends.serving1.cassandra.table.absolutevalues");
 	}
 	
 	public void process() {
