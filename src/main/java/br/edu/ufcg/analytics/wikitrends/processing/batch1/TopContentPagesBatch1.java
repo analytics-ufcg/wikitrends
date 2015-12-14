@@ -2,7 +2,6 @@ package br.edu.ufcg.analytics.wikitrends.processing.batch1;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 import org.apache.commons.configuration.Configuration;
@@ -13,6 +12,7 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
+import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
 import scala.Tuple2;
@@ -21,14 +21,14 @@ public class TopContentPagesBatch1 extends BatchLayer1Job {
 
 	private static final long serialVersionUID = 5005439419731611631L;
 
-	private static final String TOP_CONTENT_PAGES_STATUS_ID = "top_content_pages";
+	private static final JobStatusID TOP_CONTENT_PAGES_STATUS_ID = JobStatusID.TOP_CONTENT_PAGES_BATCH_1;
 
 	private String contentPagesTable;
 
 	public TopContentPagesBatch1(Configuration configuration) {
 		super(configuration, TOP_CONTENT_PAGES_STATUS_ID);
 		
-		contentPagesTable = configuration.getString("wikitrends.batch.cassandra.table.contentpages");
+		contentPagesTable = configuration.getString("wikitrends.serving1.cassandra.table.contentpages");
 	}
 
 	public void process() {

@@ -18,69 +18,41 @@ public class CassandraServingLayer2Manager implements Serializable {
 	// Prepare the schema
 	public void createTables(Session session) {
                     
-            session.execute("CREATE KEYSPACE IF NOT EXISTS results WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
+            session.execute("CREATE KEYSPACE IF NOT EXISTS batch_views2 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
             
-            session.execute("CREATE TABLE IF NOT EXISTS results." +
-								"top_editor" +
-								"(id UUID," +
+            session.execute("CREATE TABLE IF NOT EXISTS batch_views2.top_editors" +
+								"(id TEXT," +
 								"name TEXT," +
 								"count BIGINT," +
-								
-								"year INT," +
-								"month INT," +
-								"day INT," +
-								"hour INT," +
-								
-								"PRIMARY KEY((year, month, day, hour), count, name)" +
+								"PRIMARY KEY((id), count, name)" +
 								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
             		);
             
-            session.execute("CREATE TABLE IF NOT EXISTS results." +
-								"top_idiom" +
-								"(id UUID," +
+            session.execute("CREATE TABLE IF NOT EXISTS batch_views2.top_idioms" +
+								"(id TEXT," +
 								"name TEXT," +
 								"count BIGINT," +
-								
-								"year INT," +
-								"month INT," +
-								"day INT," +
-								"hour INT," +
-								
-								"PRIMARY KEY((year, month, day, hour), count, name)" +
+								"PRIMARY KEY((id), count, name)" +
+								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
+            		);
+           
+            session.execute("CREATE TABLE IF NOT EXISTS batch_views2.top_pages" +
+								"(id TEXT," +
+								"name TEXT," +
+								"count BIGINT," +
+								"PRIMARY KEY((id), count, name)" +
+								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
+            		);
+            
+            session.execute("CREATE TABLE IF NOT EXISTS batch_views2.top_content_pages" +
+								"(id TEXT," +
+								"name TEXT," +
+								"count BIGINT," +
+								"PRIMARY KEY((id), count, name)" +
 								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
 					);
-           
-            session.execute("CREATE TABLE IF NOT EXISTS results." +
-								"top_page" +
-								"(id UUID," +
-								"name TEXT," +
-								"count BIGINT," +
-								
-								"year INT," +
-								"month INT," +
-								"day INT," +
-								"hour INT," +
-								
-								"PRIMARY KEY((year, month, day, hour), count, name)" +
-								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
-            		);
             
-            session.execute("CREATE TABLE IF NOT EXISTS results." +
-								"top_content_page" +
-								"(id UUID," +
-								"name TEXT," +
-								"count BIGINT," +
-								
-								"year INT," +
-								"month INT," +
-								"day INT," +
-								"hour INT," +
-								
-								"PRIMARY KEY((year, month, day, hour), count, name)" +
-								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
-            		);
-            
-            session.execute("CREATE TABLE IF NOT EXISTS results." +
+            session.execute("CREATE TABLE IF NOT EXISTS batch_views2." +
 					            "absolute_values" +
 								"(id UUID," +
 								"all_edits BIGINT," +
@@ -98,7 +70,7 @@ public class CassandraServingLayer2Manager implements Serializable {
 								"day INT," +
 								"hour INT," +
 					
-								"PRIMARY KEY((year, month, day, hour), id)" +
+								"PRIMARY KEY(id)" +
 								");"
 					);
             
@@ -126,7 +98,7 @@ public class CassandraServingLayer2Manager implements Serializable {
 	// Prepare the schema
 	public void dropTables(Session session) {
 	
-		session.execute("DROP KEYSPACE IF EXISTS results");
+		session.execute("DROP KEYSPACE IF EXISTS batch_views2");
 	}
 
 	/**
