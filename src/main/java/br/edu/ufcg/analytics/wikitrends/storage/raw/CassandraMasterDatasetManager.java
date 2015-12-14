@@ -45,7 +45,7 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 
 		session.execute("CREATE KEYSPACE IF NOT EXISTS master_dataset WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
 
-		session.execute("CREATE TABLE IF NOT EXISTS master_dataset.change(" +
+		session.execute("CREATE TABLE IF NOT EXISTS master_dataset.changes(" +
 				"nonce UUID," +
 				"year INT," +
 				"month INT," +
@@ -144,7 +144,7 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 					map(change -> RawWikimediaChange.parseRawWikimediaChange(change));
 
 		    CassandraJavaUtil.javaFunctions(changes).
-	    	writerBuilder("master_dataset", "change", mapToRow(RawWikimediaChange.class)).
+	    	writerBuilder("master_dataset", "changes", mapToRow(RawWikimediaChange.class)).
 	    	saveToCassandra();
 
 			JavaRDD<EditChange> edits = oldMasterDataset.filter(change -> {

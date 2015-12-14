@@ -70,6 +70,15 @@ public class CassandraMasterDatasetManagerIT {
 	}
 
 	/**
+	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager#createTables(Session)}.
+	 */
+	@Test
+	public void testEmptyChangesTableCreation() {
+		ResultSet resultSet = session.execute("SELECT * FROM changes;");
+		assertTrue(resultSet.all().isEmpty());
+	}
+
+	/**
 	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager#populateFrom(String, String)}.
 	 */
 	@Test

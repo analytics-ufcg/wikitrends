@@ -28,10 +28,10 @@ import com.datastax.spark.connector.rdd.CassandraRDD;
 
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultAbsoluteValuesShot;
-import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopContentPages;
-import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopEditors;
-import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopIdioms;
-import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopPages;
+//import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopContentPages;
+//import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopEditors;
+//import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopIdioms;
+//import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultTopPages;
 import scala.Tuple2;
 
 @Deprecated
@@ -73,14 +73,14 @@ public class CassandraBatchLayer2Job extends BatchLayer2Job {
 	@Override
 	protected void saveResultTopPages(Map<String, Integer> mapTitleToCount) {
 		
-		List<ResultTopPages> rtpList = new ArrayList<ResultTopPages>();
-		for(Entry<String, Integer> entry : mapTitleToCount.entrySet()) {
-			rtpList.add(new ResultTopPages(entry.getKey(), entry.getValue()));
-		}
-		
-		CassandraJavaUtil.javaFunctions(sc.parallelize(rtpList))
-			.writerBuilder(servingKeyspace, topPagesTable, mapToRow(ResultTopPages.class))
-			.saveToCassandra();
+//		List<ResultTopPages> rtpList = new ArrayList<ResultTopPages>();
+//		for(Entry<String, Integer> entry : mapTitleToCount.entrySet()) {
+//			rtpList.add(new ResultTopPages(entry.getKey(), entry.getValue()));
+//		}
+//		
+//		CassandraJavaUtil.javaFunctions(sc.parallelize(rtpList))
+//			.writerBuilder(servingKeyspace, topPagesTable, mapToRow(ResultTopPages.class))
+//			.saveToCassandra();
 		
 	}
 
@@ -94,42 +94,42 @@ public class CassandraBatchLayer2Job extends BatchLayer2Job {
 		
 //		CassandraJavaUtil.javaFunctions(sc).cassandraTable("batch_views", "status").
 		
-		List<ResultTopIdioms> rtpList = new ArrayList<ResultTopIdioms>();
-		for(Entry<String, Integer> entry : mapIdiomToCount.entrySet()) {
-			rtpList.add(new ResultTopIdioms(entry.getKey(), entry.getValue()));
-		}
-		
-		CassandraJavaUtil.javaFunctions(sc.parallelize(rtpList))
-			.writerBuilder(servingKeyspace, topIdiomsTable, mapToRow(ResultTopIdioms.class))
-			.saveToCassandra();
+//		List<ResultTopIdioms> rtpList = new ArrayList<ResultTopIdioms>();
+//		for(Entry<String, Integer> entry : mapIdiomToCount.entrySet()) {
+//			rtpList.add(new ResultTopIdioms(entry.getKey(), entry.getValue()));
+//		}
+//		
+//		CassandraJavaUtil.javaFunctions(sc.parallelize(rtpList))
+//			.writerBuilder(servingKeyspace, topIdiomsTable, mapToRow(ResultTopIdioms.class))
+//			.saveToCassandra();
 		
 	}
 	
 	@Override
 	protected void saveResultTopContentPages(Map<String, Integer> mapContentPageToCount) {
 		
-		List<ResultTopContentPages> rtpList = new ArrayList<ResultTopContentPages>();
-		for(Entry<String, Integer> entry : mapContentPageToCount.entrySet()) {
-			rtpList.add(new ResultTopContentPages(entry.getKey(), entry.getValue()));
-		}
-		
-		CassandraJavaUtil.javaFunctions(sc.parallelize(rtpList))
-			.writerBuilder(servingKeyspace, topContentPagesTable, mapToRow(ResultTopContentPages.class))
-			.saveToCassandra();
+//		List<ResultTopContentPages> rtpList = new ArrayList<ResultTopContentPages>();
+//		for(Entry<String, Integer> entry : mapContentPageToCount.entrySet()) {
+//			rtpList.add(new ResultTopContentPages(entry.getKey(), entry.getValue()));
+//		}
+//		
+//		CassandraJavaUtil.javaFunctions(sc.parallelize(rtpList))
+//			.writerBuilder(servingKeyspace, topContentPagesTable, mapToRow(ResultTopContentPages.class))
+//			.saveToCassandra();
 		
 	}
 	
 	@Override
 	protected void saveResultTopEditors(Map<String, Integer> mapEditorToCount) {
 		
-		List<ResultTopEditors> rtpList = new ArrayList<ResultTopEditors>();
-		for(Entry<String, Integer> entry : mapEditorToCount.entrySet()) {
-			rtpList.add(new ResultTopEditors(entry.getKey(), entry.getValue()));
-		}
-		
-		CassandraJavaUtil.javaFunctions(sc.parallelize(rtpList))
-			.writerBuilder(servingKeyspace, topEditorsTable, mapToRow(ResultTopEditors.class))
-			.saveToCassandra();
+//		List<ResultTopEditors> rtpList = new ArrayList<ResultTopEditors>();
+//		for(Entry<String, Integer> entry : mapEditorToCount.entrySet()) {
+//			rtpList.add(new ResultTopEditors(entry.getKey(), entry.getValue()));
+//		}
+//		
+//		CassandraJavaUtil.javaFunctions(sc.parallelize(rtpList))
+//			.writerBuilder(servingKeyspace, topEditorsTable, mapToRow(ResultTopEditors.class))
+//			.saveToCassandra();
 		
 	}
 	
@@ -374,13 +374,14 @@ public class CassandraBatchLayer2Job extends BatchLayer2Job {
 
 		Long smaller_origin = getSmallerOrigin(); 
 		
-		return new ResultAbsoluteValuesShot(edits_data.get("all_edits"),
-											edits_data.get("minor_edits"),
-											edits_data.get("average_size"),
-											distinct_pages_count,
-											distincts_editors_count,
-											distincts_servers_count,
-											smaller_origin);
+		return null;
+//		new ResultAbsoluteValuesShot(edits_data.get("all_edits"),
+//											edits_data.get("minor_edits"),
+//											edits_data.get("average_size"),
+//											distinct_pages_count,
+//											distincts_editors_count,
+//											distincts_servers_count,
+//											smaller_origin);
 	}
 
 	@Override
