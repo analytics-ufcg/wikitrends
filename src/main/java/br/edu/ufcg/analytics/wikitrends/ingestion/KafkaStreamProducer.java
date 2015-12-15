@@ -17,7 +17,6 @@ public class KafkaStreamProducer implements StreamProducer {
 
 	private KafkaProducer<String, String> producer;
 	private String topic;
-	private String key;
 
 	/**
 	 * Default constructor
@@ -26,11 +25,10 @@ public class KafkaStreamProducer implements StreamProducer {
 	 */
 	public KafkaStreamProducer(Configuration configuration) {
 		topic = configuration.getString("wikitrends.ingestion.kafka.topic");
-		key = configuration.getString("wikitrends.ingestion.kafka.key");
 
 		Properties producerConfiguration = new Properties();
 		
-		producerConfiguration.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getString("wikitrends.ingestion.kafka.servers"));
+		producerConfiguration.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getString("wikitrends.ingestion.kafka.ensemble"));
 		producerConfiguration.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 		producerConfiguration.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 
@@ -41,7 +39,7 @@ public class KafkaStreamProducer implements StreamProducer {
 	 * @see br.edu.ufcg.analytics.wikitrends.ingestion.StreamProducer#sendMessage(java.lang.String)
 	 */
 	@Override
-	public void sendMessage(String message) {
+	public void sendMessage(String key, String message) {
 		producer.send(new ProducerRecord<String, String>(topic, key, message));
 	}
 }

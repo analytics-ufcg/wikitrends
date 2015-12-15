@@ -89,9 +89,10 @@ public class Ingestor implements WikiTrendsProcess {
 			@Override
 			public void on(String eventName, IOAcknowledge eventAcknowledge, JsonElement... eventArguments) {
 				JsonObject jsonObject = eventArguments[0].getAsJsonObject();
-				jsonObject.addProperty("uuid", UUID.randomUUID().toString());
+				String uuid = UUID.randomUUID().toString();
+				jsonObject.addProperty("uuid", uuid);
 				
-				producer.sendMessage(jsonObject.toString());
+				producer.sendMessage(uuid, jsonObject.toString());
 			}			
 		});
 	}
