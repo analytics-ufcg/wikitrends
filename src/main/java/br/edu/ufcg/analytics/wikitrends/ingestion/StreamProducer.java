@@ -11,11 +11,12 @@ public interface StreamProducer {
 
 	/**
 	 * Produce new message to whoever is subscribed to this producer.
-	 * 
+	 * @param key TODO
 	 * @param message new {@link String} message 
+	 * 
 	 * @throws InterruptedException
 	 * @throws ExecutionException
 	 */
-	void sendMessage(String message);
+	void sendMessage(String key, String message);
 
 }

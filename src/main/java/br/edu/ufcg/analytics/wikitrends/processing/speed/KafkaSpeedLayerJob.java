@@ -40,24 +40,24 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 	 * 
 	 */
 	private static final long serialVersionUID = -8237571274242642523L;
-	private static String HOST = "master";
-	private static String PORT = "9000";
-	private static String USER = "ubuntu";
-	private static String PATH = "speed_java";
-	private static String PREFIX = "absolute";
-	private static String SUFIX = "tsv";
-	
-	private String outputPath;
 
-	private transient Configuration configuration;
+	private String appName;
+
+	private String[] topics;
+
+	private String zookeeperServers;
+
+	private String consumerGroups;
 	
 	/**
 	 * Default constructor
 	 */
 	public KafkaSpeedLayerJob(Configuration configuration) {
 
-		this.configuration = configuration;
-		outputPath = String.format("hdfs://%s:%s/user/%s/%s/%s", HOST, PORT, USER, PATH, PREFIX);
+		appName = configuration.getString("wikitrends.speed.id");
+	    topics = configuration.getStringArray("wikitrends.speed.ingestion.kafka.topics");
+	    zookeeperServers = configuration.getString("wikitrends.speed.ingestion.zookeepeer.quorum");
+		consumerGroups = configuration.getString("wikitrends.speed.ingestion.kafka.consumergroup");
 
 	}
 	
@@ -98,18 +98,17 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 	public void run() {
 		SparkConf conf;
 		conf = new SparkConf();
-		conf.setAppName(configuration.getString("wikitrends.speed.id"));
+		conf.setAppName(appName);
 		
 		try(JavaStreamingContext ssc = new JavaStreamingContext(conf, Durations.seconds(30))){
 		    Map<String, Integer> topicMap = new HashMap<String, Integer>();
-		    String[] topics = configuration.getString("wikitrends.ingestion.kafka.topics").split(",");
 		    for (String topic: topics) {
 		      topicMap.put(topic, 3);
 		    }
 
-		    JavaPairReceiverInputDStream<String, String> streamingData =
-		            KafkaUtils.createStream(ssc, configuration.getString("wikitrends.ingestion.zookeepeer.servers"), 
-		            		configuration.getString("wikitrends.ingestion.kafka.consumergroup"), topicMap);
+			JavaPairReceiverInputDStream<String, String> streamingData =
+		            KafkaUtils.createStream(ssc, zookeeperServers, 
+		            		consumerGroups, topicMap);
 		    
 		    persistObjects(streamingData);
 
@@ -130,10 +129,6 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 	
 				})
 				.reduceByKey((a, b) -> a + b, 1);
-			
-			allEdits
-			.union(minorEdits)
-			.saveAsNewAPIHadoopFiles(outputPath, SUFIX, String.class, Integer.class, TextOutputFormat.class);
 			
 			allEdits.print();
 					    		
