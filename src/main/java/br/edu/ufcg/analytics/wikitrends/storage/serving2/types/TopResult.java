@@ -1,7 +1,6 @@
 package br.edu.ufcg.analytics.wikitrends.storage.serving2.types;
 
 import java.io.Serializable;
-import java.util.UUID;
 
 public class TopResult implements Serializable {
 	private static final long serialVersionUID = -4651390156724384971L;

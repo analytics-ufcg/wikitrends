@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.storage.batch1;
+package br.edu.ufcg.analytics.wikitrends.storage.serving1;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
@@ -19,11 +19,11 @@ import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.AbsoluteValuesShot;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
 
-public class BatchViewsDataGenerator {
+public class BatchViews1DataGenerator {
 	
 	private JavaSparkContext sc;
 	
-	public BatchViewsDataGenerator(JavaSparkContext sc) {
+	public BatchViews1DataGenerator(JavaSparkContext sc) {
 		this.sc = sc;
 	}
 	
@@ -69,7 +69,7 @@ public class BatchViewsDataGenerator {
         JavaRDD<AbsoluteValuesShot> absoluteValuesRDD = sc.parallelize(listAbsoluteValues);
                
         CassandraJavaUtil.javaFunctions(absoluteValuesRDD)
-        	.writerBuilder("batch_views", "absolute_values", mapToRow(AbsoluteValuesShot.class))
+        	.writerBuilder("batch_views1", "absolute_values", mapToRow(AbsoluteValuesShot.class))
         	.saveToCassandra();
     }
 	
@@ -133,7 +133,7 @@ public class BatchViewsDataGenerator {
         JavaRDD<TopClass> topEditorsRDD = sc.parallelize(topEditors);
 
         CassandraJavaUtil.javaFunctions(topEditorsRDD)
-        		.writerBuilder("batch_views", "top_editors", mapToRow(TopClass.class))
+        		.writerBuilder("batch_views1", "top_editors", mapToRow(TopClass.class))
         		.saveToCassandra();
 
     }
@@ -198,7 +198,7 @@ public class BatchViewsDataGenerator {
         JavaRDD<TopClass> topIdiomsRDD = sc.parallelize(topIdioms);
         
         CassandraJavaUtil.javaFunctions(topIdiomsRDD)
-				.writerBuilder("batch_views", "top_idioms", mapToRow(TopClass.class))
+				.writerBuilder("batch_views1", "top_idioms", mapToRow(TopClass.class))
 				.saveToCassandra();
         
     }
@@ -263,7 +263,7 @@ public class BatchViewsDataGenerator {
         JavaRDD<TopClass> topPagesRDD = sc.parallelize(topPages);
         
         CassandraJavaUtil.javaFunctions(topPagesRDD)
-				.writerBuilder("batch_views", "top_pages", mapToRow(TopClass.class))
+				.writerBuilder("batch_views1", "top_pages", mapToRow(TopClass.class))
 				.saveToCassandra();
     }
 	
@@ -326,7 +326,7 @@ public class BatchViewsDataGenerator {
         JavaRDD<TopClass> topContentPagesRDD = sc.parallelize(topContentPages);
         
         CassandraJavaUtil.javaFunctions(topContentPagesRDD)
-				.writerBuilder("batch_views", "top_content_pages", mapToRow(TopClass.class))
+				.writerBuilder("batch_views1", "top_content_pages", mapToRow(TopClass.class))
 				.saveToCassandra();
     }
 	

@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.storage.batch1;
+package br.edu.ufcg.analytics.wikitrends.storage.serving1;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -17,8 +17,6 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
-import br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager;
-
 /**
  * @author Ricardo Araújo Santos - ricardo@copin.ufcg.edu.br
  * @author Guilherme Gadelha
@@ -29,31 +27,35 @@ public class CassandraBatchLayer1ManagerIT {
 	private JavaSparkContext sc;
 	private Cluster cluster;
 	private Session session;
-	private BatchViewsDataGenerator dataGen;
+	private BatchViews1DataGenerator dataGen;
+
+	private final String SEED_NODE = "localhost";
 	
 	@Before
 	public void setup() {
-		String seedNode = "localhost";
-		
-		SparkConf conf = new SparkConf();
+		cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
+        session = cluster.newSession();
+        session.execute("USE batch_views1;");
+        
+        new CassandraServingLayer1Manager().dropTables(session);
+        new CassandraServingLayer1Manager().createTables(session);
+        
+        SparkConf conf = new SparkConf();
         conf.setAppName("Testing Serving Layer");
         conf.setMaster("local");
         conf.set("spark.cassandra.connection.host", "localhost");
         
         sc = new JavaSparkContext(conf);
         
-        String[] testHosts = seedNode.split(",");
+        dataGen = new BatchViews1DataGenerator(sc);
         
-        cluster = Cluster.builder().addContactPoints(testHosts).build();
-        session = cluster.newSession();
-        
-        CassandraServingLayer1Manager serving1Manager = new CassandraServingLayer1Manager();
-        serving1Manager.dropTables(session);
-        serving1Manager.createTables(session);
-        
-        session.execute("USE batch_views;");
-        
-        dataGen = new BatchViewsDataGenerator(sc);
+	}
+	
+	@After
+	public void closeCassandraConnection() {
+		sc.close();
+		session.close();
+		cluster.close();
 	}
 	
 	@Test
@@ -222,12 +224,5 @@ public class CassandraBatchLayer1ManagerIT {
 		
 		ResultSet resultSet2 = session.execute("SELECT * FROM absolute_values where year=2014 AND month=05 AND day=23 AND hour=06;");
 		assertEquals(resultSet2.all().size(), 1);
-	}
-	
-	@After
-	public void stop() {
-		sc.stop();
-		session.close();
-		cluster.close();
 	}
 }

@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.storage.batch2;
+package br.edu.ufcg.analytics.wikitrends.storage.serving2;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -14,54 +14,55 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
-import br.edu.ufcg.analytics.wikitrends.storage.serving2.CassandraServingLayer2Manager;
-
 /**
  * @author Ricardo Araújo Santos - ricardo@copin.ufcg.edu.br
  * @author Guilherme Gadelha
  *
  */
-public class CassandraBatch2LayerManagerIT {
+public class CassandraBatchLayer2ManagerIT {
 	
 	private JavaSparkContext sc;
 	private Cluster cluster;
 	private Session session;
 	private BatchViews2DataGenerator dataGen;
 	
+	private static final String SEED_NODE = "localhost";
+	
 	@Before
 	public void setup() {
-		String seedNode = "localhost";
-		
-		SparkConf conf = new SparkConf();
-        conf.setAppName("Testing Results Layer");
+		cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
+        session = cluster.newSession();
+        session.execute("USE batch_views2;");
+        
+        new CassandraServingLayer2Manager().dropTables(session);
+        new CassandraServingLayer2Manager().createTables(session);
+        
+        SparkConf conf = new SparkConf();
+        conf.setAppName("Testing Serving Layer 2");
         conf.setMaster("local");
         conf.set("spark.cassandra.connection.host", "localhost");
         
         sc = new JavaSparkContext(conf);
         
-        String[] testHosts = seedNode.split(",");
-        
-        cluster = Cluster.builder().addContactPoints(testHosts).build();
-        session = cluster.newSession();
-        
-        CassandraServingLayer2Manager serving2Manager = new CassandraServingLayer2Manager();
-		serving2Manager.dropTables(session);
-        serving2Manager.createTables(session);
-        
-        session.execute("USE results;");
-        
         dataGen = new BatchViews2DataGenerator(sc);
+	}
+	
+	@After
+	public void closeCassandraConnection() {
+		sc.close();
+		session.close();
+		cluster.close();
 	}
 	
 	@Test
 	public void testEmptyTopEditorsTableCreation() {
-		ResultSet resultSet = session.execute("SELECT * FROM top_editor;");
+		ResultSet resultSet = session.execute("SELECT * FROM top_editors;");
 		assertTrue(resultSet.all().isEmpty());
 	}
 
 	@Test
 	public void testEmptyTopPagesTableCreation() {
-		ResultSet resultSet = session.execute("SELECT * FROM top_page;");
+		ResultSet resultSet = session.execute("SELECT * FROM top_pages;");
 		assertTrue(resultSet.all().isEmpty());
 	}
 	
@@ -73,24 +74,33 @@ public class CassandraBatch2LayerManagerIT {
 	
 	@Test
 	public void testEmptyTopContentPagesTableCreation() {
-		ResultSet resultSet = session.execute("SELECT * FROM top_content_page;");
+		ResultSet resultSet = session.execute("SELECT * FROM top_content_pages;");
 		assertTrue(resultSet.all().isEmpty());
 	}
 	
 	@Test
 	public void testEmptyTopServersTableCreation() {
-		ResultSet resultSet = session.execute("SELECT * FROM top_idiom;");
+		ResultSet resultSet = session.execute("SELECT * FROM top_idioms;");
 		assertTrue(resultSet.all().isEmpty());
+	}
+	
+	@Test
+	public void testCreateAbsoluteValues() {
+		dataGen.generateResultingAbsoluteValuesData();
+		
+		ResultSet resultSet00 = session.execute("SELECT * FROM absolute_values;");
+		assertEquals(resultSet00.all().size(), 1);
+		
 	}
 	
 	@Test
 	public void testCreateTopEditors() {
 		dataGen.generateResultingTopEditorsData();
 		
-		ResultSet resultSet0 = session.execute("SELECT * FROM top_editor;");
+		ResultSet resultSet0 = session.execute("SELECT * FROM top_editors;");
 		assertEquals(resultSet0.all().size(), 5);
 		
-		ResultSet resultSet1 = session.execute("SELECT * FROM top_editor LIMIT 3;");
+		ResultSet resultSet1 = session.execute("SELECT * FROM top_editors LIMIT 3;");
 		assertEquals(resultSet1.all().size(), 3);
 		
 		for(Row r : resultSet1) {	
@@ -105,10 +115,10 @@ public class CassandraBatch2LayerManagerIT {
 	public void testCreateTopIdioms() {
 		dataGen.generateResultingTopIdiomsData();
 		
-		ResultSet resultSet0 = session.execute("SELECT * FROM top_idiom;");
+		ResultSet resultSet0 = session.execute("SELECT * FROM top_idioms;");
 		assertEquals(resultSet0.all().size(), 5);
 		
-		ResultSet resultSet1 = session.execute("SELECT * FROM top_idiom LIMIT 3;");
+		ResultSet resultSet1 = session.execute("SELECT * FROM top_idioms LIMIT 3;");
 		assertEquals(resultSet1.all().size(), 3);
 		
 		for(Row r : resultSet1) {	
@@ -123,10 +133,10 @@ public class CassandraBatch2LayerManagerIT {
 	public void testCreateTopPages() {
 		dataGen.generateResultingTopPagesData();
 		
-		ResultSet resultSet0 = session.execute("SELECT * FROM top_page;");
+		ResultSet resultSet0 = session.execute("SELECT * FROM top_pages;");
 		assertEquals(resultSet0.all().size(), 5);
 		
-		ResultSet resultSet1 = session.execute("SELECT * FROM top_page LIMIT 3;");
+		ResultSet resultSet1 = session.execute("SELECT * FROM top_pages LIMIT 3;");
 		assertEquals(resultSet1.all().size(), 3);
 		
 		for(Row r : resultSet1) {	
@@ -141,10 +151,10 @@ public class CassandraBatch2LayerManagerIT {
 	public void testCreateTopContentPages() {
 		dataGen.generateResultingTopContentPagesData();
 		
-		ResultSet resultSet0 = session.execute("SELECT * FROM top_content_page;");
+		ResultSet resultSet0 = session.execute("SELECT * FROM top_content_pages;");
 		assertEquals(resultSet0.all().size(), 5);
 		
-		ResultSet resultSet1 = session.execute("SELECT * FROM top_content_page LIMIT 4;");
+		ResultSet resultSet1 = session.execute("SELECT * FROM top_content_pages LIMIT 4;");
 		assertEquals(resultSet1.all().size(), 4);
 		
 		for(Row r : resultSet1) {	
@@ -153,22 +163,5 @@ public class CassandraBatch2LayerManagerIT {
 				assertTrue(r.getInt("count") == 3);
 			}
 		}
-	}
-	
-	
-	@Test
-	public void testCreateAbsoluteValues() {
-		dataGen.generateAbsoluteValuesData();
-		
-		ResultSet resultSet00 = session.execute("SELECT * FROM absolute_values;");
-		assertEquals(resultSet00.all().size(), 6);
-		
-	}
-	
-	@After
-	public void stop() {
-		sc.stop();
-		session.close();
-		cluster.close();
 	}
 }

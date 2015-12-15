@@ -79,7 +79,8 @@ public class BigDataBatch2IT {
 		new CassandraMasterDatasetManager().populate(INPUT_FILE);
 		
 		setCurrentTime(LocalDateTime.of(2015, 11, 7, 14, 00));
-		setStopTime(LocalDateTime.of(2015, 11, 7, 18, 00));
+//		setStopTime(LocalDateTime.of(2015, 11, 7, 18, 00)); <== correct time considering timestamps-controled small dataset
+		setStopTime(LocalDateTime.of(2015, 11, 7, 20, 00)); // <== testing different stop time to run process
 	}
 	
 	/**
@@ -184,7 +185,7 @@ public class BigDataBatch2IT {
 		
 		TopIdiomsBatch1 job = new TopIdiomsBatch1(configuration);
 		job.setStopTime(getStopTime());
-		job.run2();
+		job.run();
 		
 		session.execute("USE batch_views1");
 		ResultSet resultSet = session.execute("SELECT count(1) FROM top_idioms");
@@ -215,6 +216,22 @@ public class BigDataBatch2IT {
 		
 		TopIdiomsBatch2 job2 = new TopIdiomsBatch2(configuration);
 		job2.setStopTime(getStopTime());
-		job2.run2();
+		job2.run();
+		
+		session.execute("USE batch_views2");
+		ResultSet resultSet2 = session.execute("SELECT count(1) FROM top_idioms");
+		assertEquals(77, resultSet2.one().getLong("count"));
+		
+		long rankingMax = session.execute("SELECT max(count) as ranking_max FROM top_idioms").one().getLong("ranking_max");
+		long rankingFirst = session.execute("SELECT count as ranking_max FROM top_idioms LIMIT 1").one().getLong("ranking_max");
+
+		assertEquals(1538, rankingMax);
+		assertEquals(1538, rankingFirst);
+		
+		resultSet2 = session.execute("SELECT * FROM top_idioms WHERE id='top_idioms' AND count=1538");
+		assertEquals(resultSet2.all().get(0).getString("name"), "en.wikipedia.org");
+		
+		long rankingMin = session.execute("SELECT MIN(COUNT) AS ranking_min FROM top_idioms").one().getLong("ranking_min");
+		assertEquals(1, rankingMin);
 	}
 }

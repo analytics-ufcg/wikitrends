@@ -19,7 +19,7 @@ import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultAbsoluteValuesShot;
 
-public class AbsoluteValuesBatch2 extends BatchLayer2Job_2 {
+public class AbsoluteValuesBatch2 extends BatchLayer2Job {
 	
 	private static final long serialVersionUID = -8968582683538025373L;
 	
@@ -43,7 +43,7 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job_2 {
 	private Map<String, Long> computeEditsData() {
     	Map<String, Long> map = new HashMap<String, Long>();
     	
-    	CassandraConnector connector = CassandraConnector.apply(sc.getConf());
+    	CassandraConnector connector = CassandraConnector.apply(getJavaSparkContext().getConf());
     	try (Session session = connector.openSession()) {
             ResultSet results = session.execute("SELECT edits_data FROM batch_views." + "absolute_values");
             
@@ -79,7 +79,7 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job_2 {
 	private Integer computeDistinctEditorsCount() {
 		List<String> distinctEditorsList = new ArrayList<String>();
 		
-		CassandraConnector connector = CassandraConnector.apply(sc.getConf());
+		CassandraConnector connector = CassandraConnector.apply(getJavaSparkContext().getConf());
     	try (Session session = connector.openSession()) {
             ResultSet results = session.execute("SELECT distinct_editors_set FROM batch_views." + "absolute_values");
             
@@ -88,7 +88,7 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job_2 {
             }
     	}
 		
-		return (int) sc.parallelize(distinctEditorsList).distinct().count();
+		return (int) getJavaSparkContext().parallelize(distinctEditorsList).distinct().count();
 	}
 
 
@@ -103,7 +103,7 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job_2 {
 	private Long computeDistinctPagesCount() {
 		List<String> distinctPagesList = new ArrayList<String>();
 		
-		CassandraConnector connector = CassandraConnector.apply(sc.getConf());
+		CassandraConnector connector = CassandraConnector.apply(getJavaSparkContext().getConf());
     	try (Session session = connector.openSession()) {
             ResultSet results = session.execute("SELECT distinct_pages_set FROM batch_views." + "absolute_values");
 
@@ -112,7 +112,7 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job_2 {
             }
     	}
 		
-		return sc.parallelize(distinctPagesList).distinct().count();
+		return getJavaSparkContext().parallelize(distinctPagesList).distinct().count();
 	}
 
 	
@@ -126,7 +126,7 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job_2 {
 	private Integer computeDistinctServersCount() {
 		List<String> distinctServersList = new ArrayList<String>();
 		
-		CassandraConnector connector = CassandraConnector.apply(sc.getConf());
+		CassandraConnector connector = CassandraConnector.apply(getJavaSparkContext().getConf());
     	try (Session session = connector.openSession()) {
             ResultSet results = session.execute("SELECT distinct_servers_set FROM batch_views." + "absolute_values");
             
@@ -135,7 +135,7 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job_2 {
             }
     	}
 		
-		return (int) sc.parallelize(distinctServersList).distinct().count();
+		return (int) getJavaSparkContext().parallelize(distinctServersList).distinct().count();
 	}
 
 	/**
@@ -149,7 +149,7 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job_2 {
 		
 		Long smallerTime = Long.MAX_VALUE;
 		
-		CassandraConnector connector = CassandraConnector.apply(sc.getConf());
+		CassandraConnector connector = CassandraConnector.apply(getJavaSparkContext().getConf());
     	try (Session session = connector.openSession()) {
             ResultSet results = session.execute("SELECT smaller_data FROM batch_views." + "absolute_values");
             
@@ -183,7 +183,7 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job_2 {
 																		smaller_origin);
 		
 		List<ResultAbsoluteValuesShot> list = Arrays.asList(result);
-		CassandraJavaUtil.javaFunctions(sc.parallelize(list))
+		CassandraJavaUtil.javaFunctions(getJavaSparkContext().parallelize(list))
 								.writerBuilder(getBatchViews2Keyspace(), absoluteValuesTable, mapToRow(ResultAbsoluteValuesShot.class))
 								.saveToCassandra();
 	}

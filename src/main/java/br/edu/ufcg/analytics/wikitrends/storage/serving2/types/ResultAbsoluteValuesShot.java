@@ -1,7 +1,6 @@
 package br.edu.ufcg.analytics.wikitrends.storage.serving2.types;
 
 import java.io.Serializable;
-import java.util.UUID;
 
 /**
  * 

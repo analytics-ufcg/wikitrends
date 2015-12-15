@@ -1,10 +1,8 @@
 package br.edu.ufcg.analytics.wikitrends.processing.batch1;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
+
 import java.util.Iterator;
-import java.util.List;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.SparkConf;
@@ -13,20 +11,15 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.datastax.spark.connector.japi.CassandraRow;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
+import br.edu.ufcg.analytics.wikitrends.processing.AbstractBatchJob;
 import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
-
-import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
 
 /**
  * {@link WikiTrendsProcess} implementation when a {@link WikiTrendsCommands#BATCH} is chosen. 
@@ -34,23 +27,12 @@ import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
  * @author Guilherme Gadelha
  * @author Ricardo Ara&eacute;jo Santos - ricoaraujosantos@gmail.com
  */
-public abstract class BatchLayer1Job implements WikiTrendsProcess {
+public abstract class BatchLayer1Job extends AbstractBatchJob {
 
 	private static final long serialVersionUID = 833872580572610849L;
 
-	protected transient Configuration configuration;
+	private String batchViews1Keyspace;
 	
-	private LocalDateTime currentTime;
-	private LocalDateTime stopTime;
-	private String[] seeds;
-
-	private String batchViewsKeyspace;
-	
-	// transient: do not serialize this variable
-	private transient JavaSparkContext sc;
-
-	private String PROCESS_STATUS_ID;
-
 	/**
 	 * Default constructor.
 	 * 
@@ -61,109 +43,16 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 	 * @param configuration 
 	 */
 	public BatchLayer1Job(Configuration configuration, JobStatusID processStatusId) {
-		createJavaSparkContext(configuration);
-		
-		setProcessStatusID(processStatusId);
-		
-		setBatchViewsKeyspace(configuration.getString("wikitrends.serving1.cassandra.keyspace"));
-		
-		setSeeds(configuration.getStringArray("spark.cassandra.connection.host"));
-
-		try (Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
-				Session session = cluster.newSession();) {
-			ResultSet resultSet = session.execute("SELECT * FROM job_times.status WHERE id = ? LIMIT 1", getProcessStatusID());
-			List<Row> all = resultSet.all();
-			if(!all.isEmpty()){
-				Row row = all.get(0);
-				setCurrentTime(LocalDateTime.of(row.getInt("year"), row.getInt("month"), row.getInt("day"), row.getInt("hour"), 0).plusHours(1));
-			}else{
-				setCurrentTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.starttime") * 1000), ZoneId.systemDefault()));
-			}
-		}
-
-		//	end = LocalDateTime.ofInstant(Instant.ofEpochMilli((System.currentTimeMillis() / 3600000) * 3600000), ZoneId.systemDefault());
-		//  setStopTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.stoptime") * 1000), ZoneId.systemDefault()));
-		//	end = LocalDateTime.of(2015, 11, 9, 12, 0) ;
+		super(configuration, processStatusId);
+		setBatchViews1Keyspace(configuration.getString("wikitrends.serving1.cassandra.keyspace"));
 	}
 	
-	public String getProcessStatusID() {
-		return PROCESS_STATUS_ID;
-	}
-
-	public void setProcessStatusID(JobStatusID topIdiomsStatusId) {
-		this.PROCESS_STATUS_ID = topIdiomsStatusId.getStatus_id();
-	}
-
-	public String[] getSeeds() {
-		return seeds;
-	}
-
-	public void setSeeds(String[] seeds) {
-		this.seeds = seeds;
-	}
-
-	public LocalDateTime getStopTime() {
-		return this.stopTime;
-	}
-	
-	public void setStopTime(LocalDateTime stopTime) {
-		this.stopTime = stopTime;
-	}
-	
-	public LocalDateTime getCurrentTime() {
-		return this.currentTime;
-	}
-	
-	public void setCurrentTime(LocalDateTime localDateTime) {
-		this.currentTime = localDateTime;
-	}
-
 	public String getBatchViewsKeyspace() {
-		return batchViewsKeyspace;
+		return batchViews1Keyspace;
 	}
 
-	public void setBatchViewsKeyspace(String batchViewsKeyspace) {
-		this.batchViewsKeyspace = batchViewsKeyspace;
-	}
-	
-	public void createJavaSparkContext(Configuration configuration) {
-		SparkConf conf = new SparkConf();
-		String appName = configuration.getString("wikitrends.job.batch.id");
-		String master_host = configuration.getString("spark.master.host");
-		
-		Iterator<String> keys = configuration.getKeys();
-		while (keys.hasNext()) {
-			String key = keys.next();
-			conf.set(key, configuration.getString(key));
-		}
-		sc = new JavaSparkContext(master_host, appName, conf);
-	}
-	
-	public JavaSparkContext getJavaSparkContext() {
-		return this.sc;
-	}
-	
-	@Override
-	@Deprecated
-	public void run() {
-
-		try (Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
-				Session session = cluster.newSession();) {
-
-			while(getCurrentTime().isBefore(getStopTime())){
-				new TopEditorsBatch1(configuration).process();
-				new TopContentPagesBatch1(configuration).process();
-				new TopPagesBatch1(configuration).process();
-				new TopIdiomsBatch1(configuration).process();
-				new AbsoluteValuesBatch1(configuration).process();
-				
-				// insert new record for time_status of processing
-				session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", "servers_ranking", currentTime.getYear(), currentTime.getMonthValue(), currentTime.getDayOfMonth(), currentTime.getHour());
-				
-				this.setCurrentTime(getCurrentTime().plusHours(1));
-			}
-		}
-
+	public void setBatchViews1Keyspace(String batchViewsKeyspace) {
+		this.batchViews1Keyspace = batchViewsKeyspace;
 	}
 	
 	public JavaRDD<EditChange> read() {
@@ -199,31 +88,19 @@ public abstract class BatchLayer1Job implements WikiTrendsProcess {
 		return result;
 	}
 	
-	public abstract void process();
-	
-	public void run2() {
-		try (Cluster cluster = Cluster.builder().addContactPoints(getSeeds()).build();
-				Session session = cluster.newSession();) {
-			
-			while(getCurrentTime().isBefore(getStopTime())) {
-				process();
-			
-				session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
-										PROCESS_STATUS_ID, 
-										getCurrentTime().getYear(), 
-										getCurrentTime().getMonthValue(), 
-										getCurrentTime().getDayOfMonth(), 
-										getCurrentTime().getHour());
-				
-				this.setCurrentTime(getCurrentTime().plusHours(1));
-			}
-		} finally {
-			finalizeSparkContext();
+	public void createJavaSparkContext(Configuration configuration) {
+		SparkConf conf = new SparkConf();
+		String appName = configuration.getString("wikitrends.job.batch1.id");
+		String master_host = configuration.getString("spark.master.host");
+		
+		Iterator<String> keys = configuration.getKeys();
+		while (keys.hasNext()) {
+			String key = keys.next();
+			conf.set(key, configuration.getString(key));
 		}
+		setJavaSparkContext(new JavaSparkContext(master_host, appName, conf));
 	}
 	
-	public void finalizeSparkContext() {
-		this.sc.close();
-	}
+	public abstract void process();
 	
 }

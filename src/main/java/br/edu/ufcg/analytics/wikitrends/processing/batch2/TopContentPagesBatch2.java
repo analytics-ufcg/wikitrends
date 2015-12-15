@@ -9,7 +9,7 @@ import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.TopResult;
 
-public class TopContentPagesBatch2 extends BatchLayer2Job_2 {
+public class TopContentPagesBatch2 extends BatchLayer2Job {
 	
 	private static final long serialVersionUID = 5181147901979329455L;
 	

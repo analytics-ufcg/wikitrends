@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.storage.batch2;
+package br.edu.ufcg.analytics.wikitrends.storage.serving2;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
@@ -14,7 +14,6 @@ import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultAbsoluteValuesShot;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.TopResult;
 
-//FIXME
 public class BatchViews2DataGenerator {
 	
 	private JavaSparkContext sc;
@@ -23,7 +22,7 @@ public class BatchViews2DataGenerator {
 		this.sc = sc;
 	}
 	
-	public void generateAbsoluteValuesData() {
+	public void generateResultingAbsoluteValuesData() {
         Long all_edits = 3758062L;
         Long minor_edits =	600606L;
         Long average_size = 209L;
@@ -40,98 +39,99 @@ public class BatchViews2DataGenerator {
 //        
         List<ResultAbsoluteValuesShot> listAbsoluteValues = new ArrayList<ResultAbsoluteValuesShot>();
         for(int i = 0; i < 6; i++) {
-//        	ResultAbsoluteValuesShot ravs = new ResultAbsoluteValuesShot(
-//        											all_edits+(i*10000000L),
-//        											minor_edits+(i*1000000L),
-//        											average_size+(i*10L),
-//        											distinct_pages_count + (i * 10000L),
-//        											distinct_editors_count + (i * 10),
-//													distinct_servers_count + (i * 100),
-//													origin+(i*100000L)
-//												);
-//        	
-//        	listAbsoluteValues.add(ravs);
+        	ResultAbsoluteValuesShot ravs = new ResultAbsoluteValuesShot(
+        											"absolute_values",
+        											all_edits+(i*10000000L),
+        											minor_edits+(i*1000000L),
+        											average_size+(i*10L),
+        											distinct_pages_count + (i * 10000L),
+        											distinct_editors_count + (i * 10),
+													distinct_servers_count + (i * 100),
+													origin+(i*100000L)
+												);
+        	
+        	listAbsoluteValues.add(ravs);
         }
 
         JavaRDD<ResultAbsoluteValuesShot> resultsAbsoluteValuesRDD = sc.parallelize(listAbsoluteValues);
                
         CassandraJavaUtil.javaFunctions(resultsAbsoluteValuesRDD)
-        	.writerBuilder("results", "absolute_values", mapToRow(ResultAbsoluteValuesShot.class))
+        	.writerBuilder("batch_views2", "absolute_values", mapToRow(ResultAbsoluteValuesShot.class))
         	.saveToCassandra();
     }
 	
 	public void generateResultingTopEditorsData() {
         
-//		TopResult rte1 = new TopResult("john_1", 2);
-//        TopResult rte2 = new TopResult("john_2", 0);
-//        TopResult rte3 = new TopResult("john_3", 4);
-//        TopResult rte4 = new TopResult("john_4", 3);
-//        TopResult rte5 = new TopResult("john_5", 10);
+		TopResult rte1 = new TopResult("top_editors", "john_1", 2L);
+        TopResult rte2 = new TopResult("top_editors", "john_2", 0L);
+        TopResult rte3 = new TopResult("top_editors", "john_3", 4L);
+        TopResult rte4 = new TopResult("top_editors", "john_4", 3L);
+        TopResult rte5 = new TopResult("top_editors", "john_5", 10L);
         
         List<TopResult> resultingTopEditors = Arrays.asList(
-//                rte1, rte2, rte3, rte4, rte5
+                rte1, rte2, rte3, rte4, rte5
         );
 
         JavaRDD<TopResult> resultingTopEditorsRDD = sc.parallelize(resultingTopEditors);
 
         CassandraJavaUtil.javaFunctions(resultingTopEditorsRDD)
-        		.writerBuilder("results", "top_editor", mapToRow(TopResult.class))
+        		.writerBuilder("batch_views2", "top_editors", mapToRow(TopResult.class))
         		.saveToCassandra();
 
     }
 	
 	public void generateResultingTopIdiomsData() {
-//        TopResult rti1 = new TopResult("en", 2);
-//        TopResult rti2 = new TopResult("fr", 1);
-//        TopResult rti3 = new TopResult("pt", 4);
-//        TopResult rti4 = new TopResult("de", 3);
-//        TopResult rti5 = new TopResult("ru", 10);
+        TopResult rti1 = new TopResult("top_idioms", "en", 2L);
+        TopResult rti2 = new TopResult("top_idioms", "fr", 1L);
+        TopResult rti3 = new TopResult("top_idioms", "pt", 4L);
+        TopResult rti4 = new TopResult("top_idioms", "de", 3L);
+        TopResult rti5 = new TopResult("top_idioms", "ru", 10L);
 
         List<TopResult> resultingTopIdioms = Arrays.asList(
-//                rti1, rti2, rti3, rti4, rti5
+                rti1, rti2, rti3, rti4, rti5
         );
 
         JavaRDD<TopResult> topIdiomsRDD = sc.parallelize(resultingTopIdioms);
         
         CassandraJavaUtil.javaFunctions(topIdiomsRDD)
-				.writerBuilder("results", "top_idiom", mapToRow(TopResult.class))
+				.writerBuilder("batch_views2", "top_idioms", mapToRow(TopResult.class))
 				.saveToCassandra();
         
     }
 	
 	public void generateResultingTopPagesData() {
-//        TopResult rtp1 = new TopResult("page_1", 2);
-//        TopResult rtp2 = new TopResult("page_2", 0);
-//        TopResult rtp3 = new TopResult("page_3", 4);
-//        TopResult rtp4 = new TopResult("page_4", 3);
-//        TopResult rtp5 = new TopResult("page_5", 10);
+        TopResult rtp1 = new TopResult("top_pages", "page_1", 2L);
+        TopResult rtp2 = new TopResult("top_pages", "page_2", 0L);
+        TopResult rtp3 = new TopResult("top_pages", "page_3", 4L);
+        TopResult rtp4 = new TopResult("top_pages", "page_4", 3L);
+        TopResult rtp5 = new TopResult("top_pages", "page_5", 10L);
 
         List<TopResult> resultingTopPages = Arrays.asList(
-//                rtp1, rtp2, rtp3, rtp4, rtp5
+                rtp1, rtp2, rtp3, rtp4, rtp5
         );
 
         JavaRDD<TopResult> topPagesRDD = sc.parallelize(resultingTopPages);
         
         CassandraJavaUtil.javaFunctions(topPagesRDD)
-				.writerBuilder("results", "top_page", mapToRow(TopResult.class))
+				.writerBuilder("batch_views2", "top_pages", mapToRow(TopResult.class))
 				.saveToCassandra();
     }
 	
 	public void generateResultingTopContentPagesData() {
-//        TopResult rtcp1 = new TopResult("content_page_1", 2);
-//        TopResult rtcp2 = new TopResult("content_page_2", 0);
-//        TopResult rtcp3 = new TopResult("content_page_3", 4);
-//        TopResult rtcp4 = new TopResult("content_page_4", 3);
-//        TopResult rtcp5 = new TopResult("content_page_5", 10);
+        TopResult rtcp1 = new TopResult("top_content_pages", "content_page_1", 2L);
+        TopResult rtcp2 = new TopResult("top_content_pages", "content_page_2", 0L);
+        TopResult rtcp3 = new TopResult("top_content_pages", "content_page_3", 4L);
+        TopResult rtcp4 = new TopResult("top_content_pages", "content_page_4", 3L);
+        TopResult rtcp5 = new TopResult("top_content_pages", "content_page_5", 10L);
         
         List<TopResult> topContentPages = Arrays.asList(
-//                rtcp1, rtcp2, rtcp3, rtcp4, rtcp5
+                rtcp1, rtcp2, rtcp3, rtcp4, rtcp5
         );
 
         JavaRDD<TopResult> resultingTopContentPagesRDD = sc.parallelize(topContentPages);
         
         CassandraJavaUtil.javaFunctions(resultingTopContentPagesRDD)
-				.writerBuilder("results", "top_content_page", mapToRow(TopResult.class))
+				.writerBuilder("batch_views2", "top_content_pages", mapToRow(TopResult.class))
 				.saveToCassandra();
     }
 	

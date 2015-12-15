@@ -183,7 +183,7 @@ public class BigDataBatch1IT {
 		
 		TopIdiomsBatch1 job = new TopIdiomsBatch1(configuration);
 		job.setStopTime(getStopTime());
-		job.run2();
+		job.run();
 		
 		session.execute("USE batch_views1");
 		ResultSet resultSet = session.execute("SELECT count(1) FROM top_idioms");

@@ -54,7 +54,7 @@ public class CassandraServingLayer2Manager implements Serializable {
             
             session.execute("CREATE TABLE IF NOT EXISTS batch_views2." +
 					            "absolute_values" +
-								"(id UUID," +
+								"(id TEXT," +
 								"all_edits BIGINT," +
 								"minor_edits BIGINT," +
 								"average_size BIGINT," +
@@ -65,11 +65,6 @@ public class CassandraServingLayer2Manager implements Serializable {
 								
 								"smaller_origin BIGINT," +
 								
-								"year INT," +
-								"month INT," +
-								"day INT," +
-								"hour INT," +
-					
 								"PRIMARY KEY(id)" +
 								");"
 					);

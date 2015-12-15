@@ -1,18 +1,21 @@
 package br.edu.ufcg.analytics.wikitrends.processing.batch2;
 
+import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
+import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapRowToTuple;
+
 import java.util.Iterator;
-import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-
-import com.datastax.spark.connector.japi.CassandraJavaUtil;
-import com.datastax.spark.connector.japi.CassandraRow;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
-import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultAbsoluteValuesShot;
+import br.edu.ufcg.analytics.wikitrends.processing.AbstractBatchJob;
+import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
+import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.TopResult;
+import scala.Tuple2;
 
 /**
  * {@link WikiTrendsProcess} implementation when a {@link WikiTrendsCommands#BATCH} is chosen. 
@@ -20,76 +23,57 @@ import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.ResultAbsoluteVal
  * @author Guilherme Gadelha
  * @author Ricardo Ara&eacute;jo Santos - ricoaraujosantos@gmail.com
  */
-@Deprecated
-public abstract class BatchLayer2Job implements WikiTrendsProcess {
+public abstract class BatchLayer2Job extends AbstractBatchJob implements WikiTrendsProcess {
 
+	private static final long serialVersionUID = 1218454132437246895L;
 	
-	/**
-	 * SerialVersionUID for BatchLayer2Job
-	 * 
-	 * @since November 26, 2015
-	 */
-	private static final long serialVersionUID = 176060876537326003L;
-	
-	protected JavaSparkContext sc;
-	protected transient Configuration configuration;
+	private String batchViews2Keyspace;
 
-	/**
-	 * Default constructor
-	 * @param configuration 
-	 */
-	public BatchLayer2Job(Configuration configuration) {
-		this.configuration = configuration;
+	private String PROCESS_RESULT_ID;
+	
+	public BatchLayer2Job(Configuration configuration, JobStatusID processStatusId, ProcessResultID pId) {
+		super(configuration, processStatusId);
+		setBatchViews2Keyspace(configuration.getString("wikitrends.serving2.cassandra.keyspace"));
+		setProcessResultID(pId);
+	}
+	
+	
+	public void setProcessResultID(ProcessResultID pId) {
+		this.PROCESS_RESULT_ID = pId.getID();
+	}
+	
+	public String getProcessResultID() {
+		return this.PROCESS_RESULT_ID;
 	}
 
-	/*@ (non-Javadoc)
-	 * @see br.edu.ufcg.analytics.wikitrends.spark.SparkJob#run()
-	 */
-	@Override
-	public void run() {
+	public String getBatchViews2Keyspace() {
+		return batchViews2Keyspace;
+	}
 
+	public void setBatchViews2Keyspace(String batchViews2Keyspace) {
+		this.batchViews2Keyspace = batchViews2Keyspace;
+	}
+	
+	public void createJavaSparkContext(Configuration configuration) {
 		SparkConf conf = new SparkConf();
-		conf.setAppName(configuration.getString("wikitrends.batch.id"));
+		String appName = configuration.getString("wikitrends.job.batch2.id");
+		String master_host = configuration.getString("spark.master.host");
 		
 		Iterator<String> keys = configuration.getKeys();
 		while (keys.hasNext()) {
 			String key = keys.next();
 			conf.set(key, configuration.getString(key));
 		}
-
-		this.sc = new JavaSparkContext(conf);
-		
-		CassandraRow lastBatchExecutionStatus = CassandraJavaUtil.javaFunctions(sc).cassandraTable("batch_views", "status")
-				.select("id", "year", "month", "day", "hour")
-				.limit(1L).collect().get(0);
-		
-				
-		saveResultTopEditors(computeMapEditorToCount());
-//		saveResultTopContentPages(computeMapContentPagesToCount());
-//		saveResultTopIdioms(computeMapIdiomsToCount());
-//		saveResultTopPages(computeMapPagesToCount());
-//		
-//		saveResultAbsoluteValues(computeResultAbsoluteValues());
-		
+		setJavaSparkContext(new JavaSparkContext(master_host, appName, conf));
 	}
 	
-	protected abstract void saveResultTopPages(Map<String, Integer> mapTitleToCount);
-
-	protected abstract void saveResultTopIdioms(Map<String, Integer> mapIdiomToCount);
-	
-	protected abstract void saveResultTopContentPages(Map<String, Integer> mapContentPageToCount);
-	
-	protected abstract void saveResultTopEditors(Map<String, Integer> mapEditorToCount);
-
-	protected abstract void saveResultAbsoluteValues(ResultAbsoluteValuesShot resultAbsValuesShot);
-
-	protected abstract ResultAbsoluteValuesShot computeResultAbsoluteValues();
-
-	protected abstract Map<String, Integer> computeMapEditorToCount();
-
-	protected abstract Map<String, Integer> computeMapPagesToCount();
-
-	protected abstract Map<String, Integer> computeMapIdiomsToCount();
-
-	protected abstract Map<String, Integer> computeMapContentPagesToCount();
+	public JavaRDD<TopResult> computeFullRankingFromPartial(String tableName) {
+		return javaFunctions(getJavaSparkContext())
+			    .cassandraTable("batch_views1", tableName, mapRowToTuple(String.class, Long.class))
+			    .select("name", "count")
+			    .mapToPair(row -> new Tuple2<String, Long>(row._1, row._2)).reduceByKey((a,b) -> a+b)
+			    .map( tuple -> new TopResult(getProcessResultID(), tuple._1, tuple._2));
+    }
+		
+	public abstract void process();
 }
