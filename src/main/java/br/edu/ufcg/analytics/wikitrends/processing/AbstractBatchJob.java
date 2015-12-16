@@ -40,12 +40,12 @@ public abstract class AbstractBatchJob implements WikiTrendsProcess {
 
 		try (Cluster cluster = Cluster.builder().addContactPoints(getSeeds()).build();
 				Session session = cluster.newSession();) {
-			ResultSet resultSet = session.execute("SELECT * FROM job_times.status WHERE id = ? LIMIT 1", getProcessStatusID());
+			ResultSet resultSet = session.execute("SELECT * FROM job_times.status WHERE id = ? LIMIT 1", getProcessStartTimeStatusID());
 			List<Row> all = resultSet.all();
 			if(!all.isEmpty()){
 				Row row = all.get(0);
 				setCurrentTime(LocalDateTime.of(row.getInt("year"), row.getInt("month"), row.getInt("day"), row.getInt("hour"), 0).plusHours(1));
-			}else{
+			} else {
 				setCurrentTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.starttime") * 1000), ZoneId.systemDefault()));
 			}
 		}
@@ -53,7 +53,7 @@ public abstract class AbstractBatchJob implements WikiTrendsProcess {
 		setStopTime(LocalDateTime.ofInstant(Instant.ofEpochMilli((System.currentTimeMillis() / 3600000) * 3600000), ZoneId.systemDefault()));
 	}
 	
-	public String getProcessStatusID() {
+	public String getProcessStartTimeStatusID() {
 		return PROCESS_STATUS_ID;
 	}
 
@@ -105,7 +105,7 @@ public abstract class AbstractBatchJob implements WikiTrendsProcess {
 				process();
 			
 				session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
-										getProcessStatusID(), 
+										getProcessStartTimeStatusID(), 
 										getCurrentTime().getYear(), 
 										getCurrentTime().getMonthValue(), 
 										getCurrentTime().getDayOfMonth(), 

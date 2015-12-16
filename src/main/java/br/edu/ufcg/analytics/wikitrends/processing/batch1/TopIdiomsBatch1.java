@@ -18,10 +18,10 @@ public class TopIdiomsBatch1 extends BatchLayer1Job {
 	private static final long serialVersionUID = -1738945554412789213L;
 	
 	private String idiomsTable;
-	private final static JobStatusID TOP_IDIOMS_STATUS_ID = JobStatusID.TOP_IDIOMS_BATCH_1;
+	private final static JobStatusID TOP_IDIOMS_START_TIME_STATUS_ID = JobStatusID.TOP_IDIOMS_BATCH_1;
 	
 	public TopIdiomsBatch1(Configuration configuration) {
-		super(configuration, TOP_IDIOMS_STATUS_ID);
+		super(configuration, TOP_IDIOMS_START_TIME_STATUS_ID);
 		
 		idiomsTable = configuration.getString("wikitrends.serving1.cassandra.table.idioms");
 	}

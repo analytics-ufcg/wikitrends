@@ -8,25 +8,38 @@
 echo
 echo
 
+# drop master dataset schema ------------------------------------------------------------------------
+./wikitrends master_dataset drop 
+
+echo
+echo
+
 # create master dataset schema ------------------------------------------------------------------------
-./wikitrends master_dataset createschema localhost
+./wikitrends master_dataset create 
 
 echo
 echo
 
-# migrate data from json file to master dataset -------------------------------------------------------
-./wikitrends -m spark://guilhermemg-laptop:7077 -w 2 master_dataset migrate localhost  ../../src/test/resources/small_test_data.json
+# migrate/populate data from json file to master dataset -------------------------------------------------------
+./wikitrends -m spark://guilhermemg-laptop:7077 -w 2 master_dataset populate ../../src/test/resources/big_test_data2.json
+
+echo
+echo
+
+# drop serving layer 1 and 2 schemas -----------------------------------------------------------------------
+./wikitrends serving_1 dropschema 
+./wikitrends serving_2 dropschema 
 
 echo
 echo
 
 # create serving layer 1 and 2 schemas -----------------------------------------------------------------------
-./wikitrends serving_1 createschema localhost
-./wikitrends serving_2 createschema localhost
+./wikitrends serving_1 createschema 
+./wikitrends serving_2 createschema 
 
 echo
 echo
 
-# execute batch layer 1 processing --------------------------------------------------------------------
-./wikitrends -m spark://guilhermemg-laptop:7077 -w 2 batch 
+# execute batch layer 1 jobs --------------------------------------------------------------------
+./wikitrends -m spark://guilhermemg-laptop:7077 -w 2 batch_1 
 

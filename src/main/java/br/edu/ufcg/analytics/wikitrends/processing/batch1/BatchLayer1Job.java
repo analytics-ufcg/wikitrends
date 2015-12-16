@@ -42,8 +42,8 @@ public abstract class BatchLayer1Job extends AbstractBatchJob {
 	 * 
 	 * @param configuration 
 	 */
-	public BatchLayer1Job(Configuration configuration, JobStatusID processStatusId) {
-		super(configuration, processStatusId);
+	public BatchLayer1Job(Configuration configuration, JobStatusID processStartTimeStatusId) {
+		super(configuration, processStartTimeStatusId);
 		setBatchViews1Keyspace(configuration.getString("wikitrends.serving1.cassandra.keyspace"));
 	}
 	

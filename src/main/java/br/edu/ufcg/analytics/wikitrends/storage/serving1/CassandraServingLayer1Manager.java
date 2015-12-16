@@ -162,7 +162,7 @@ public class CassandraServingLayer1Manager implements Serializable {
 
 		if (args.length < 2) {
 			System.err.println(
-					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.batch1.CassandraServingLayer1Manager OPERATION <seed_address>");
+					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager OPERATION <seed_address>");
 			System.exit(1);
 		}
 
