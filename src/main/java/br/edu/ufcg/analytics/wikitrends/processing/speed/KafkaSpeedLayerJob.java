@@ -55,7 +55,7 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 	public KafkaSpeedLayerJob(Configuration configuration) {
 
 		appName = configuration.getString("wikitrends.speed.id");
-	    topics = configuration.getStringArray("wikitrends.speed.ingestion.kafka.topics");
+	    topics = configuration.getStringArray("wikitrends.speed.ingestion.kafka.topic");
 	    zookeeperServers = configuration.getString("wikitrends.speed.ingestion.zookeepeer.quorum");
 		consumerGroups = configuration.getString("wikitrends.speed.ingestion.kafka.consumergroup");
 
