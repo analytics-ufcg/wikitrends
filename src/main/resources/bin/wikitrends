@@ -32,7 +32,7 @@ function show_help (){
 WIKITRENDS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 JAR_FILE=wikitrends-2.0.jar
 MAIN_CLASS=br.edu.ufcg.analytics.wikitrends.WikiTrends
-JAR_ADDRESS=http://analytics.ufcg.edu.br/wikitrends/wikitrends-2.0-jar-with-dependencies.jar
+JAR_ADDRESS=http://gabdi/wikitrends/wikitrends-2.0-jar-with-dependencies.jar
 LOCAL_JAR_ADDRESS=${WIKITRENDS_HOME}/wikitrends-2.0-jar-with-dependencies.jar
 # default values
 MASTER_ADDRESS=spark://master:7077
@@ -211,8 +211,9 @@ web)
     case $2 in
     start)
 	    echo "Starting web application"
+	    jar uf ${LOCAL_JAR_ADDRESS} wikitrends.properties
 	    cp ${LOCAL_JAR_ADDRESS} ${WIKITRENDS_HOME}/static/
-	    nohup java -cp "${WIKITRENDS_HOME}/lib/*" ${MAIN_CLASS} WEB &
+	    nohup java -cp "${WIKITRENDS_HOME}/lib/*" ${MAIN_CLASS} WEB > /tmp/wikitrends-web.nohup.out 2>&1 &
         ;;
     stop)
 	    echo "Attempting to stop web application"
