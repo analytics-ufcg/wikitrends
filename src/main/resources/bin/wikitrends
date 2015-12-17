@@ -7,26 +7,26 @@ function show_help (){
     echo -e "             <subcommand>\n"
     echo -e "Subcommands:\n"
     
-    echo "   batch_1										Runs batch layer 1 job"
-    echo "   batch_2										Runs batch layer 2 job"
+    echo "   batch_1		<job_id>													Runs batch layer 1 job"
+    echo "   batch_2		<job_id>													Runs batch layer 2 job"
     
-    echo "   ingestor	start|stop							Starts or stops ingestor"
+    echo "   ingestor	start|stop														Starts or stops ingestor"
     
-    echo "   master_dataset		create	 <cassandra_host>	Creates tables at cassandra master database"
-    echo "   master_dataset		drop	 <cassandra_host>	Drop tables at cassandra master database"
-    echo "   master_dataset		populate <cassandra_host> <json_input_file>		Migrate data from JSON to cassandra master database"
+    echo "   master_dataset		create	 <cassandra_host>								Creates tables at cassandra master database"
+    echo "   master_dataset		drop	 <cassandra_host>								Drop tables at cassandra master database"
+    echo "   master_dataset		populate <cassandra_host> <json_input_file>				Migrate data from JSON to cassandra master database"
     
-    echo "   serving_1	createschema	<cassandra_host>	Creates tables at cassandra serving layer 1 database"
-    echo "   serving_1	dropschema		<cassandra_host> 	Drops tables at cassandra serving layer 1 database"
+    echo "   serving_1	createschema	<cassandra_host>								Creates tables at cassandra serving layer 1 database"
+    echo "   serving_1	dropschema		<cassandra_host> 								Drops tables at cassandra serving layer 1 database"
     
-    echo "   serving_2	createschema	<cassandra_host>	Creates tables at cassandra serving layer 1 database"
-    echo "   serving_2	dropschema		<cassandra_host>	Drops tables at cassandra serving layer 2 database"
+    echo "   serving_2	createschema	<cassandra_host>								Creates tables at cassandra serving layer 1 database"
+    echo "   serving_2	dropschema		<cassandra_host>								Drops tables at cassandra serving layer 2 database"
     
     
-    echo "   speed		start											Submits speed layer job"
-    echo "   speed		status|stop <submission_id>						Gets status or stops speed layer job identified by given id"
+    echo "   speed		start															Submits speed layer job"
+    echo "   speed		status|stop <submission_id>										Gets status or stops speed layer job identified by given id"
     
-    echo "   web		start|stop										Starts or stops web application (launch with sudo if PORT < 1000)"
+    echo "   web		start|stop														Starts or stops web application (launch with sudo if PORT < 1000)"
 }
 
 WIKITRENDS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -34,7 +34,9 @@ JAR_FILE=wikitrends-2.0.jar
 MAIN_CLASS=br.edu.ufcg.analytics.wikitrends.WikiTrends
 JAR_ADDRESS=http://gabdi/wikitrends/wikitrends-2.0-jar-with-dependencies.jar
 LOCAL_JAR_ADDRESS=${WIKITRENDS_HOME}/wikitrends-2.0-jar-with-dependencies.jar
+
 # default values
+
 MASTER_ADDRESS=spark://master:7077
 TOTAL_EXECUTOR_CORES=2
 ENV_VAR_FILE=${HOME}/.profile
@@ -116,14 +118,54 @@ master_dataset)
 batch_1)
     echo "Submitting batch layer 1 jobs"
 	source ${ENV_VAR_FILE}
-	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class br.edu.ufcg.analytics.wikitrends.processing.batch1.TopIdiomsBatch1 ${LOCAL_JAR_ADDRESS} BATCH
+	
+	echo "Submitting TOP_IDIOMS batch 1 job"
+	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_IDIOMS_BATCH_1
+	echo "TOP_IDIOMS batch 1 job finished!"
+	
+	#echo "Submitting TOP_EDITORS batch 1 job"
+	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_EDITORS_BATCH_1
+	#echo "TOP_EDITORS batch 1 job finished!"
+	
+	#echo "Submitting TOP_PAGES batch 1 job"
+	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_PAGES_BATCH_1
+	#echo "TOP_PAGES batch 1 job finished!"
+	
+	#echo "Submitting TOP_CONTENT_PAGES batch 1 job"
+	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_CONTENT_PAGES_BATCH_1
+	#echo "TOP_CONTENT_PAGES batch 1 job finished!"
+	
+	#echo "Submitting ABSOLUTE_VALUES batch 1 job"
+	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} ABSOLUTE_VALUES_BATCH_1
+    #echo "ABSOLUTE_VALUES batch 1 job finished!"
+    
     echo "Finished executing batch layer 1 jobs!"
     ;;
 
 batch_2)
     echo "Submitting batch layer 2 jobs"
 	source ${ENV_VAR_FILE}
-	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class br.edu.ufcg.analytics.wikitrends.processing.batch1.TopIdiomsBatch2 ${LOCAL_JAR_ADDRESS} BATCH
+	
+	echo "Submitting TOP_IDIOMS batch 2 job"
+	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_IDIOMS_BATCH_2
+	echo "TOP_IDIOMS batch 2 job finished!"
+	
+	#echo "Submitting TOP_EDITORS batch 2 job"
+	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_EDITORS_BATCH_2
+	#echo "TOP_EDITORS batch 2 job finished!"
+	
+	#echo "Submitting TOP_PAGES batch 2 job"
+	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_PAGES_BATCH_2
+	#echo "TOP_PAGES batch 2 job finished!"
+	
+	#echo "Submitting TOP_CONTENT_PAGES batch 2 job"
+	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_CONTENT_PAGES_BATCH_2
+	#echo "TOP_CONTENT_PAGES batch 2 job finished!"
+	
+	#echo "Submitting ABSOLUTE_VALUES batch 2 job"
+	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} ABSOLUTE_VALUES_BATCH_2
+    #echo "ABSOLUTE_VALUES batch 2 job finished!"
+
     echo "Finished executing batch layer 2 jobs!"
     ;;
 
@@ -211,7 +253,6 @@ web)
     case $2 in
     start)
 	    echo "Starting web application"
-	    jar uf ${LOCAL_JAR_ADDRESS} wikitrends.properties
 	    cp ${LOCAL_JAR_ADDRESS} ${WIKITRENDS_HOME}/static/
 	    nohup java -cp "${WIKITRENDS_HOME}/lib/*" ${MAIN_CLASS} WEB > /tmp/wikitrends-web.nohup.out 2>&1 &
         ;;
