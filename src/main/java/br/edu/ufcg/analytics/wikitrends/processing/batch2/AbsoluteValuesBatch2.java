@@ -45,12 +45,11 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job {
     	
     	CassandraConnector connector = CassandraConnector.apply(getJavaSparkContext().getConf());
     	try (Session session = connector.openSession()) {
-            ResultSet results = session.execute("SELECT edits_data FROM batch_views." + "absolute_values");
+            ResultSet results = session.execute("SELECT edits_data FROM batch_views1." + "absolute_values");
             
-            System.out.println(results.toString());
-            int amountRecords = results.all().size();
+            List<Row> listRecords = results.all();
             
-            for(Row r : results) {
+            for(Row r : listRecords) {
             	Map<String, Long> tmpM = r.getMap("edits_data", String.class, Long.class);
             	for (String key : tmpM.keySet()) {
             		if(map.keySet().contains(key)) {
@@ -61,7 +60,7 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job {
             	    }
             	}
             }
-            map.put("average_size", map.get("average_size")/amountRecords);
+            map.put("average_size", map.get("average_size")/listRecords.size());
     	}
         
         //System.out.println("Final map: " + map.toString());
@@ -81,7 +80,7 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job {
 		
 		CassandraConnector connector = CassandraConnector.apply(getJavaSparkContext().getConf());
     	try (Session session = connector.openSession()) {
-            ResultSet results = session.execute("SELECT distinct_editors_set FROM batch_views." + "absolute_values");
+            ResultSet results = session.execute("SELECT distinct_editors_set FROM batch_views1." + "absolute_values");
             
             for(Row r : results) {
             	distinctEditorsList.addAll(r.getSet("distinct_editors_set", String.class));
@@ -105,7 +104,7 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job {
 		
 		CassandraConnector connector = CassandraConnector.apply(getJavaSparkContext().getConf());
     	try (Session session = connector.openSession()) {
-            ResultSet results = session.execute("SELECT distinct_pages_set FROM batch_views." + "absolute_values");
+            ResultSet results = session.execute("SELECT distinct_pages_set FROM batch_views1." + "absolute_values");
 
             for(Row r : results) {
             	distinctPagesList.addAll(r.getSet("distinct_pages_set", String.class));
@@ -128,7 +127,7 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job {
 		
 		CassandraConnector connector = CassandraConnector.apply(getJavaSparkContext().getConf());
     	try (Session session = connector.openSession()) {
-            ResultSet results = session.execute("SELECT distinct_servers_set FROM batch_views." + "absolute_values");
+            ResultSet results = session.execute("SELECT distinct_servers_set FROM batch_views1." + "absolute_values");
             
             for(Row r : results) {
             	distinctServersList.addAll(r.getSet("distinct_servers_set", String.class));
@@ -151,7 +150,7 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job {
 		
 		CassandraConnector connector = CassandraConnector.apply(getJavaSparkContext().getConf());
     	try (Session session = connector.openSession()) {
-            ResultSet results = session.execute("SELECT smaller_data FROM batch_views." + "absolute_values");
+            ResultSet results = session.execute("SELECT smaller_origin FROM batch_views1." + "absolute_values");
             
             for(Row r : results) {
             	if(r.getLong("smaller_origin") < smallerTime) {

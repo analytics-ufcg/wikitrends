@@ -27,6 +27,7 @@ import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopContentPagesBatch1;
 import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopEditorsBatch1;
 import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopIdiomsBatch1;
 import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopPagesBatch1;
+import br.edu.ufcg.analytics.wikitrends.storage.CassandraJobTimesStatusManager;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager;
 
@@ -66,8 +67,12 @@ public class SmallDataBatch1IT {
 			new CassandraMasterDatasetManager().dropTables(session);
 			new CassandraServingLayer1Manager().dropTables(session);
 			
+			new CassandraJobTimesStatusManager().dropTables(session);
+			
 			new CassandraMasterDatasetManager().createTables(session);
 			new CassandraServingLayer1Manager().createTables(session);
+			
+			new CassandraJobTimesStatusManager().createTables(session);
 
 		}
 
@@ -102,7 +107,7 @@ public class SmallDataBatch1IT {
 
 		cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
 		session = cluster.newSession();
-		session.execute("USE batch_views");
+		session.execute("USE batch_views1");
 
 	}
 
@@ -129,8 +134,8 @@ public class SmallDataBatch1IT {
 	@Test
 	public void testProcessTopEditors() throws ConfigurationException {
 		
-		session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
-										"top_editors", 
+		session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+										"top_editors_batch_1", 
 										getCurrentTime().getYear(), 
 										getCurrentTime().getMonthValue(), 
 										getCurrentTime().getDayOfMonth(), 
@@ -140,11 +145,11 @@ public class SmallDataBatch1IT {
 		job.process();
 		job.finalizeSparkContext();
 
-		assertEquals(327, session.execute("SELECT count(1) FROM batch_views.top_editors").one().getLong("count"));
-		assertEquals(510, session.execute("SELECT sum(count) as ranking_sum FROM batch_views.top_editors").one().getLong("ranking_sum"));
+		assertEquals(327, session.execute("SELECT count(1) FROM batch_views1.top_editors").one().getLong("count"));
+		assertEquals(510, session.execute("SELECT sum(count) as ranking_sum FROM batch_views1.top_editors").one().getLong("ranking_sum"));
 
-		long rankingMax = session.execute("SELECT max(count) as ranking_max FROM batch_views.top_editors").one().getLong("ranking_max");
-		long rankingFirst = session.execute("SELECT count as ranking_max FROM batch_views.top_editors LIMIT 1").one().getLong("ranking_max");
+		long rankingMax = session.execute("SELECT max(count) as ranking_max FROM batch_views1.top_editors").one().getLong("ranking_max");
+		long rankingFirst = session.execute("SELECT count as ranking_max FROM batch_views1.top_editors LIMIT 1").one().getLong("ranking_max");
 
 		assertEquals(31, rankingMax);
 		assertEquals(31, rankingFirst);
@@ -155,8 +160,8 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessTopIdioms() throws ConfigurationException {
-		session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
-				"top_idioms", 
+		session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+				"top_idioms_batch_1", 
 				getCurrentTime().getYear(), 
 				getCurrentTime().getMonthValue(), 
 				getCurrentTime().getDayOfMonth(), 
@@ -191,8 +196,8 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessTopPages() throws ConfigurationException {
-		session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
-				"top_pages", 
+		session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+				"top_pages_batch_1", 
 				getCurrentTime().getYear(), 
 				getCurrentTime().getMonthValue(), 
 				getCurrentTime().getDayOfMonth(), 
@@ -227,8 +232,8 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessTopContentPages() throws ConfigurationException {
-		session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
-				"top_content_pages", 
+		session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+				"top_content_pages_batch_1", 
 				getCurrentTime().getYear(), 
 				getCurrentTime().getMonthValue(), 
 				getCurrentTime().getDayOfMonth(), 
@@ -264,8 +269,8 @@ public class SmallDataBatch1IT {
 	 */
 	@Test
 	public void testProcessAbsoluteValues() throws ConfigurationException {
-		session.execute("INSERT INTO batch_views.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
-				"absolute_values", 
+		session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+				"abs_values_batch_1", 
 				getCurrentTime().getYear(), 
 				getCurrentTime().getMonthValue(), 
 				getCurrentTime().getDayOfMonth(), 

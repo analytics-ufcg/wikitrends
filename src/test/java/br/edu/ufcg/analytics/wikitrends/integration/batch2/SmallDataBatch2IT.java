@@ -32,6 +32,7 @@ import br.edu.ufcg.analytics.wikitrends.processing.batch2.TopContentPagesBatch2;
 import br.edu.ufcg.analytics.wikitrends.processing.batch2.TopEditorsBatch2;
 import br.edu.ufcg.analytics.wikitrends.processing.batch2.TopIdiomsBatch2;
 import br.edu.ufcg.analytics.wikitrends.processing.batch2.TopPagesBatch2;
+import br.edu.ufcg.analytics.wikitrends.storage.CassandraJobTimesStatusManager;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.CassandraServingLayer2Manager;
@@ -70,10 +71,12 @@ public class SmallDataBatch2IT {
 			new CassandraMasterDatasetManager().dropTables(session);
 			new CassandraServingLayer1Manager().dropTables(session);
 			new CassandraServingLayer2Manager().dropTables(session);
+			new CassandraJobTimesStatusManager().dropTables(session);
 			
 			new CassandraMasterDatasetManager().createTables(session);
 			new CassandraServingLayer1Manager().createTables(session);
 			new CassandraServingLayer2Manager().createTables(session);
+			new CassandraJobTimesStatusManager().createTables(session);
 
 		}
 
@@ -107,7 +110,7 @@ public class SmallDataBatch2IT {
 
 		cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
 		session = cluster.newSession();
-		session.execute("USE results");
+		session.execute("USE batch_views2");
 
 	}
 
@@ -129,16 +132,18 @@ public class SmallDataBatch2IT {
 		TopEditorsBatch1 job1 = new TopEditorsBatch1(configuration);
 		job1.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
 		job1.process();
+		job1.finalizeSparkContext();
 		
 		TopEditorsBatch2 job2 = new TopEditorsBatch2(configuration);
 		job2.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
 		job2.process();
+		job2.finalizeSparkContext();
 
-		assertEquals(327, session.execute("SELECT count(1) FROM top_editor").one().getLong("count"));
-		assertEquals(510, session.execute("SELECT sum(count) as ranking_sum FROM top_editor").one().getLong("ranking_sum"));
+		assertEquals(327, session.execute("SELECT count(1) FROM top_editors").one().getLong("count"));
+		assertEquals(510, session.execute("SELECT sum(count) as ranking_sum FROM top_editors").one().getLong("ranking_sum"));
 
-		long rankingMax = session.execute("SELECT max(count) as ranking_max FROM top_editor").one().getLong("ranking_max");
-		long rankingFirst = session.execute("SELECT count as ranking_max FROM top_editor LIMIT 1").one().getLong("ranking_max");
+		long rankingMax = session.execute("SELECT max(count) as ranking_max FROM top_editors").one().getLong("ranking_max");
+		long rankingFirst = session.execute("SELECT count as ranking_max FROM top_editors LIMIT 1").one().getLong("ranking_max");
 
 		assertEquals(31, rankingMax);
 		assertEquals(31, rankingFirst);
@@ -152,32 +157,34 @@ public class SmallDataBatch2IT {
 		TopIdiomsBatch1 job1 = new TopIdiomsBatch1(configuration);
 		job1.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
 		job1.process();
+		job1.finalizeSparkContext();
 		
 		TopIdiomsBatch2 job2 = new TopIdiomsBatch2(configuration);
 		job2.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
 		job2.process();
+		job2.finalizeSparkContext();
 		
-		ResultSet resultSet = session.execute("SELECT count(1) FROM top_idiom");
+		ResultSet resultSet = session.execute("SELECT count(1) FROM top_idioms");
 		assertEquals(45, resultSet.one().getLong("count"));
 		
-		resultSet = session.execute("SELECT count(*) FROM top_idiom WHERE count >= 3 ALLOW FILTERING");
+		resultSet = session.execute("SELECT count(*) FROM top_idioms WHERE count >= 3 ALLOW FILTERING");
 		assertEquals(19, resultSet.one().getLong("count"));
 		
-		resultSet = session.execute("SELECT count(*) FROM top_idiom WHERE count = 2 ALLOW FILTERING");
+		resultSet = session.execute("SELECT count(*) FROM top_idioms WHERE count = 2 ALLOW FILTERING");
 		assertEquals(12, resultSet.one().getLong("count"));
 		
-		resultSet = session.execute("SELECT * FROM top_idiom WHERE count = 115 AND name = 'en.wikipedia.org' ALLOW FILTERING");
+		resultSet = session.execute("SELECT * FROM top_idioms WHERE count = 115 AND name = 'en.wikipedia.org' ALLOW FILTERING");
 		List<Row> list = resultSet.all();
 		assertTrue(list.size() == 1);
 		assertTrue(list.get(0).getLong("count") == 115L);
 		
-		resultSet = session.execute("SELECT * FROM top_idiom WHERE count = 55 AND name = 'it.wikipedia.org' ALLOW FILTERING");
+		resultSet = session.execute("SELECT * FROM top_idioms WHERE count = 55 AND name = 'it.wikipedia.org' ALLOW FILTERING");
 		List<Row> list2 = resultSet.all();
 		assertTrue(list2.size() == 1);
 		assertTrue(list2.get(0).getString("name").equals("it.wikipedia.org"));
 		
-		long rankingMax = session.execute("SELECT max(count) as ranking_max FROM top_idiom").one().getLong("ranking_max");
-		long rankingFirst = session.execute("SELECT count as ranking_max FROM top_idiom LIMIT 1").one().getLong("ranking_max");
+		long rankingMax = session.execute("SELECT max(count) as ranking_max FROM top_idioms").one().getLong("ranking_max");
+		long rankingFirst = session.execute("SELECT count as ranking_max FROM top_idioms LIMIT 1").one().getLong("ranking_max");
 
 		assertEquals(115, rankingMax);
 		assertEquals(115, rankingFirst);
@@ -188,35 +195,37 @@ public class SmallDataBatch2IT {
 	 */
 	@Test
 	public void testProcessTopPages() throws ConfigurationException {
-		TopPagesBatch1 job = new TopPagesBatch1(configuration);
-		job.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
-		job.process();
+		TopPagesBatch1 job1 = new TopPagesBatch1(configuration);
+		job1.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
+		job1.process();
+		job1.finalizeSparkContext();
 		
 		TopPagesBatch2 job2 = new TopPagesBatch2(configuration);
 		job2.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
 		job2.process();
+		job2.finalizeSparkContext();
 		
-		ResultSet resultSet = session.execute("SELECT count(1) FROM top_page");
+		ResultSet resultSet = session.execute("SELECT count(1) FROM top_pages");
 		assertEquals(490, resultSet.one().getLong("count"));
 
-		resultSet = session.execute("SELECT count(*) FROM top_page WHERE count >= 3 ALLOW FILTERING");
+		resultSet = session.execute("SELECT count(*) FROM top_pages WHERE count >= 3 ALLOW FILTERING");
 		assertEquals(3, resultSet.one().getLong("count"));
 
-		resultSet = session.execute("SELECT count(*) FROM top_page WHERE count = 2 ALLOW FILTERING");
+		resultSet = session.execute("SELECT count(*) FROM top_pages WHERE count = 2 ALLOW FILTERING");
 		assertEquals(14, resultSet.one().getLong("count"));
 
-		resultSet = session.execute("SELECT * FROM top_page WHERE count = 3 AND name = 'Marie Antoinette' ALLOW FILTERING");
+		resultSet = session.execute("SELECT * FROM top_pages WHERE count = 3 AND name = 'Marie Antoinette' ALLOW FILTERING");
 		List<Row> list = resultSet.all();
 		assertTrue(list.size() == 1);
 		assertTrue(list.get(0).getLong("count") == 3L);
 
-		resultSet = session.execute("SELECT * FROM top_page WHERE count = 3 AND name = 'Simone Zaza' ALLOW FILTERING");
+		resultSet = session.execute("SELECT * FROM top_pages WHERE count = 3 AND name = 'Simone Zaza' ALLOW FILTERING");
 		List<Row> list2 = resultSet.all();
 		assertTrue(list2.size() == 1);
 		assertTrue(list2.get(0).getString("name").equals("Simone Zaza"));
 		
-		long rankingMax = session.execute("SELECT max(count) as ranking_max FROM top_page").one().getLong("ranking_max");
-		long rankingFirst = session.execute("SELECT count as ranking_max FROM top_page LIMIT 1").one().getLong("ranking_max");
+		long rankingMax = session.execute("SELECT max(count) as ranking_max FROM top_pages").one().getLong("ranking_max");
+		long rankingFirst = session.execute("SELECT count as ranking_max FROM top_pages LIMIT 1").one().getLong("ranking_max");
 
 		assertEquals(3, rankingMax);
 		assertEquals(3, rankingFirst);
@@ -230,32 +239,34 @@ public class SmallDataBatch2IT {
 		TopContentPagesBatch1 job1 = new TopContentPagesBatch1(configuration);
 		job1.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
 		job1.process();
+		job1.finalizeSparkContext();
 		
 		TopContentPagesBatch2 job2 = new TopContentPagesBatch2(configuration);
 		job2.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
 		job2.process();
+		job2.finalizeSparkContext();
 		
-		ResultSet resultSet = session.execute("SELECT count(1) FROM top_content_page");
+		ResultSet resultSet = session.execute("SELECT count(1) FROM top_content_pages");
 		assertEquals(385, resultSet.one().getLong("count"));
 		
-		resultSet = session.execute("SELECT count(*) FROM top_content_page WHERE count >= 3 ALLOW FILTERING");
+		resultSet = session.execute("SELECT count(*) FROM top_content_pages WHERE count >= 3 ALLOW FILTERING");
 		assertEquals(3, resultSet.one().getLong("count"));
 		
-		resultSet = session.execute("SELECT count(*) FROM top_content_page WHERE count = 2 ALLOW FILTERING");
+		resultSet = session.execute("SELECT count(*) FROM top_content_pages WHERE count = 2 ALLOW FILTERING");
 		assertEquals(11, resultSet.one().getLong("count"));
 		
-		resultSet = session.execute("SELECT * FROM top_content_page WHERE count = 3 AND name = 'Marie Antoinette' ALLOW FILTERING");
+		resultSet = session.execute("SELECT * FROM top_content_pages WHERE count = 3 AND name = 'Marie Antoinette' ALLOW FILTERING");
 		List<Row> list = resultSet.all();
 		assertTrue(list.size() == 1);
 		assertTrue(list.get(0).getLong("count") == 3L);
 		
-		resultSet = session.execute("SELECT * FROM top_content_page WHERE count = 3 AND name = 'Simone Zaza' ALLOW FILTERING");
+		resultSet = session.execute("SELECT * FROM top_content_pages WHERE count = 3 AND name = 'Simone Zaza' ALLOW FILTERING");
 		List<Row> list2 = resultSet.all();
 		assertTrue(list2.size() == 1);
 		assertTrue(list2.get(0).getString("name").equals("Simone Zaza"));
 		
-		long rankingMax = session.execute("SELECT max(count) as ranking_max FROM top_content_page").one().getLong("ranking_max");
-		long rankingFirst = session.execute("SELECT count as ranking_max FROM top_content_page LIMIT 1").one().getLong("ranking_max");
+		long rankingMax = session.execute("SELECT max(count) as ranking_max FROM top_content_pages").one().getLong("ranking_max");
+		long rankingFirst = session.execute("SELECT count as ranking_max FROM top_content_pages LIMIT 1").one().getLong("ranking_max");
 
 		assertEquals(3, rankingMax);
 		assertEquals(3, rankingFirst);
@@ -267,30 +278,31 @@ public class SmallDataBatch2IT {
 	 */
 	@Test
 	public void testProcessAbsoluteValues() throws ConfigurationException {
-		AbsoluteValuesBatch1 job = new AbsoluteValuesBatch1(configuration);
-		job.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
-		job.process();
+		AbsoluteValuesBatch1 job1 = new AbsoluteValuesBatch1(configuration);
+		job1.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
+		job1.process();
+		job1.finalizeSparkContext();
 		
 		AbsoluteValuesBatch2 job2 = new AbsoluteValuesBatch2(configuration);
 		job2.setCurrentTime(LocalDateTime.of(2015, 11, 9, 14, 00));
 		job2.process();
+		job2.finalizeSparkContext();
 		
-		ResultSet resultSet = session.execute("SELECT * FROM absolute_values WHERE year = 2015 AND month = 11 AND day = 9 AND hour = 14");
+		ResultSet resultSet = session.execute("SELECT * FROM absolute_values");
 		List<Row> list = resultSet.all();
 		
 		assertTrue(list.size() == 1);
-		Map<String, Long> edits_data = list.get(0).getMap("edits_data", String.class, Long.class);
-		assertEquals((long)edits_data.get("all_edits"), (long)510);
-		assertEquals((long)edits_data.get("minor_edits"), (long)154);
-		assertEquals((long)edits_data.get("average_size"), (long)401);
+		assertEquals((long)list.get(0).getLong(("all_edits")), (long)510);
+		assertEquals((long)list.get(0).getLong(("minor_edits")), (long)154);
+		assertEquals((long)list.get(0).getLong(("average_size")), (long)401);
 		
-		Set<String> distinct_editors_set = list.get(0).getSet("distinct_editors_set", String.class);
-		Set<String> distinct_pages_set = list.get(0).getSet("distinct_pages_set", String.class);
-		Set<String> distinct_servers_set = list.get(0).getSet("distinct_servers_set", String.class);
+		Integer distinct_editors_count = list.get(0).getInt("distinct_editors_count");		
+		Integer distinct_servers_count = list.get(0).getInt("distinct_servers_count");
+		Long distinct_pages_count = list.get(0).getLong("distinct_pages_count");
 		
-		assertEquals(distinct_editors_set.size(), 312);
-		assertEquals(distinct_pages_set.size(), 490);
-		assertEquals(distinct_servers_set.size(), 45);
+		assertEquals((int) distinct_editors_count, 312);		
+		assertEquals((int) distinct_servers_count, 45);
+		assertEquals((long) distinct_pages_count, 490);
 		
 		Long smaller_origin = list.get(0).getLong("smaller_origin");
 		DateTime date = new DateTime(smaller_origin);

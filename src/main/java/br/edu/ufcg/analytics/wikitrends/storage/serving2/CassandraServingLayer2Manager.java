@@ -69,23 +69,23 @@ public class CassandraServingLayer2Manager implements Serializable {
 								");"
 					);
             
-            session.execute("CREATE TABLE IF NOT EXISTS results.servers_ranking" +
-								"(id text," +
-								"server_name TEXT," +
-								"count INT," +
-								"PRIMARY KEY((id), count, server_name)" +
-								") WITH CLUSTERING ORDER BY (count DESC, server_name ASC);"
-            		);
-            
-            session.execute("CREATE TABLE IF NOT EXISTS results." +
-								"ranking" +
-								"(id TEXT," +
-								"name TEXT," +
-								"count BIGINT," +
-								
-								"PRIMARY KEY((id), count, name)" +
-								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
-            		);
+//            session.execute("CREATE TABLE IF NOT EXISTS results.servers_ranking" +
+//								"(id text," +
+//								"server_name TEXT," +
+//								"count INT," +
+//								"PRIMARY KEY((id), count, server_name)" +
+//								") WITH CLUSTERING ORDER BY (count DESC, server_name ASC);"
+//            		);
+//            
+//            session.execute("CREATE TABLE IF NOT EXISTS results." +
+//								"ranking" +
+//								"(id TEXT," +
+//								"name TEXT," +
+//								"count BIGINT," +
+//								
+//								"PRIMARY KEY((id), count, name)" +
+//								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
+//            		);
 	}
 	
 	
