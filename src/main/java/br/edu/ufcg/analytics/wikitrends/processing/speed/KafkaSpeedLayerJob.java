@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.Durations;
@@ -79,7 +78,7 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 		}).map(change -> LogChange.parseLogChange(change));
 	    
 	    CassandraStreamingJavaUtil.javaFunctions(changesDStream).
-	    	writerBuilder("master_dataset", "change", mapToRow(RawWikimediaChange.class)).
+	    	writerBuilder("master_dataset", "changes", mapToRow(RawWikimediaChange.class)).
 	    	saveToCassandra();
 	    
 	    CassandraStreamingJavaUtil.javaFunctions(editsDStream).
