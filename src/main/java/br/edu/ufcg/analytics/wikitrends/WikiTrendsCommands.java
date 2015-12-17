@@ -8,10 +8,22 @@ import org.apache.commons.configuration.Configuration;
  * Possible layers to submit WikiTrends jobs according to &lambda; architecture.
  * 
  * @author Ricardo Ara&eacute;jo Santos - ricoaraujosantos@gmail.com
+ * @author Guilherme Gadelha
  */
 public enum WikiTrendsCommands {
 	
-	BATCH ("wikitrends.batch.class"),
+	TOP_IDIOMS_BATCH_1 ("wikitrends.batch1.top_idioms.class"),
+	TOP_EDITORS_BATCH_1 ("wikitrends.batch1.top_editors.class"),
+	TOP_PAGES_BATCH_1 ("wikitrends.batch1.top_pages.class"),
+	TOP_CONTENT_PAGES_BATCH_1 ("wikitrends.batch1.top_content_pages.class"),
+	ABSOLUTE_VALUES_BATCH_1 ("wikitrends.batch1.absolute_values.class"),
+	
+	TOP_IDIOMS_BATCH_2 ("wikitrends.batch2.top_idioms.class"),
+	TOP_EDITORS_BATCH_2 ("wikitrends.batch2.top_editors.class"),
+	TOP_PAGES_BATCH_2 ("wikitrends.batch2.top_pages.class"),
+	TOP_CONTENT_PAGES_BATCH_2("wikitrends.batch2.top_content_pages.class"),
+	ABSOLUTE_VALUES_BATCH_2 ("wikitrends.batch2.absolute_values.class"),
+	
 	SERVING ("wikitrends.serving.class"),
 	INGESTOR ("wikitrends.ingestion.class"),
 	SPEED ("wikitrends.speed.class"),

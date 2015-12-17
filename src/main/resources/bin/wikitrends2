@@ -1,0 +1,272 @@
+#!/bin/bash
+
+function show_help (){
+    echo -e "WikiTrends Application Manager\n"
+    echo "usage: wikitrends [-e env_var_file] [-m master_address]"
+    echo "                  [-w number_of_executor_workers]"
+    echo -e "             <subcommand>\n"
+    echo -e "Subcommands:\n"
+    
+    echo "   batch_1		<job_id>													Runs batch layer 1 job"
+    echo "   batch_2		<job_id>													Runs batch layer 2 job"
+    
+    echo "   ingestor	start|stop														Starts or stops ingestor"
+    
+    echo "   master_dataset		create	 <cassandra_host>								Creates tables at cassandra master database"
+    echo "   master_dataset		drop	 <cassandra_host>								Drop tables at cassandra master database"
+    echo "   master_dataset		populate <cassandra_host> <json_input_file>				Migrate data from JSON to cassandra master database"
+    
+    echo "   serving_1	createschema	<cassandra_host>								Creates tables at cassandra serving layer 1 database"
+    echo "   serving_1	dropschema		<cassandra_host> 								Drops tables at cassandra serving layer 1 database"
+    
+    echo "   serving_2	createschema	<cassandra_host>								Creates tables at cassandra serving layer 1 database"
+    echo "   serving_2	dropschema		<cassandra_host>								Drops tables at cassandra serving layer 2 database"
+    
+    
+    echo "   speed		start															Submits speed layer job"
+    echo "   speed		status|stop <submission_id>										Gets status or stops speed layer job identified by given id"
+    
+    echo "   web		start|stop														Starts or stops web application (launch with sudo if PORT < 1000)"
+}
+
+WIKITRENDS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+JAR_FILE=wikitrends-2.0.jar
+MAIN_CLASS=br.edu.ufcg.analytics.wikitrends.WikiTrends
+JAR_ADDRESS=http://analytics.ufcg.edu.br/wikitrends/wikitrends-2.0-jar-with-dependencies.jar
+LOCAL_JAR_ADDRESS=${WIKITRENDS_HOME}/wikitrends-2.0-jar-with-dependencies.jar
+
+# default values
+
+MASTER_ADDRESS=spark://master:7077
+TOTAL_EXECUTOR_CORES=2
+ENV_VAR_FILE=${HOME}/.profile
+CASSANDRA_HOST_SEEDS=localhost
+
+OPTIND=1         # Reset in case getopts has been used previously in the shell.
+
+while getopts "c:h?e:j:m:w:" opt; do
+    case "$opt" in
+    h|\?)
+        show_help
+        exit 0
+        ;;
+    c)  CASSANDRA_HOST_SEEDS=$OPTARG
+        ;;
+    e)  ENV_VAR_FILE=$OPTARG
+        ;;
+    j)  JAR_ADDRESS=$OPTARG
+        ;;
+    m)  MASTER_ADDRESS=$OPTARG
+        ;;
+    w)  TOTAL_EXECUTOR_CORES=$OPTARG
+        ;;
+    esac
+done
+
+shift $((OPTIND-1))
+
+[ "$1" = "--" ] && shift
+
+
+
+
+case "$1" in
+ingestor)
+	case $2 in
+	start)
+	    echo "Starting data ingestor"
+		source ${ENV_VAR_FILE}
+		nohup java -cp "${WIKITRENDS_HOME}/lib/*" ${MAIN_CLASS} INGESTOR &
+	    echo "Data ingestor is up!"
+		;;
+	stop)
+	    echo "Attempting to stop wikitrends ingestor"
+	    kill `ps aux | grep INGESTOR | awk '{print $2}'`
+		echo "Interrupted wikitrends ingestor"
+	    ;;
+	*)
+		show_help
+		;;    
+    esac
+    ;;
+master_dataset)
+	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager
+	case $2 in
+	create)
+	    echo "Creating master dataset schema"
+		source ${ENV_VAR_FILE}
+		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE
+	    echo "Master dataset created with success!"
+		;;
+	drop)
+	    echo "Dropping master dataset schema"
+		source ${ENV_VAR_FILE}
+		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP
+	    echo "Master dataset dropped with success!"
+		;;
+	populate)
+	    echo "Attempting to migrate master dataset from JSON file"
+		spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --conf spark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} --class ${MANAGER_CLASS} ${LOCAL_JAR_ADDRESS} POPULATE $3
+		echo "Migration finished with success!"
+	    ;;
+	*)
+		show_help
+		;;    
+    esac
+    ;;
+
+batch_1)
+    echo "Submitting batch layer 1 jobs"
+	source ${ENV_VAR_FILE}
+	
+	echo "Submitting TOP_IDIOMS batch 1 job"
+	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_IDIOMS_BATCH_1
+	echo "TOP_IDIOMS batch 1 job finished!"
+	
+	#echo "Submitting TOP_EDITORS batch 1 job"
+	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_EDITORS_BATCH_1
+	#echo "TOP_EDITORS batch 1 job finished!"
+	
+	#echo "Submitting TOP_PAGES batch 1 job"
+	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_PAGES_BATCH_1
+	#echo "TOP_PAGES batch 1 job finished!"
+	
+	#echo "Submitting TOP_CONTENT_PAGES batch 1 job"
+	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_CONTENT_PAGES_BATCH_1
+	#echo "TOP_CONTENT_PAGES batch 1 job finished!"
+	
+	#echo "Submitting ABSOLUTE_VALUES batch 1 job"
+	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} ABSOLUTE_VALUES_BATCH_1
+    #echo "ABSOLUTE_VALUES batch 1 job finished!"
+    
+    echo "Finished executing batch layer 1 jobs!"
+    ;;
+
+batch_2)
+    echo "Submitting batch layer 2 jobs"
+	source ${ENV_VAR_FILE}
+	
+	echo "Submitting TOP_IDIOMS batch 2 job"
+	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_IDIOMS_BATCH_2
+	echo "TOP_IDIOMS batch 2 job finished!"
+	
+	#echo "Submitting TOP_EDITORS batch 2 job"
+	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_EDITORS_BATCH_2
+	#echo "TOP_EDITORS batch 2 job finished!"
+	
+	#echo "Submitting TOP_PAGES batch 2 job"
+	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_PAGES_BATCH_2
+	#echo "TOP_PAGES batch 2 job finished!"
+	
+	#echo "Submitting TOP_CONTENT_PAGES batch 2 job"
+	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_CONTENT_PAGES_BATCH_2
+	#echo "TOP_CONTENT_PAGES batch 2 job finished!"
+	
+	#echo "Submitting ABSOLUTE_VALUES batch 2 job"
+	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} ABSOLUTE_VALUES_BATCH_2
+    #echo "ABSOLUTE_VALUES batch 2 job finished!"
+
+    echo "Finished executing batch layer 2 jobs!"
+    ;;
+
+serving_1)
+	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager
+	case $2 in
+	createschema)
+	    echo "Creating serving schema"
+		source ${ENV_VAR_FILE}
+		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE ${CASSANDRA_HOST_SEEDS}
+	    echo "Serving layer 1 schema created with success!"
+		;;
+	dropschema)
+	    echo "Dropping serving layer 1 schema"
+		source ${ENV_VAR_FILE}
+		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP ${CASSANDRA_HOST_SEEDS}
+	    echo "Serving layer 1 schema dropped with success!"
+		;;
+	*)
+		show_help
+		;;    
+    esac
+    ;;
+
+serving_2)
+	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.serving2.CassandraServingLayer2Manager
+	case $2 in
+	createschema)
+	    echo "Creating serving layer 2 schema"
+		source ${ENV_VAR_FILE}
+		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3
+	    echo "Serving layer 2 schema created with success!"
+		;;
+	dropschema)
+	    echo "Dropping serving layer 2 schema"
+		source ${ENV_VAR_FILE}
+		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP $3
+	    echo "Serving layer 2 schema dropped with success!"
+		;;	
+	*)
+		show_help
+		;;    
+    esac
+    ;;
+job_times)
+	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.CassandraJobTimesStatusManager
+	case $2 in
+	createschema)
+	    echo "Creating serving layer 2 schema"
+		source ${ENV_VAR_FILE}
+		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3
+	    echo "Serving layer 2 schema created with success!"
+		;;
+	*)
+		show_help
+		;;    
+    esac
+    ;;
+speed)
+	MASTER_ADDRESS=${MASTER_ADDRESS%:*}:6066
+    case $2 in
+    start)
+	    echo "Submitting speed layer job"
+		source ${ENV_VAR_FILE}
+		spark-submit --supervise --deploy-mode cluster --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} --conf spark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} ${JAR_ADDRESS} SPEED
+	    echo "Finished submitting speed layer job"
+        ;;
+    stop)
+	    echo "Attempting to stop speed layer job"
+		source ${ENV_VAR_FILE}
+		spark-submit --kill $3 --master ${MASTER_ADDRESS}
+	    echo "Finished speed layer job"
+        ;;
+    status)
+	    echo "Getting status of speed layer job"
+		source ${ENV_VAR_FILE}
+		spark-submit --status $3 --master ${MASTER_ADDRESS}
+        ;;
+	*)
+		show_help
+		;;    
+    esac
+    ;;
+web)
+    case $2 in
+    start)
+	    echo "Starting web application"
+	    cp ${LOCAL_JAR_ADDRESS} ${WIKITRENDS_HOME}/static/
+	    nohup java -cp "${WIKITRENDS_HOME}/lib/*" ${MAIN_CLASS} WEB &
+        ;;
+    stop)
+	    echo "Attempting to stop web application"
+	    kill `ps aux | grep WikiTrends | awk '{print $2}'`
+		echo "Finished speed layer job"
+        ;;
+	*)
+		show_help
+		;;    
+    esac
+    ;;
+*)
+    show_help
+    ;;
+esac

@@ -57,14 +57,19 @@ public abstract class BatchLayer2Job extends AbstractBatchJob implements WikiTre
 	public void createJavaSparkContext(Configuration configuration) {
 		SparkConf conf = new SparkConf();
 		String appName = configuration.getString("wikitrends.job.batch2.id");
-		String master_host = configuration.getString("spark.master.host");
-		
 		Iterator<String> keys = configuration.getKeys();
 		while (keys.hasNext()) {
 			String key = keys.next();
 			conf.set(key, configuration.getString(key));
 		}
-		setJavaSparkContext(new JavaSparkContext(master_host, appName, conf));
+		
+		if(configuration.containsKey("spark.master.host")) {
+			String master_host = configuration.getString("spark.master.host");
+			setJavaSparkContext(new JavaSparkContext(master_host, appName, conf));
+		}
+		else {
+			setJavaSparkContext(new JavaSparkContext(conf.setAppName(appName)));
+		}
 	}
 	
 	public JavaRDD<TopResult> computeFullRankingFromPartial(String tableName) {

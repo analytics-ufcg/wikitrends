@@ -46,11 +46,21 @@ public abstract class AbstractBatchJob implements WikiTrendsProcess {
 				Row row = all.get(0);
 				setCurrentTime(LocalDateTime.of(row.getInt("year"), row.getInt("month"), row.getInt("day"), row.getInt("hour"), 0).plusHours(1));
 			} else {
-				setCurrentTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(configuration.getLong("wikitrends.batch.incremental.starttime") * 1000), ZoneId.systemDefault()));
+				setCurrentTime(LocalDateTime.of(configuration.getInt("wikitrends.batch.incremental.starttime.year"),
+											 configuration.getInt("wikitrends.batch.incremental.starttime.month"),
+											 configuration.getInt("wikitrends.batch.incremental.starttime.day"),
+											 configuration.getInt("wikitrends.batch.incremental.starttime.hour"), 0));
 			}
 		}
-
-		setStopTime(LocalDateTime.ofInstant(Instant.ofEpochMilli((System.currentTimeMillis() / 3600000) * 3600000), ZoneId.systemDefault()));
+		
+		if(configuration.getBoolean("wikitrends.batch.incremental.stoptime.use") == true) {
+			setStopTime(LocalDateTime.of(configuration.getInt("wikitrends.batch.incremental.stoptime.year"),
+										 configuration.getInt("wikitrends.batch.incremental.stoptime.month"),
+										 configuration.getInt("wikitrends.batch.incremental.stoptime.day"),
+										 configuration.getInt("wikitrends.batch.incremental.stoptime.hour"), 0));
+		} else {
+			setStopTime(LocalDateTime.ofInstant(Instant.ofEpochMilli((System.currentTimeMillis() / 3600000) * 3600000), ZoneId.systemDefault()));
+		}
 	}
 	
 	public String getProcessStartTimeStatusID() {
