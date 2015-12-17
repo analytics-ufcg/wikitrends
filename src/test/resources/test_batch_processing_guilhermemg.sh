@@ -41,5 +41,16 @@ echo
 echo
 
 # execute batch layer 1 jobs --------------------------------------------------------------------
-./wikitrends -m spark://guilhermemg-laptop:7077 -w 2 batch_1 
+./wikitrends -m spark://guilhermemg-laptop:7077 -w 2 batch_1 TOP_IDIOMS_BATCH_1
+./wikitrends -m spark://guilhermemg-laptop:7077 -w 2 batch_1 TOP_EDITORS_BATCH_1
+./wikitrends -m spark://guilhermemg-laptop:7077 -w 2 batch_1 TOP_PAGES_BATCH_1
+./wikitrends -m spark://guilhermemg-laptop:7077 -w 2 batch_1 TOP_CONTENT_PAGES_BATCH_1
+./wikitrends -m spark://guilhermemg-laptop:7077 -w 2 batch_1 ABSOLUTE_VALUES_BATCH_1
+
+# execute batch layer 2 jobs
+./wikitrends -m spark://guilhermemg-laptop:7077 -w 2 batch_2 TOP_IDIOMS_BATCH_2
+./wikitrends -m spark://guilhermemg-laptop:7077 -w 2 batch_2 TOP_EDITORS_BATCH_2
+./wikitrends -m spark://guilhermemg-laptop:7077 -w 2 batch_2 TOP_PAGES_BATCH_2
+./wikitrends -m spark://guilhermemg-laptop:7077 -w 2 batch_2 TOP_CONTENT_PAGES_BATCH_2
+./wikitrends -m spark://guilhermemg-laptop:7077 -w 2 batch_2 ABSOLUTE_VALUES_BATCH_2
 
