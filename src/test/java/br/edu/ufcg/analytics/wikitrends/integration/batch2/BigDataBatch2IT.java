@@ -4,13 +4,9 @@
 package br.edu.ufcg.analytics.wikitrends.integration.batch2;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -30,11 +26,17 @@ import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopEditorsBatch1;
 import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopIdiomsBatch1;
 import br.edu.ufcg.analytics.wikitrends.processing.batch2.TopIdiomsBatch2;
 import br.edu.ufcg.analytics.wikitrends.storage.CassandraJobTimesStatusManager;
+import br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.CassandraServingLayer2Manager;
 
 /**
+ * @author Guilherme Gadelha
  * @author Ricardo Araújo Santos - ricoaraujosantos@gmail.com
+ * 
+ * Set of tests the runs the Phase 2 from the Workflow : Batch2.
+ * It basically calls the method run() from a job built with
+ * a starttime/currenttime took from job_times.status table.
  *
  */
 public class BigDataBatch2IT {
@@ -65,7 +67,7 @@ public class BigDataBatch2IT {
 				Session session = cluster.newSession();
 				){
 			
-//			new CassandraMasterDatasetManager().dropTables(session);
+			new CassandraMasterDatasetManager().dropTables(session);
 			new CassandraServingLayer1Manager().dropTables(session);
 			new CassandraServingLayer2Manager().dropTables(session);
 			
@@ -73,13 +75,13 @@ public class BigDataBatch2IT {
 			
 			new CassandraJobTimesStatusManager().createTables(session);
 			
-//			new CassandraMasterDatasetManager().createTables(session);
+			new CassandraMasterDatasetManager().createTables(session);
 			new CassandraServingLayer1Manager().createTables(session);
 			new CassandraServingLayer2Manager().createTables(session);
 
 		}
 
-//		new CassandraMasterDatasetManager().populate(INPUT_FILE);
+		new CassandraMasterDatasetManager().populate(INPUT_FILE);
 		
 		setCurrentTime(LocalDateTime.of(2015, 11, 7, 14, 00));
 //		setStopTime(LocalDateTime.of(2015, 11, 7, 18, 00)); <== correct time considering timestamps-controled small dataset
