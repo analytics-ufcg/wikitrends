@@ -12,6 +12,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.joda.time.DateTime;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -84,7 +85,7 @@ public class SmallDataBatch1IT {
 	 * Clean master dataset
 	 * @throws java.lang.Exception
 	 */
-//	@AfterClass
+	@AfterClass
 	public static void cleanMasterDataset() throws Exception {
 
 		try (Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();

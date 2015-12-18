@@ -14,6 +14,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
@@ -88,12 +89,12 @@ public class BigDataBatch1IT {
 	@AfterClass
 	public static void cleanMasterDataset() throws Exception {
 
-//		try (Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
-//				Session session = cluster.newSession();) {
-//			new CassandraMasterDatasetManager().dropTables(session);
-//			new CassandraServingLayer1Manager().dropTables(session);
-//			new CassandraServingLayer2Manager().dropTables(session);
-//		}
+		try (Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
+				Session session = cluster.newSession();) {
+			new CassandraMasterDatasetManager().dropTables(session);
+			new CassandraServingLayer1Manager().dropTables(session);
+			new CassandraServingLayer2Manager().dropTables(session);
+		}
 
 	}
 
@@ -138,7 +139,7 @@ public class BigDataBatch1IT {
 	/**
 	 * @throws ConfigurationException
 	 */
-	@Test
+	@Test @Ignore
 	public void testProcessUsersTotalRanking() throws ConfigurationException {
 
 		TopEditorsBatch1 job = new TopEditorsBatch1(configuration);

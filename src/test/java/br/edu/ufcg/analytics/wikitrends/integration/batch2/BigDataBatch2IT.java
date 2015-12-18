@@ -4,9 +4,13 @@
 package br.edu.ufcg.analytics.wikitrends.integration.batch2;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -26,7 +30,6 @@ import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopEditorsBatch1;
 import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopIdiomsBatch1;
 import br.edu.ufcg.analytics.wikitrends.processing.batch2.TopIdiomsBatch2;
 import br.edu.ufcg.analytics.wikitrends.storage.CassandraJobTimesStatusManager;
-import br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.CassandraServingLayer2Manager;
 
@@ -62,7 +65,7 @@ public class BigDataBatch2IT {
 				Session session = cluster.newSession();
 				){
 			
-			new CassandraMasterDatasetManager().dropTables(session);
+//			new CassandraMasterDatasetManager().dropTables(session);
 			new CassandraServingLayer1Manager().dropTables(session);
 			new CassandraServingLayer2Manager().dropTables(session);
 			
@@ -70,13 +73,13 @@ public class BigDataBatch2IT {
 			
 			new CassandraJobTimesStatusManager().createTables(session);
 			
-			new CassandraMasterDatasetManager().createTables(session);
+//			new CassandraMasterDatasetManager().createTables(session);
 			new CassandraServingLayer1Manager().createTables(session);
 			new CassandraServingLayer2Manager().createTables(session);
 
 		}
 
-		new CassandraMasterDatasetManager().populate(INPUT_FILE);
+//		new CassandraMasterDatasetManager().populate(INPUT_FILE);
 		
 		setCurrentTime(LocalDateTime.of(2015, 11, 7, 14, 00));
 //		setStopTime(LocalDateTime.of(2015, 11, 7, 18, 00)); <== correct time considering timestamps-controled small dataset
@@ -234,4 +237,78 @@ public class BigDataBatch2IT {
 		long rankingMin = session.execute("SELECT MIN(COUNT) AS ranking_min FROM top_idioms").one().getLong("ranking_min");
 		assertEquals(1, rankingMin);
 	}
+	
+	/**
+	 * @throws ConfigurationException
+	 */
+	@Test
+	public void testConsecutiveExecutionsOfRunTopIdioms() throws ConfigurationException {
+
+		List<Row> list;
+		
+		/* FIRST HOUR */
+		session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+				JobStatusID.TOP_IDIOMS_BATCH_1.getStatus_id(), 2015, 11, 7, 14);
+		
+		TopIdiomsBatch1 job = new TopIdiomsBatch1(configuration);
+		job.setCurrentTime(LocalDateTime.of(2015, 11, 7, 15, 00));
+		job.process();
+		job.finalizeSparkContext();
+
+		session.execute("USE batch_views1");
+		ResultSet firstHourBatch1Count = session.execute("SELECT count(1) FROM top_idioms WHERE year = 2015 and month = 11 and day = 7 and hour = 15");
+		assertEquals(34, firstHourBatch1Count.one().getLong("count"));
+		ResultSet firstHourBatch1Sum = session.execute("SELECT sum(count) as total_edits FROM top_idioms WHERE year = 2015 and month = 11 and day = 7 and hour = 15");
+		assertEquals(253, firstHourBatch1Sum.one().getLong("total_edits"));
+		
+		session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+				JobStatusID.TOP_IDIOMS_BATCH_2.getStatus_id(), 2015, 11, 7, 15);
+		
+		TopIdiomsBatch2 job2 = new TopIdiomsBatch2(configuration);
+		job2.setCurrentTime(LocalDateTime.of(2015, 11, 7, 15, 00));
+		job2.process();
+		job2.finalizeSparkContext();
+
+		session.execute("USE batch_views2");
+		
+		ResultSet firstHourBatch2 = session.execute("SELECT count(1) FROM top_idioms");
+		assertEquals(34, firstHourBatch2.one().getLong("count"));
+		assertEquals(253, session.execute("SELECT sum(count) as total_edits FROM top_idioms").one().getLong("total_edits"));
+		
+
+		
+		/* SECOND HOUR */
+		session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+				JobStatusID.TOP_IDIOMS_BATCH_1.getStatus_id(), 2015, 11, 7, 15);
+		
+		job = new TopIdiomsBatch1(configuration);
+		job.setCurrentTime(LocalDateTime.of(2015, 11, 7, 16, 00));
+		job.process();
+		job.finalizeSparkContext();
+
+		session.execute("USE batch_views1");
+		ResultSet secondHourBatch1Count = session.execute("SELECT count(1) FROM top_idioms WHERE year = 2015 and month = 11 and day = 7 and hour = 16");
+		assertEquals(63, secondHourBatch1Count.one().getLong("count"));
+		ResultSet secondHourBatch1Sum = session.execute("SELECT sum(count) as total_edits FROM top_idioms WHERE year = 2015 and month = 11 and day = 7 and hour = 16");
+		assertEquals(3213, secondHourBatch1Sum.one().getLong("total_edits"));
+
+		
+		session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+				JobStatusID.TOP_IDIOMS_BATCH_2.getStatus_id(), 2015, 11, 7, 15);
+		
+		job2 = new TopIdiomsBatch2(configuration);
+		job2.setCurrentTime(LocalDateTime.of(2015, 11, 7, 16, 00));
+		job2.process();
+		job2.finalizeSparkContext();
+
+		session.execute("USE batch_views2");
+		
+		ResultSet secondHourBatch2 = session.execute("SELECT count(1) FROM top_idioms");
+		assertEquals(97, secondHourBatch2.one().getLong("count"));
+		assertEquals(253 + 3213, session.execute("SELECT sum(count) as total_edits FROM top_idioms").one().getLong("total_edits"));
+		
+	}
+	
+	
+	
 }
