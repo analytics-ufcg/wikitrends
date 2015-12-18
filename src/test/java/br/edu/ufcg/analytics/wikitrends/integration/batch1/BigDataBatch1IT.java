@@ -100,7 +100,6 @@ public class BigDataBatch1IT {
 //				Session session = cluster.newSession();) {
 //			new CassandraMasterDatasetManager().dropTables(session);
 //			new CassandraServingLayer1Manager().dropTables(session);
-//			new CassandraServingLayer2Manager().dropTables(session);
 //		}
 
 	}

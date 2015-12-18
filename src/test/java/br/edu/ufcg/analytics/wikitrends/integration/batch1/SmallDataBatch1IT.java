@@ -92,11 +92,11 @@ public class SmallDataBatch1IT {
 	@AfterClass
 	public static void cleanMasterDataset() throws Exception {
 
-//		try (Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
-//				Session session = cluster.newSession();) {
-//			new CassandraMasterDatasetManager().dropTables(session);
-//			new CassandraServingLayer1Manager().dropTables(session);
-//		}
+		try (Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
+				Session session = cluster.newSession();) {
+			new CassandraMasterDatasetManager().dropTables(session);
+			new CassandraServingLayer1Manager().dropTables(session);
+		}
 
 	}
 

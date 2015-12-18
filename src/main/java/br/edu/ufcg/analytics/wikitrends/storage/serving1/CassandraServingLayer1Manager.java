@@ -18,6 +18,7 @@ public class CassandraServingLayer1Manager implements Serializable {
 		
 		session.execute("CREATE KEYSPACE batch_views1 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
 
+		/* BEGIN:PRODUCTION */
 		session.execute("CREATE TABLE IF NOT EXISTS batch_views1." + 
 								"top_editors" + 
 								"(name TEXT," +
@@ -97,7 +98,8 @@ public class CassandraServingLayer1Manager implements Serializable {
 								") WITH CLUSTERING ORDER BY (id DESC);"
 				);
             
-            
+		/* END:PRODUCTION */
+           
         session.execute("CREATE TABLE IF NOT EXISTS batch_views1.users_ranking(" + 
 							"name TEXT," +
 							"count BIGINT," +
