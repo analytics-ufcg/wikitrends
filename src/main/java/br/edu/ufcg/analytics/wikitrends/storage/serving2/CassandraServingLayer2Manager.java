@@ -20,6 +20,7 @@ public class CassandraServingLayer2Manager implements Serializable {
                     
             session.execute("CREATE KEYSPACE IF NOT EXISTS batch_views2 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
             
+            /* BEGIN:PRODUCTION */
             session.execute("CREATE TABLE IF NOT EXISTS batch_views2.top_editors" +
 								"(id TEXT," +
 								"name TEXT," +
@@ -68,7 +69,9 @@ public class CassandraServingLayer2Manager implements Serializable {
 								"PRIMARY KEY(id)" +
 								");"
 					);
-            
+
+            /* END:PRODUCTION */
+
 //            session.execute("CREATE TABLE IF NOT EXISTS results.servers_ranking" +
 //								"(id text," +
 //								"server_name TEXT," +
@@ -86,6 +89,7 @@ public class CassandraServingLayer2Manager implements Serializable {
 //								"PRIMARY KEY((id), count, name)" +
 //								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
 //            		);
+
 	}
 	
 	
