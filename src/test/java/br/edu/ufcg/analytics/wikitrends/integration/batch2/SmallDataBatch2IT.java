@@ -5,8 +5,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -40,6 +38,10 @@ import br.edu.ufcg.analytics.wikitrends.storage.serving2.CassandraServingLayer2M
 /**
  * @author Guilherme Gadelha
  * @author Ricardo Araújo Santos - ricoaraujosantos@gmail.com
+ * 
+ * Set of tests the runs the process of Phase 2 from the Workflow : Batch2.
+ * It basically calls the method process() from a job built with
+ * a starttime/currenttime set on the test.
  *
  */
 public class SmallDataBatch2IT {

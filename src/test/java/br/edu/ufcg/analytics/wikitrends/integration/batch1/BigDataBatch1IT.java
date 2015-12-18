@@ -7,13 +7,18 @@ import static org.junit.Assert.assertEquals;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
@@ -22,16 +27,23 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
 import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
+import br.edu.ufcg.analytics.wikitrends.processing.batch1.AbsoluteValuesBatch1;
+import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopContentPagesBatch1;
 import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopEditorsBatch1;
 import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopIdiomsBatch1;
+import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopPagesBatch1;
 import br.edu.ufcg.analytics.wikitrends.storage.CassandraJobTimesStatusManager;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager;
-import br.edu.ufcg.analytics.wikitrends.storage.serving2.CassandraServingLayer2Manager;
 
 /**
+ * @author Guilherme Gadelha
  * @author Ricardo Araújo Santos - ricoaraujosantos@gmail.com
  *
+ * Set of tests the runs the Phase 1 from the Workflow : Batch1.
+ * It basically calls the method run() from a job built with
+ * a starttime/currenttime took from job_times.status table.
+ * 
  */
 public class BigDataBatch1IT {
 
@@ -63,15 +75,11 @@ public class BigDataBatch1IT {
 			
 			new CassandraMasterDatasetManager().dropTables(session);
 			new CassandraServingLayer1Manager().dropTables(session);
-			new CassandraServingLayer2Manager().dropTables(session);
-			
 			new CassandraJobTimesStatusManager().dropTables(session);
 			
 			new CassandraJobTimesStatusManager().createTables(session);
-			
 			new CassandraMasterDatasetManager().createTables(session);
 			new CassandraServingLayer1Manager().createTables(session);
-			new CassandraServingLayer2Manager().createTables(session);
 
 		}
 
@@ -138,7 +146,8 @@ public class BigDataBatch1IT {
 	/**
 	 * @throws ConfigurationException
 	 */
-	@Test
+	@Test 
+	@Ignore
 	public void testProcessUsersTotalRanking() throws ConfigurationException {
 
 		TopEditorsBatch1 job = new TopEditorsBatch1(configuration);
@@ -203,5 +212,164 @@ public class BigDataBatch1IT {
 		assertEquals(list.get(0).getInt("month"), 11);
 		assertEquals(list.get(0).getInt("day"), 7);
 		assertEquals(list.get(0).getInt("hour"), 17);
+	}
+	
+	/**
+	 * @throws ConfigurationException
+	 */
+	@Test
+	public void testRunTopPages() throws ConfigurationException {
+		session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+				JobStatusID.TOP_PAGES_BATCH_1.getStatus_id(), 
+				getCurrentTime().getYear(), 
+				getCurrentTime().getMonthValue(), 
+				getCurrentTime().getDayOfMonth(), 
+				getCurrentTime().getHour());
+		
+		TopPagesBatch1 job = new TopPagesBatch1(configuration);
+		job.setStopTime(getStopTime());
+		job.run();
+		
+		session.execute("USE batch_views1");
+		ResultSet resultSet = session.execute("SELECT count(1) FROM top_pages");
+		assertEquals(4687, resultSet.one().getLong("count"));
+		
+		resultSet = session.execute("SELECT count(*) FROM top_pages WHERE count >= 3 ALLOW FILTERING");
+		assertEquals(137, resultSet.one().getLong("count"));
+		
+		resultSet = session.execute("SELECT count(*) FROM top_pages WHERE count = 1 ALLOW FILTERING");
+		assertEquals(4169, resultSet.one().getLong("count"));
+		
+		resultSet = session.execute("SELECT * FROM top_pages WHERE year=2015 AND month=11 AND day=7 AND hour=15 AND count = 5");
+		List<Row> list = resultSet.all();
+		assertEquals(list.size(), 1);
+		assertEquals(list.get(0).getString("name"), "Liste des planètes mineures (23001-24000)");
+		assertEquals(list.get(0).getInt("year"), 2015);
+		assertEquals(list.get(0).getInt("month"), 11);
+		assertEquals(list.get(0).getInt("day"), 7);
+		assertEquals(list.get(0).getInt("hour"), 15);
+	}
+	
+	/**
+	 * @throws ConfigurationException
+	 */
+	@Test
+	public void testRunTopContentPages() throws ConfigurationException {
+		session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+				JobStatusID.TOP_CONTENT_PAGES_BATCH_1.getStatus_id(), 
+				getCurrentTime().getYear(), 
+				getCurrentTime().getMonthValue(), 
+				getCurrentTime().getDayOfMonth(), 
+				getCurrentTime().getHour());
+		
+		TopContentPagesBatch1 job = new TopContentPagesBatch1(configuration);
+		job.setStopTime(getStopTime());
+		job.run();
+		
+		session.execute("USE batch_views1");
+		ResultSet resultSet = session.execute("SELECT count(1) FROM top_content_pages ALLOW FILTERING");
+		assertEquals(3714, resultSet.one().getLong("count"));
+		
+		resultSet = session.execute("SELECT count(*) FROM top_content_pages WHERE count >= 3 ALLOW FILTERING");
+		assertEquals(105, resultSet.one().getLong("count"));
+		
+		resultSet = session.execute("SELECT count(*) FROM top_content_pages WHERE count = 1 ALLOW FILTERING");
+		assertEquals(3299, resultSet.one().getLong("count"));
+		
+		resultSet = session.execute("SELECT * FROM top_content_pages WHERE year=2015 AND month=11 AND day=7 AND hour=15 AND count = 5");
+		List<Row> list = resultSet.all();
+		assertEquals(list.size(), 1);
+		assertEquals(list.get(0).getString("name"), "Liste des planètes mineures (23001-24000)");
+		assertEquals(list.get(0).getInt("year"), 2015);
+		assertEquals(list.get(0).getInt("month"), 11);
+		assertEquals(list.get(0).getInt("day"), 7);
+		assertEquals(list.get(0).getInt("hour"), 15);
+	}
+	
+	/**
+	 * @throws ConfigurationException
+	 */
+	@Test
+	public void testRunTopEditors() throws ConfigurationException {
+		session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+				JobStatusID.TOP_EDITORS_BATCH_1.getStatus_id(), 
+				getCurrentTime().getYear(), 
+				getCurrentTime().getMonthValue(), 
+				getCurrentTime().getDayOfMonth(), 
+				getCurrentTime().getHour());
+		
+		TopEditorsBatch1 job = new TopEditorsBatch1(configuration);
+		job.setStopTime(getStopTime());
+		job.run();
+		
+		session.execute("USE batch_views1");
+		ResultSet resultSet = session.execute("SELECT count(1) FROM top_editors ALLOW FILTERING");
+		assertEquals(2383, resultSet.one().getLong("count"));
+		
+		resultSet = session.execute("SELECT count(*) FROM top_editors WHERE year=2015 AND month=11 AND day=7 AND hour=15 AND count >= 3 ALLOW FILTERING");
+		assertEquals(14, resultSet.one().getLong("count"));
+		
+		resultSet = session.execute("SELECT count(*) FROM top_editors WHERE count = 1 ALLOW FILTERING");
+		assertEquals(1576, resultSet.one().getLong("count"));
+		
+		resultSet = session.execute("SELECT * FROM top_editors WHERE year=2015 AND month=11 AND day=7 AND hour=15 AND count = 13");
+		List<Row> list = resultSet.all();
+		assertEquals(list.size(), 1);
+		assertEquals(list.get(0).getString("name"), "MetroBot");
+		assertEquals(list.get(0).getInt("year"), 2015);
+		assertEquals(list.get(0).getInt("month"), 11);
+		assertEquals(list.get(0).getInt("day"), 7);
+		assertEquals(list.get(0).getInt("hour"), 15);
+	}
+	
+	
+	/**
+	 * @throws ConfigurationException
+	 */
+	@Test
+	public void testRunAbsoluteValues() throws ConfigurationException {
+		session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+				JobStatusID.ABS_VALUES_BATCH_1.getStatus_id(), 
+				getCurrentTime().getYear(), 
+				getCurrentTime().getMonthValue(), 
+				getCurrentTime().getDayOfMonth(), 
+				getCurrentTime().getHour());
+		
+		AbsoluteValuesBatch1 job = new AbsoluteValuesBatch1(configuration);
+		job.setStopTime(getStopTime());
+		job.run();
+		
+		session.execute("USE batch_views1");
+		ResultSet resultSet0 = session.execute("SELECT * FROM absolute_values");
+		assertEquals(3, resultSet0.all().size());
+		
+		ResultSet resultSet = session.execute("SELECT * FROM absolute_values WHERE year = 2015 AND month = 11 AND day = 7 AND hour = 15");
+		List<Row> list = resultSet.all();
+		
+		assertEquals(list.size(), 1);
+		Map<String, Long> edits_data = list.get(0).getMap("edits_data", String.class, Long.class);
+		assertEquals((long)edits_data.get("all_edits"), (long)253);
+		assertEquals((long)edits_data.get("minor_edits"), (long)80);
+		assertEquals((long)edits_data.get("average_size"), (long)327);
+		
+		Set<String> distinct_editors_set = list.get(0).getSet("distinct_editors_set", String.class);
+		Set<String> distinct_pages_set = list.get(0).getSet("distinct_pages_set", String.class);
+		Set<String> distinct_servers_set = list.get(0).getSet("distinct_servers_set", String.class);
+		
+		assertEquals(distinct_editors_set.size(), 161);
+		assertEquals(distinct_pages_set.size(), 247);
+		assertEquals(distinct_servers_set.size(), 34);
+		
+		Long smaller_origin = list.get(0).getLong("smaller_origin");
+		DateTime date = new DateTime(smaller_origin, DateTimeZone.UTC);
+		
+		assertEquals(((long)1446910669000L), (long)smaller_origin);
+		
+		assertEquals(2015, date.getYear());
+		assertEquals(11, date.getMonthOfYear());
+		assertEquals(7, date.getDayOfMonth());
+		assertEquals(15, date.getHourOfDay());
+		assertEquals(37, date.getMinuteOfHour());
+		assertEquals(49, date.getSecondOfMinute());
 	}
 }

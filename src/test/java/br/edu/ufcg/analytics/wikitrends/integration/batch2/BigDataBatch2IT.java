@@ -31,7 +31,12 @@ import br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1M
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.CassandraServingLayer2Manager;
 
 /**
+ * @author Guilherme Gadelha
  * @author Ricardo Araújo Santos - ricoaraujosantos@gmail.com
+ * 
+ * Set of tests the runs the Phase 2 from the Workflow : Batch2.
+ * It basically calls the method run() from a job built with
+ * a starttime/currenttime took from job_times.status table.
  *
  */
 public class BigDataBatch2IT {

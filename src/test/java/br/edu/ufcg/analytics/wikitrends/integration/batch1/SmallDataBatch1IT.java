@@ -34,6 +34,10 @@ import br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1M
 /**
  * @author Guilherme Gadelha
  * @author Ricardo Araújo Santos - ricoaraujosantos@gmail.com
+ * 
+ * Set of tests the runs the process of Phase 1 from the Workflow : Batch1.
+ * It basically calls the method process() from a job built with
+ * a starttime/currenttime set on the test.
  *
  */
 public class SmallDataBatch1IT {
