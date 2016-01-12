@@ -48,7 +48,7 @@ public class TopContentPagesBatch1 extends BatchLayer1Job {
 		JavaRDD<TopClass> contentTitleRanking = transformToTopEntry(contentTitleRDD);
 		
 		CassandraJavaUtil.javaFunctions(contentTitleRanking)
-			.writerBuilder(getBatchViewsKeyspace(), contentPagesTable, mapToRow(TopClass.class))
+			.writerBuilder(getBatchViews1Keyspace(), contentPagesTable, mapToRow(TopClass.class))
 			.saveToCassandra();
 	}
 }

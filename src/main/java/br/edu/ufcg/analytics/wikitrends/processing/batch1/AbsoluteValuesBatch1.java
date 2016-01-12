@@ -67,7 +67,7 @@ public class AbsoluteValuesBatch1 extends BatchLayer1Job {
 				getCurrentTime().getHour()));
 		
 		CassandraJavaUtil.javaFunctions(getJavaSparkContext().parallelize(output))
-			.writerBuilder(getBatchViewsKeyspace(), absoluteValuesTable, mapToRow(AbsoluteValuesShot.class))
+			.writerBuilder(getBatchViews1Keyspace(), absoluteValuesTable, mapToRow(AbsoluteValuesShot.class))
 			.saveToCassandra();
 	}
 	

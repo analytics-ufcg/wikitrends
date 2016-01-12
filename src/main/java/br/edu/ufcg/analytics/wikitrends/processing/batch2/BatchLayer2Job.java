@@ -10,6 +10,9 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Session;
+
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
 import br.edu.ufcg.analytics.wikitrends.processing.AbstractBatchJob;
@@ -76,9 +79,17 @@ public abstract class BatchLayer2Job extends AbstractBatchJob implements WikiTre
 		return javaFunctions(getJavaSparkContext())
 			    .cassandraTable("batch_views1", tableName, mapRowToTuple(String.class, Long.class))
 			    .select("name", "count")
-			    .mapToPair(row -> new Tuple2<String, Long>(row._1, row._2)).reduceByKey((a,b) -> a+b)
+			    .mapToPair(row -> new Tuple2<String, Long>(row._1, row._2))
+			    .reduceByKey((a,b) -> a+b)
 			    .map( tuple -> new TopResult(getProcessResultID(), tuple._1, tuple._2));
     }
-		
+
+	protected void truncateTable(String table) {
+		try (Cluster cluster = Cluster.builder().addContactPoints(getSeeds()).build();
+				Session session = cluster.newSession();) {
+				session.execute("TRUNCATE TABLE " + getBatchViews2Keyspace() + "." + table);
+		}
+	}
+	
 	public abstract void process();
 }

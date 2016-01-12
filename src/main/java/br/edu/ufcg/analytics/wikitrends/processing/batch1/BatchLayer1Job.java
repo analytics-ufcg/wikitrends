@@ -47,7 +47,7 @@ public abstract class BatchLayer1Job extends AbstractBatchJob {
 		setBatchViews1Keyspace(configuration.getString("wikitrends.serving1.cassandra.keyspace"));
 	}
 	
-	public String getBatchViewsKeyspace() {
+	public String getBatchViews1Keyspace() {
 		return batchViews1Keyspace;
 	}
 

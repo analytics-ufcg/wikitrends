@@ -38,9 +38,8 @@ public class TopIdiomsBatch1 extends BatchLayer1Job {
 		JavaRDD<TopClass> serverRanking = transformToTopEntry(serverRDD);
 		
 		CassandraJavaUtil.javaFunctions(serverRanking)
-			.writerBuilder(getBatchViewsKeyspace(), idiomsTable, mapToRow(TopClass.class))
+			.writerBuilder(getBatchViews1Keyspace(), idiomsTable, mapToRow(TopClass.class))
 			.saveToCassandra();
 	}
 
-	
 }
