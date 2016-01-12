@@ -22,6 +22,8 @@ function show_help (){
     echo "   serving_2	createschema	<cassandra_host>								Creates tables at cassandra serving layer 1 database"
     echo "   serving_2	dropschema		<cassandra_host>								Drops tables at cassandra serving layer 2 database"
     
+    echo "   job_times createschema     <cassandra_host>                                Creates tables at cassandra job times database"
+    echo "   job_times dropschema       <cassandra_host>                                Drops tables at cassandra job times database"
     
     echo "   speed		start															Submits speed layer job"
     echo "   speed		status|stop <submission_id>										Gets status or stops speed layer job identified by given id"
@@ -210,20 +212,29 @@ serving_2)
 		;;    
     esac
     ;;
+
 job_times)
 	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.CassandraJobTimesStatusManager
 	case $2 in
 	createschema)
-	    echo "Creating serving layer 2 schema"
+	    echo "Creating job times schema"
 		source ${ENV_VAR_FILE}
 		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3
-	    echo "Serving layer 2 schema created with success!"
+	    echo "Job times schema created with success!"
+		;;
+	dropschema)
+	    echo "Dropping job times schema"
+		source ${ENV_VAR_FILE}
+		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP $3
+	    echo "Job times schema dropped with success!"
 		;;
 	*)
 		show_help
 		;;    
     esac
     ;;
+    
+
 speed)
 	MASTER_ADDRESS=${MASTER_ADDRESS%:*}:6066
     case $2 in
