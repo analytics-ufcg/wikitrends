@@ -7,7 +7,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.configuration.ConfigurationException;
@@ -470,10 +469,9 @@ public class BigDataBatch2IT {
 		List<Row> list = resultSet.all();
 		
 		assertEquals(list.size(), 1);
-		Map<String, Long> edits_data = list.get(0).getMap("edits_data", String.class, Long.class);
-		assertEquals((long)edits_data.get("all_edits"), (long)253);
-		assertEquals((long)edits_data.get("minor_edits"), (long)80);
-		assertEquals((long)edits_data.get("average_size"), (long)327);
+		assertEquals((long)list.get(0).getLong("all_edits"), (long)253);
+		assertEquals((long)list.get(0).getLong("minor_edits"), (long)80);
+		assertEquals((long)list.get(0).getLong("average_size"), (long)327);
 		
 		Set<String> distinct_editors_set = list.get(0).getSet("distinct_editors_set", String.class);
 		Set<String> distinct_pages_set = list.get(0).getSet("distinct_pages_set", String.class);
@@ -510,7 +508,7 @@ public class BigDataBatch2IT {
 		ResultSet resultSet01 = session.execute("SELECT * FROM absolute_values");
 		List<Row> list1 = resultSet01.all();
 		
-		assertEquals(list1.size(), 1);
+		assertEquals(1, list1.size());
 		assertEquals((long)list1.get(0).getLong("all_edits"), (long)5462);
 		assertEquals((long)list1.get(0).getLong("minor_edits"), (long)1755);
 		assertEquals((long)list1.get(0).getLong("average_size"), (long)338);

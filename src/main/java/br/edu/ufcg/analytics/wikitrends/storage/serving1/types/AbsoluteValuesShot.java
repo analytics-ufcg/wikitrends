@@ -1,7 +1,6 @@
 package br.edu.ufcg.analytics.wikitrends.storage.serving1.types;
 
 import java.io.Serializable;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -21,7 +20,9 @@ public class AbsoluteValuesShot implements Serializable {
     	private Integer month;
     	private Integer year;
         
-        private Map<String, Long> edits_data;
+    	private Long all_edits;
+		private Long minor_edits;
+    	private Long average_size;
 
         private Set<String> distinct_pages_set;
 		private Set<String> distinct_editors_set;
@@ -29,7 +30,7 @@ public class AbsoluteValuesShot implements Serializable {
 
 		private Long smaller_origin;
 
-		public AbsoluteValuesShot(Map<String, Long> edits_data, 
+		public AbsoluteValuesShot(Long all_edits, Long minor_edits, Long average_size,
         							Set<String> distinct_pages_set, 
         							Set<String> distinct_editors_set, 
         							Set<String> distinct_servers_set, 
@@ -40,7 +41,9 @@ public class AbsoluteValuesShot implements Serializable {
         							Integer hour) {
             
         	this.id = UUID.randomUUID();
-            this.edits_data = edits_data;
+        	this.all_edits = all_edits;
+        	this.minor_edits = minor_edits;
+        	this.average_size = average_size;
             this.distinct_pages_set = distinct_pages_set;
             this.distinct_editors_set = distinct_editors_set;
             this.distinct_servers_set = distinct_servers_set;
@@ -52,6 +55,10 @@ public class AbsoluteValuesShot implements Serializable {
     		setHour(hour);
         }
         
+		public AbsoluteValuesShot() {
+			// TODO Auto-generated constructor stub
+		}
+
 		public void setid(UUID id) {
         	this.id = id;
         }
@@ -116,12 +123,28 @@ public class AbsoluteValuesShot implements Serializable {
 			this.distinct_servers_set = distinct_servers_set;
 		}
 
-		public Map<String, Long> getEdits_data() {
-			return edits_data;
+		public Long getAll_edits() {
+			return all_edits;
 		}
 
-		public void setEdits_data(Map<String, Long> edits_data) {
-			this.edits_data = edits_data;
+		public void setAll_edits(Long all_edits) {
+			this.all_edits = all_edits;
+		}
+
+		public Long getMinor_edits() {
+			return minor_edits;
+		}
+
+		public void setMinor_edits(Long minor_edits) {
+			this.minor_edits = minor_edits;
+		}
+
+		public Long getAverage_size() {
+			return average_size;
+		}
+
+		public void setAverage_size(Long average_size) {
+			this.average_size = average_size;
 		}
 
 		public Long getSmaller_origin() {
@@ -135,9 +158,9 @@ public class AbsoluteValuesShot implements Serializable {
 		@Override
 		public String toString() {
 			return "AbsoluteValuesShot [id=" + id + ", hour=" + hour + ", day=" + day + ", month=" + month + ", year="
-					+ year + ", edits_data=" + edits_data + ", distincts_pages_set=" + distinct_pages_set
-					+ ", distincts_editors_set=" + distinct_editors_set + ", distincts_servers_set="
-					+ distinct_servers_set + ", smaller_origin=" + smaller_origin + "]";
+					+ year + ", all_edits=" + all_edits + ", minor_edits=" + minor_edits + ", average_size="
+					+ average_size + ", distinct_pages_set=" + distinct_pages_set + ", distinct_editors_set="
+					+ distinct_editors_set + ", distinct_servers_set=" + distinct_servers_set + ", smaller_origin="
+					+ smaller_origin + "]";
 		}
-
     }

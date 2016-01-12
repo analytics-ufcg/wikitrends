@@ -44,16 +44,13 @@ public class BatchViews1DataGenerator {
 //        
         List<AbsoluteValuesShot> listAbsoluteValues = new ArrayList<AbsoluteValuesShot>();
         for(int i = 0; i < 6; i++) {
-        	Map<String, Long> m = new HashMap<String, Long>();
-            m.put("all_edits", all_edits+i*10000000);
-            m.put("minor_edits", minor_edits+i*1000000);
-        	m.put("average_size", average_size+i);
-            
         	distinct_pages.add("page"+String.valueOf(i));
         	distinct_editors.add("ed" + String.valueOf(i));
         	distinct_servers.add("server" + String.valueOf(i));
         	
-        	AbsoluteValuesShot avs = new AbsoluteValuesShot(m, 
+        	AbsoluteValuesShot avs = new AbsoluteValuesShot(all_edits+i*10000000,
+        													minor_edits+i*1000000,
+        													average_size+i,
     														distinct_pages,
 															distinct_editors,
 															distinct_servers,

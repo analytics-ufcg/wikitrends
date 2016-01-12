@@ -39,10 +39,14 @@ public class AbsoluteValuesBatch1 extends BatchLayer1Job {
 				.filter(edit -> edit.getServerName().endsWith("wikipedia.org"))
 				.cache();
 		
-		Map<String, Long> edits_data = new HashMap<String, Long>();
-		edits_data.put("all_edits", countAllEdits(wikipediaEdits));
-		edits_data.put("minor_edits", countMinorEdits(wikipediaEdits));
-		edits_data.put("average_size", calcAverageEditLength(wikipediaEdits));
+//		Map<String, Long> edits_data = new HashMap<String, Long>();
+//		edits_data.put("all_edits", countAllEdits(wikipediaEdits));
+//		edits_data.put("minor_edits", countMinorEdits(wikipediaEdits));
+//		edits_data.put("average_size", calcAverageEditLength(wikipediaEdits));
+		
+		Long all_edits = countAllEdits(wikipediaEdits);
+		Long minor_edits = countMinorEdits(wikipediaEdits);
+		Long average_size = calcAverageEditLength(wikipediaEdits);
 
 		Set<String> distincts_pages_set = distinctPages(wikipediaEdits);
 		Set<String> distincts_editors_set = distinctEditors(wikipediaEdits);
@@ -50,7 +54,9 @@ public class AbsoluteValuesBatch1 extends BatchLayer1Job {
 
 		Long smaller_origin = getOrigin(wikipediaEdits); 
 
-		List<AbsoluteValuesShot> output = Arrays.asList(new AbsoluteValuesShot(edits_data, 
+		List<AbsoluteValuesShot> output = Arrays.asList(new AbsoluteValuesShot(all_edits,
+				minor_edits,
+				average_size,
 				distincts_pages_set,
 				distincts_editors_set,
 				distincts_servers_set,
