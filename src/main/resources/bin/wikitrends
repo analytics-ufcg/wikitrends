@@ -6,9 +6,22 @@ function show_help (){
     echo "                  [-w number_of_executor_workers]"
     echo -e "             <subcommand>\n"
     echo -e "Subcommands:\n"
-    
-    echo "   batch_1		<job_id>													Runs batch layer 1 job"
-    echo "   batch_2		<job_id>													Runs batch layer 2 job"
+
+    echo  "  job ids batch1: TOP_EDITORS_BATCH_1, 
+     			     TOP_IDIOMS_BATCH_1, 
+ 			     TOP_PAGES_BATCH_1,
+ 			     TOP_CONTENT_PAGES_BATCH_1, 
+ 			     ABSOLUTE_VALUES_BATCH_1"
+ 
+    echo "   batch_1		<job_id_batch1>													Runs batch layer 1 job"
+
+    echo  "  job ids batch2: TOP_EDITORS_BATCH_2,
+                             TOP_IDIOMS_BATCH_2, 
+			     TOP_PAGES_BATCH_2,
+			     TOP_CONTENT_PAGES_BATCH_2,
+	 		     ABSOLUTE_VALUES_BATCH_2"
+
+    echo "   batch_2	<job_id_batch_2>													Runs batch layer 2 job"
     
     echo "   ingestor	start|stop														Starts or stops ingestor"
     
@@ -37,12 +50,14 @@ MAIN_CLASS=br.edu.ufcg.analytics.wikitrends.WikiTrends
 JAR_ADDRESS=http://gabdi/wikitrends/wikitrends-2.0-jar-with-dependencies.jar
 LOCAL_JAR_ADDRESS=${WIKITRENDS_HOME}/wikitrends-2.0-jar-with-dependencies.jar
 
+echo ${WIKITRENDS_HOME}
+
 # default values
 
 MASTER_ADDRESS=spark://master:7077
 TOTAL_EXECUTOR_CORES=2
 ENV_VAR_FILE=${HOME}/.profile
-CASSANDRA_HOST_SEEDS=localhost
+CASSANDRA_HOST_SEEDS=10.4.3.213
 
 OPTIND=1         # Reset in case getopts has been used previously in the shell.
 
@@ -121,26 +136,10 @@ batch_1)
     echo "Submitting batch layer 1 jobs"
 	source ${ENV_VAR_FILE}
 	
-	echo "Submitting TOP_IDIOMS batch 1 job"
-	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_IDIOMS_BATCH_1
-	echo "TOP_IDIOMS batch 1 job finished!"
+	echo "Submitting ${2} job"
+	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} ${2}
+	echo "${2} job finished!"
 	
-	#echo "Submitting TOP_EDITORS batch 1 job"
-	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_EDITORS_BATCH_1
-	#echo "TOP_EDITORS batch 1 job finished!"
-	
-	#echo "Submitting TOP_PAGES batch 1 job"
-	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_PAGES_BATCH_1
-	#echo "TOP_PAGES batch 1 job finished!"
-	
-	#echo "Submitting TOP_CONTENT_PAGES batch 1 job"
-	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_CONTENT_PAGES_BATCH_1
-	#echo "TOP_CONTENT_PAGES batch 1 job finished!"
-	
-	#echo "Submitting ABSOLUTE_VALUES batch 1 job"
-	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} ABSOLUTE_VALUES_BATCH_1
-    #echo "ABSOLUTE_VALUES batch 1 job finished!"
-    
     echo "Finished executing batch layer 1 jobs!"
     ;;
 
@@ -148,25 +147,9 @@ batch_2)
     echo "Submitting batch layer 2 jobs"
 	source ${ENV_VAR_FILE}
 	
-	echo "Submitting TOP_IDIOMS batch 2 job"
-	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_IDIOMS_BATCH_2
-	echo "TOP_IDIOMS batch 2 job finished!"
-	
-	#echo "Submitting TOP_EDITORS batch 2 job"
-	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_EDITORS_BATCH_2
-	#echo "TOP_EDITORS batch 2 job finished!"
-	
-	#echo "Submitting TOP_PAGES batch 2 job"
-	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_PAGES_BATCH_2
-	#echo "TOP_PAGES batch 2 job finished!"
-	
-	#echo "Submitting TOP_CONTENT_PAGES batch 2 job"
-	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} TOP_CONTENT_PAGES_BATCH_2
-	#echo "TOP_CONTENT_PAGES batch 2 job finished!"
-	
-	#echo "Submitting ABSOLUTE_VALUES batch 2 job"
-	#spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} ABSOLUTE_VALUES_BATCH_2
-    #echo "ABSOLUTE_VALUES batch 2 job finished!"
+	echo "Submitting ${2} job"
+	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} ${2}
+	echo "${2} job finished!"
 
     echo "Finished executing batch layer 2 jobs!"
     ;;
@@ -198,13 +181,13 @@ serving_2)
 	createschema)
 	    echo "Creating serving layer 2 schema"
 		source ${ENV_VAR_FILE}
-		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3
+		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE ${CASSANDRA_HOST_SEEDS}
 	    echo "Serving layer 2 schema created with success!"
 		;;
 	dropschema)
 	    echo "Dropping serving layer 2 schema"
 		source ${ENV_VAR_FILE}
-		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP $3
+		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP ${CASSANDRA_HOST_SEEDS}
 	    echo "Serving layer 2 schema dropped with success!"
 		;;	
 	*)
@@ -219,13 +202,13 @@ job_times)
 	createschema)
 	    echo "Creating job times schema"
 		source ${ENV_VAR_FILE}
-		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3
+		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE ${CASSANDRA_HOST_SEEDS}
 	    echo "Job times schema created with success!"
 		;;
 	dropschema)
 	    echo "Dropping job times schema"
 		source ${ENV_VAR_FILE}
-		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP $3
+		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP ${CASSANDRA_HOST_SEEDS}
 	    echo "Job times schema dropped with success!"
 		;;
 	*)

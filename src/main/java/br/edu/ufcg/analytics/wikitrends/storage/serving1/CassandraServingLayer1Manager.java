@@ -103,43 +103,43 @@ public class CassandraServingLayer1Manager implements Serializable {
             
 		/* END:PRODUCTION */
            
-        session.execute("CREATE TABLE IF NOT EXISTS batch_views1.users_ranking(" + 
-							"name TEXT," +
-							"count BIGINT," +
-							
-							"year INT," +
-							"month INT," +
-							"day INT," +
-							"hour INT," +
-							
-							"PRIMARY KEY((year, month, day, hour), count, name)) " + 
-							"WITH CLUSTERING ORDER BY (count DESC, name ASC);"
-        		);
-            
-        session.execute("CREATE TABLE IF NOT EXISTS batch_views1.servers_ranking (" + 
-		            		"year INT," +
-		            		"month INT," +
-		            		"day INT," +
-		            		"hour INT," +
-		            		
-		            		"name TEXT," +
-		            		"count INT," +
-		            		
-		            		"PRIMARY KEY((year, month, day, hour), count, name)) " + 
-		            		"WITH CLUSTERING ORDER BY (count DESC, name ASC);"
-            	);
-           
-        session.execute("CREATE TABLE IF NOT EXISTS batch_views1.status (" + 
-		            		"id TEXT," +
-		            		
-		            		"year INT," +
-		            		"month INT," +
-		            		"day INT," +
-		            		"hour INT," +
-		            		
-		            		"PRIMARY KEY((id), year, month, day, hour)) " + 
-		            		"WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
-            	);
+//        session.execute("CREATE TABLE IF NOT EXISTS batch_views1.users_ranking(" + 
+//							"name TEXT," +
+//							"count BIGINT," +
+//							
+//							"year INT," +
+//							"month INT," +
+//							"day INT," +
+//							"hour INT," +
+//							
+//							"PRIMARY KEY((year, month, day, hour), count, name)) " + 
+//							"WITH CLUSTERING ORDER BY (count DESC, name ASC);"
+//        		);
+//            
+//        session.execute("CREATE TABLE IF NOT EXISTS batch_views1.servers_ranking (" + 
+//		            		"year INT," +
+//		            		"month INT," +
+//		            		"day INT," +
+//		            		"hour INT," +
+//		            		
+//		            		"name TEXT," +
+//		            		"count INT," +
+//		            		
+//		            		"PRIMARY KEY((year, month, day, hour), count, name)) " + 
+//		            		"WITH CLUSTERING ORDER BY (count DESC, name ASC);"
+//            	);
+//           
+//        session.execute("CREATE TABLE IF NOT EXISTS batch_views1.status (" + 
+//		            		"id TEXT," +
+//		            		
+//		            		"year INT," +
+//		            		"month INT," +
+//		            		"day INT," +
+//		            		"hour INT," +
+//		            		
+//		            		"PRIMARY KEY((id), year, month, day, hour)) " + 
+//		            		"WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
+//            	);
         
         
 
