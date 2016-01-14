@@ -42,7 +42,7 @@ LOCAL_JAR_ADDRESS=${WIKITRENDS_HOME}/wikitrends-2.0-jar-with-dependencies.jar
 MASTER_ADDRESS=spark://master:7077
 TOTAL_EXECUTOR_CORES=2
 ENV_VAR_FILE=${HOME}/.profile
-CASSANDRA_HOST_SEEDS=localhost
+CASSANDRA_HOST_SEEDS=localhostopt
 
 OPTIND=1         # Reset in case getopts has been used previously in the shell.
 

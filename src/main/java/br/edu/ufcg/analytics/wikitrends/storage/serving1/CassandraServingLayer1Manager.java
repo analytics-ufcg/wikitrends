@@ -16,7 +16,7 @@ public class CassandraServingLayer1Manager implements Serializable {
 
 	public void createTables(Session session) {
 		
-		session.execute("CREATE KEYSPACE batch_views1 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
+		session.execute("CREATE KEYSPACE batch_views1 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2}");
 
 		/* BEGIN:PRODUCTION */
 		session.execute("CREATE TABLE IF NOT EXISTS batch_views1." + 
@@ -190,7 +190,7 @@ public class CassandraServingLayer1Manager implements Serializable {
 			}
 			break;
 		default:
-			System.err.println("Unsupported operation. Choose CREATE as operation.");
+			System.err.println("Unsupported operation. Choose CREATE or DROP as operation.");
 			break;
 		}
 	}
