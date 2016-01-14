@@ -7,6 +7,8 @@ import java.util.List;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
@@ -18,8 +20,9 @@ import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
 public abstract class AbstractBatchJob implements WikiTrendsProcess {
 	
 	private static final long serialVersionUID = -6871759402025279789L;
+	private static final Logger logger = Logger.getLogger(AbstractBatchJob.class.getName());
 
-	protected transient Configuration configuration;
+	private transient Configuration configuration;
 	
 	private String[] seeds;
 	
@@ -32,7 +35,11 @@ public abstract class AbstractBatchJob implements WikiTrendsProcess {
 	private String PROCESS_STATUS_ID;
 	
 	public AbstractBatchJob(Configuration configuration, JobStatusID processStatusId) {
-		createJavaSparkContext(configuration);
+		this.configuration = configuration;
+		
+		PropertyConfigurator.configure("log4j.properties");
+		
+		createJavaSparkContext(this.configuration);
 		
 		setProcessStatusID(processStatusId);
 		
@@ -107,7 +114,12 @@ public abstract class AbstractBatchJob implements WikiTrendsProcess {
 	
 	public abstract void process();
 	
-	public void run() {
+	public void run() {		
+		logger.info("Started running job ".concat(this.getClass().getName()).concat(
+				" since ").concat(getCurrentTime().toString()).concat(" using ").concat(
+						configuration.getBoolean("wikitrends.batch.incremental.stoptime.use") == true ? 
+								"property times" : "system times"));
+		
 		try (Cluster cluster = Cluster.builder().addContactPoints(getSeeds()).build();
 				Session session = cluster.newSession();) {
 			
@@ -124,6 +136,11 @@ public abstract class AbstractBatchJob implements WikiTrendsProcess {
 				this.setCurrentTime(getCurrentTime().plusHours(1));
 			}
 		} finally {
+			logger.info("Ended running job ".concat(this.getClass().getName()).concat(
+					" until ").concat(getStopTime().toString()).concat(" using ").concat(
+							configuration.getBoolean("wikitrends.batch.incremental.stoptime.use") == true ? 
+									"property times" : "system times"));
+			
 			finalizeSparkContext();
 		}
 	}
