@@ -78,13 +78,13 @@ public class BigDataBatch2IT {
 				Session session = cluster.newSession();
 				){
 			
-			new CassandraMasterDatasetManager().dropTables(session);
+//			new CassandraMasterDatasetManager().dropTables(session);
 			new CassandraServingLayer1Manager().dropTables(session);
 			new CassandraServingLayer2Manager().dropTables(session);
 			
 			new CassandraJobTimesStatusManager().dropTables(session);
 			
-			new CassandraMasterDatasetManager().createTables(session);
+//			new CassandraMasterDatasetManager().createTables(session);
 			new CassandraServingLayer1Manager().createTables(session);
 			new CassandraServingLayer2Manager().createTables(session);
 			
@@ -92,7 +92,7 @@ public class BigDataBatch2IT {
 
 		}
 
-		new CassandraMasterDatasetManager().populate(INPUT_FILE);
+//		new CassandraMasterDatasetManager().populate(INPUT_FILE);
 		
 		setCurrentTime(LocalDateTime.of(2015, 11, 7, 14, 00));
 		setStopTime(LocalDateTime.of(2015, 11, 7, 18, 00)); // <== correct time considering timestamps-controlled small dataset

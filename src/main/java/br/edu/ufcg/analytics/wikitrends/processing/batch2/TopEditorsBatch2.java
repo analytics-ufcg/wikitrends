@@ -25,7 +25,7 @@ public class TopEditorsBatch2 extends BatchLayer2Job {
 	
 	@Override
 	public void process() {
-		truncateTable(topEditorsTable);
+		truncateResultingTable(topEditorsTable);
 		
 		CassandraJavaUtil.javaFunctions(computeFullRankingFromPartial("top_editors"))
 			.writerBuilder(getBatchViews2Keyspace(), topEditorsTable, mapToRow(TopResult.class))

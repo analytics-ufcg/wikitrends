@@ -107,26 +107,7 @@ public abstract class AbstractBatchJob implements WikiTrendsProcess {
 	
 	public abstract void process();
 	
-	public void run() {
-		try (Cluster cluster = Cluster.builder().addContactPoints(getSeeds()).build();
-				Session session = cluster.newSession();) {
-			
-			while(getCurrentTime().isBefore(getStopTime())) {
-				process();
-			
-				session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
-										getProcessStartTimeStatusID(), 
-										getCurrentTime().getYear(), 
-										getCurrentTime().getMonthValue(), 
-										getCurrentTime().getDayOfMonth(), 
-										getCurrentTime().getHour());
-				
-				this.setCurrentTime(getCurrentTime().plusHours(1));
-			}
-		} finally {
-			finalizeSparkContext();
-		}
-	}
+	public abstract void run();
 	
 	public void finalizeSparkContext() {
 		getJavaSparkContext().close();

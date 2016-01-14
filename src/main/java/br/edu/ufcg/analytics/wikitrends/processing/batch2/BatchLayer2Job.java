@@ -75,19 +75,55 @@ public abstract class BatchLayer2Job extends AbstractBatchJob implements WikiTre
 		}
 	}
 	
+	/**
+	 * Compute final ranking for the given table/process. 
+	 * 
+	 *  If final table is not empty it
+	 * takes the values from the final table and merge them with the new values from the
+	 * new hour.
+	 * 
+	 *  If the final table is empty it takes the values calculated from the current hour and
+	 *  put them directly in the final table. 
+	 * 
+	 * @param tableName
+	 * @return rdd of topResults
+	 */
 	public JavaRDD<TopResult> computeFullRankingFromPartial(String tableName) {
-		return javaFunctions(getJavaSparkContext())
-			    .cassandraTable("batch_views1", tableName, mapRowToTuple(String.class, Long.class))
-			    .select("name", "count")
-			    .mapToPair(row -> new Tuple2<String, Long>(row._1, row._2))
-			    .reduceByKey((a,b) -> a+b)
-			    .map( tuple -> new TopResult(getProcessResultID(), tuple._1, tuple._2));
+			return javaFunctions(getJavaSparkContext())
+				    .cassandraTable("batch_views1", tableName, mapRowToTuple(String.class, Long.class))
+				    .select("name", "count")
+				    .mapToPair(row -> new Tuple2<String, Long>(row._1, row._2))
+				    .reduceByKey((a,b) -> a+b)
+				    .map( tuple -> new TopResult(getProcessResultID(), tuple._1, tuple._2));
+		
     }
 
-	protected void truncateTable(String table) {
+	protected void truncateResultingTable(String table) {
 		try (Cluster cluster = Cluster.builder().addContactPoints(getSeeds()).build();
 				Session session = cluster.newSession();) {
 				session.execute("TRUNCATE TABLE " + getBatchViews2Keyspace() + "." + table);
+		}
+	}
+	
+	public void run(){
+		try (Cluster cluster = Cluster.builder().addContactPoints(getSeeds()).build();
+				Session session = cluster.newSession();) {
+			
+			process();
+			
+			while(getCurrentTime().isBefore(getStopTime())) {
+				session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+										getProcessStartTimeStatusID(), 
+										getCurrentTime().getYear(), 
+										getCurrentTime().getMonthValue(), 
+										getCurrentTime().getDayOfMonth(), 
+										getCurrentTime().getHour());
+				
+				this.setCurrentTime(getCurrentTime().plusHours(1));
+			}
+			
+		} finally {
+			finalizeSparkContext();
 		}
 	}
 	

@@ -11,6 +11,8 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Session;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.datastax.spark.connector.japi.CassandraRow;
 
@@ -103,6 +105,27 @@ public abstract class BatchLayer1Job extends AbstractBatchJob {
 		}
 		else {
 			setJavaSparkContext(new JavaSparkContext(conf.setAppName(appName)));
+		}
+	}
+	
+	public void run() {
+		try (Cluster cluster = Cluster.builder().addContactPoints(getSeeds()).build();
+				Session session = cluster.newSession();) {
+			
+			while(getCurrentTime().isBefore(getStopTime())) {
+				process();
+			
+				session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+										getProcessStartTimeStatusID(), 
+										getCurrentTime().getYear(), 
+										getCurrentTime().getMonthValue(), 
+										getCurrentTime().getDayOfMonth(), 
+										getCurrentTime().getHour());
+				
+				this.setCurrentTime(getCurrentTime().plusHours(1));
+			}
+		} finally {
+			finalizeSparkContext();
 		}
 	}
 	
