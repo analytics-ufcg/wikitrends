@@ -7,6 +7,8 @@ import java.util.List;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
@@ -18,6 +20,7 @@ import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
 public abstract class AbstractBatchJob implements WikiTrendsProcess {
 	
 	private static final long serialVersionUID = -6871759402025279789L;
+	protected static final Logger logger = Logger.getLogger(AbstractBatchJob.class.getName());
 
 	protected transient Configuration configuration;
 	
@@ -32,7 +35,11 @@ public abstract class AbstractBatchJob implements WikiTrendsProcess {
 	private String PROCESS_STATUS_ID;
 	
 	public AbstractBatchJob(Configuration configuration, JobStatusID processStatusId) {
-		createJavaSparkContext(configuration);
+		this.configuration = configuration;
+		
+		PropertyConfigurator.configure("log4j.properties");
+		
+		createJavaSparkContext(this.configuration);
 		
 		setProcessStatusID(processStatusId);
 		
@@ -108,7 +115,7 @@ public abstract class AbstractBatchJob implements WikiTrendsProcess {
 	public abstract void process();
 	
 	public abstract void run();
-	
+
 	public void finalizeSparkContext() {
 		getJavaSparkContext().close();
 	}
