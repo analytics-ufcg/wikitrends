@@ -3,7 +3,9 @@ package br.edu.ufcg.analytics.wikitrends.processing.speed;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
@@ -12,6 +14,7 @@ import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
+import org.apache.spark.streaming.api.java.JavaPairInputDStream;
 import org.apache.spark.streaming.api.java.JavaPairReceiverInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka.KafkaUtils;
@@ -26,6 +29,7 @@ import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.LogChange;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.RawWikimediaChange;
+import kafka.serializer.StringDecoder;
 import scala.Tuple2;
 
 /**
@@ -44,9 +48,9 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 
 	private String[] topics;
 
-	private String zookeeperServers;
+	private String[] ensemble;
 
-	private String consumerGroups;
+//	private String consumerGroups;
 	
 	/**
 	 * Default constructor
@@ -55,12 +59,13 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 
 		appName = configuration.getString("wikitrends.speed.id");
 	    topics = configuration.getStringArray("wikitrends.speed.ingestion.kafka.topic");
-	    zookeeperServers = configuration.getString("wikitrends.speed.ingestion.zookeepeer.quorum");
-		consumerGroups = configuration.getString("wikitrends.speed.ingestion.kafka.consumergroup");
+//	    zookeeperServers = configuration.getString("wikitrends.speed.ingestion.zookeepeer.quorum");
+	    ensemble = configuration.getStringArray("wikitrends.speed.ingestion.kafka.ensemble");
+//		consumerGroups = configuration.getString("wikitrends.speed.ingestion.kafka.consumergroup");
 
 	}
 	
-	private void persistObjects(JavaPairReceiverInputDStream<String, String> lines) {
+	private void persistObjects(JavaPairInputDStream<String, String> lines) {
 		JavaDStream<JsonObject> linesAsJsonObjects = lines.
 	    		map(l -> new JsonParser().parse(l._2).getAsJsonObject());
 		
@@ -69,7 +74,7 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 		
 		JavaDStream<EditChange> editsDStream = linesAsJsonObjects.filter(change -> {
 			String type = change.get("type").getAsString();
-			return !("log".equals(type));
+			return "new".equals(type) || "edit".equals(type);
 		}).map(change -> EditChange.parseEditChange(change));
 	    
 	    JavaDStream<LogChange> logsDStream = linesAsJsonObjects.filter(change -> {
@@ -100,14 +105,25 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 		conf.setAppName(appName);
 		
 		try(JavaStreamingContext ssc = new JavaStreamingContext(conf, Durations.seconds(30))){
-		    Map<String, Integer> topicMap = new HashMap<String, Integer>();
-		    for (String topic: topics) {
-		      topicMap.put(topic, 3);
-		    }
-
-			JavaPairReceiverInputDStream<String, String> streamingData =
-		            KafkaUtils.createStream(ssc, zookeeperServers, 
-		            		consumerGroups, topicMap);
+//		    Map<String, Integer> topicMap = new HashMap<String, Integer>();
+//		    for (String topic: topics) {
+//		      topicMap.put(topic, 3);
+//		    }
+//
+//			JavaPairReceiverInputDStream<String, String> streamingData =
+//		            KafkaUtils.createStream(ssc, zookeeperServers, 
+//		            		consumerGroups, topicMap);
+		    
+		    HashSet<String> topicsSet = new HashSet<String>(Arrays.asList(topics));
+		    HashMap<String, String> kafkaParams = new HashMap<String, String>();
+		    kafkaParams.put("bootstrap.servers", String.join(",", ensemble));
+		    
+			JavaPairInputDStream<String, String> streamingData =
+		            KafkaUtils.createDirectStream(ssc, 
+		            		String.class, String.class,
+		            		StringDecoder.class, StringDecoder.class,
+		            		kafkaParams,
+		            		topicsSet);
 		    
 		    persistObjects(streamingData);
 
