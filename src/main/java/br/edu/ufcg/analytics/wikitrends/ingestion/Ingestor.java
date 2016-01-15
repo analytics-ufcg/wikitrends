@@ -32,6 +32,10 @@ public class Ingestor implements WikiTrendsProcess {
 	private StreamProducer producer;
 	
 	private SocketIO dataSource;
+	
+	private int trials;
+
+	private String wikimediaStreamURL;
 
 	/**
 	 * Default constructor
@@ -40,8 +44,11 @@ public class Ingestor implements WikiTrendsProcess {
 	 */
 	public Ingestor(Configuration configuration){
 		this.producer = new KafkaStreamProducer(configuration);
+		this.trials = 10;
+		wikimediaStreamURL = configuration.getString("wikitrends.ingestion.wikimedia.stream");
+		
 		try {
-			dataSource = new SocketIO(new URL(configuration.getString("wikitrends.ingestion.wikimedia.stream")));
+			dataSource = new SocketIO(new URL(wikimediaStreamURL));
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 			throw new WikiTrendsConfigurationException(e);
@@ -78,10 +85,23 @@ public class Ingestor implements WikiTrendsProcess {
 			@Override
 			public void onDisconnect() {
 				System.out.println("Connection terminated.");
+				while(trials > 0){
+					trials--;
+					try {
+						Thread.sleep(10000);
+						System.out.printf("Attempting to connect... (%d more trials before giving up)/n", trials);
+						dataSource = new SocketIO(new URL(wikimediaStreamURL));
+						return;
+					} catch (MalformedURLException | InterruptedException e) {
+						e.printStackTrace();
+						throw new WikiTrendsConfigurationException(e);
+					}
+				}
 			}
 
 			@Override
 			public void onConnect() {
+				trials = 10;
 				dataSource.emit("subscribe", "*");
 				System.out.println("Connection established");
 			}

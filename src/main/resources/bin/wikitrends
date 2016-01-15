@@ -244,13 +244,15 @@ speed)
 web)
     case $2 in
     start)
+	    echo "Updating JAR properties"
+	    jar uf ${LOCAL_JAR_ADDRESS} wikitrends.properties
 	    echo "Starting web application"
 	    cp ${LOCAL_JAR_ADDRESS} ${WIKITRENDS_HOME}/static/
-	    nohup java -cp "${WIKITRENDS_HOME}/lib/*" ${MAIN_CLASS} WEB > /tmp/wikitrends-web.nohup.out 2>&1 &
+	    nohup java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MAIN_CLASS} WEB > /tmp/wikitrends-web.nohup.out 2>&1 &
         ;;
     stop)
 	    echo "Attempting to stop web application"
-	    kill `ps aux | grep WikiTrends | awk '{print $2}'`
+	    kill `ps aux | grep "WikiTrends WEB" | awk '{print $2}'`
 		echo "Finished speed layer job"
         ;;
 	*)

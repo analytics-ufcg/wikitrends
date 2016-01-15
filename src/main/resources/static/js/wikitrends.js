@@ -29,7 +29,7 @@ app.controller('StaticController', function ($scope, $http) {
         console.log(response.data);
     });
 
-    $http.get('editors', {
+    $http.get('v2/editors', {
         params: { 
             size: 20
         }
@@ -44,7 +44,7 @@ app.controller('StaticController', function ($scope, $http) {
         console.log(response.data);
     });
 
-    $http.get('idioms', {
+    $http.get('v2/idioms', {
         params: { 
             size: 20 
         }
@@ -59,7 +59,7 @@ app.controller('StaticController', function ($scope, $http) {
         console.log(response.data);
     });
 
-    $http.get('pages', {
+    $http.get('v2/pages', {
         params: { 
             size: 20 
         }
@@ -74,7 +74,7 @@ app.controller('StaticController', function ($scope, $http) {
         console.log(response.data);
     });
 
-    $http.get('pages', {
+    $http.get('v2/pages', {
         params: { 
             contentonly: true,
             size: 20 
