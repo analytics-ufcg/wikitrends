@@ -106,15 +106,13 @@ public abstract class BatchLayer2Job extends AbstractBatchJob implements WikiTre
 	}
 	
 	public void run(){
-		logger.info("Started running job ".concat(this.getClass().getName()).concat(
-				" since ").concat(getCurrentTime().toString()).concat(" using ").concat(
-						configuration.getBoolean("wikitrends.batch.incremental.stoptime.use") == true ? 
-								"property times" : "system times"));
-		
 		try (Cluster cluster = Cluster.builder().addContactPoints(getSeeds()).build();
 				Session session = cluster.newSession();) {
 			
 			process();
+			
+			LOGGER.info("Job ".concat(this.getClass().getName()).concat(
+					" processed with startTime= ").concat(getCurrentTime().toString()).concat(" and stopTime= ").concat(getStopTime().toString()));
 			
 			while(getCurrentTime().isBefore(getStopTime())) {
 				session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
@@ -128,11 +126,6 @@ public abstract class BatchLayer2Job extends AbstractBatchJob implements WikiTre
 			}
 			
 		} finally {
-			logger.info("Ended running job ".concat(this.getClass().getName()).concat(
-					" until ").concat(getStopTime().toString()).concat(" using ").concat(
-							configuration.getBoolean("wikitrends.batch.incremental.stoptime.use") == true ? 
-									"property times" : "system times"));
-			
 			finalizeSparkContext();
 		}
 	}

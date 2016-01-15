@@ -50,8 +50,6 @@ MAIN_CLASS=br.edu.ufcg.analytics.wikitrends.WikiTrends
 JAR_ADDRESS=http://gabdi/wikitrends/wikitrends-2.0-jar-with-dependencies.jar
 LOCAL_JAR_ADDRESS=${WIKITRENDS_HOME}/wikitrends-2.0-jar-with-dependencies.jar
 
-echo ${WIKITRENDS_HOME}
-
 # default values
 
 MASTER_ADDRESS=spark://master:7077

@@ -114,6 +114,9 @@ public abstract class BatchLayer1Job extends AbstractBatchJob {
 			
 			while(getCurrentTime().isBefore(getStopTime())) {
 				process();
+				
+				LOGGER.info("Job ".concat(this.getClass().getName()).concat(
+						" processed with startTime= ").concat(getCurrentTime().toString()).concat(" and stopTime= ").concat(getStopTime().toString()));
 			
 				session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
 										getProcessStartTimeStatusID(), 
