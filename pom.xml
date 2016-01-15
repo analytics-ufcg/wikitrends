@@ -250,7 +250,7 @@
 		<dependency>
 			<groupId>com.datastax.spark</groupId>
 			<artifactId>spark-cassandra-connector-java_2.10</artifactId>
-			<version>1.5.0-M2</version>
+			<version>1.5.0-RC1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -275,7 +275,7 @@
 		<dependency>
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-streaming-kafka_2.10</artifactId>
-			<version>1.5.2</version>
+			<version>1.5.1</version>
 		</dependency>
 		
 	</dependencies>
