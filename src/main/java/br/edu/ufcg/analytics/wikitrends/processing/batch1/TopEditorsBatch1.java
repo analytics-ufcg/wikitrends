@@ -62,7 +62,7 @@ public class TopEditorsBatch1 extends BatchLayer1Job {
 		JavaRDD<TopClass> userRanking = transformToTopEntry(userRDD);
 		
 		CassandraJavaUtil.javaFunctions(userRanking)
-			.writerBuilder(getBatchViewsKeyspace(), usersTable, mapToRow(TopClass.class))
+			.writerBuilder(getBatchViews1Keyspace(), usersTable, mapToRow(TopClass.class))
 			.saveToCassandra();
 		
 	}

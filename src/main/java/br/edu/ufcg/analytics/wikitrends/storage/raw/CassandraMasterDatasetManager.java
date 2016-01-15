@@ -43,7 +43,7 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 	 */
 	public void createTables(Session session) {
 
-		session.execute("CREATE KEYSPACE IF NOT EXISTS master_dataset WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
+		session.execute("CREATE KEYSPACE IF NOT EXISTS master_dataset WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2}");
 
 		session.execute("CREATE TABLE IF NOT EXISTS master_dataset.changes(" +
 				"nonce UUID," +
@@ -54,8 +54,7 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 				"event_timestamp TIMESTAMP," +
 				"content TEXT," +
 
-				"PRIMARY KEY((nonce), year, month, day, hour)," +
-				") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
+				"PRIMARY KEY((year, month, day, hour), nonce));"
 		);
 
 		session.execute("CREATE TABLE IF NOT EXISTS master_dataset.logs(" +
@@ -85,8 +84,7 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 				"hour INT," +
 				"event_timestamp TIMESTAMP," +
 
-				"PRIMARY KEY((nonce), year, month, day, hour)," +
-				") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
+				"PRIMARY KEY((year, month, day, hour), nonce));"
 				);
 
 		session.execute("CREATE TABLE IF NOT EXISTS master_dataset.edits("+ 
@@ -115,8 +113,7 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 				"hour INT," +
 				"event_timestamp TIMESTAMP," +
 
-				"PRIMARY KEY((nonce), year, month, day, hour)," +
-				") WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
+				"PRIMARY KEY((year, month, day, hour), nonce));"
 				);
 
 	}

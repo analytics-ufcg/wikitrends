@@ -16,7 +16,7 @@ public class CassandraJobTimesStatusManager implements Serializable {
 
 	public void createTables(Session session) {
 		
-		session.execute("CREATE KEYSPACE job_times WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
+		session.execute("CREATE KEYSPACE job_times WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2}");
 
         session.execute("CREATE TABLE IF NOT EXISTS job_times.status (" + 
 		            		"id TEXT," +

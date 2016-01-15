@@ -18,7 +18,7 @@ public class CassandraServingLayer2Manager implements Serializable {
 	// Prepare the schema
 	public void createTables(Session session) {
                     
-            session.execute("CREATE KEYSPACE IF NOT EXISTS batch_views2 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
+            session.execute("CREATE KEYSPACE IF NOT EXISTS batch_views2 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2}");
             
             /* BEGIN:PRODUCTION */
             session.execute("CREATE TABLE IF NOT EXISTS batch_views2.top_editors" +
@@ -126,8 +126,14 @@ public class CassandraServingLayer2Manager implements Serializable {
 				manager.createTables(session);
 			}
 			break;
+		case "DROP":
+			try (Cluster cluster = Cluster.builder().addContactPoints(seedNode).build();
+					Session session = cluster.newSession();) {
+				manager.dropTables(session);
+			}
+			break;
 		default:
-			System.err.println("Unsupported operation. Choose CREATE as operation.");
+			System.err.println("Unsupported operation. Choose CREATE or DROP as operation.");
 			break;
 		}
 

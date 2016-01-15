@@ -7,7 +7,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.configuration.ConfigurationException;
@@ -79,13 +78,13 @@ public class BigDataBatch2IT {
 				Session session = cluster.newSession();
 				){
 			
-			new CassandraMasterDatasetManager().dropTables(session);
+//			new CassandraMasterDatasetManager().dropTables(session);
 			new CassandraServingLayer1Manager().dropTables(session);
 			new CassandraServingLayer2Manager().dropTables(session);
 			
 			new CassandraJobTimesStatusManager().dropTables(session);
 			
-			new CassandraMasterDatasetManager().createTables(session);
+//			new CassandraMasterDatasetManager().createTables(session);
 			new CassandraServingLayer1Manager().createTables(session);
 			new CassandraServingLayer2Manager().createTables(session);
 			
@@ -93,7 +92,7 @@ public class BigDataBatch2IT {
 
 		}
 
-		new CassandraMasterDatasetManager().populate(INPUT_FILE);
+//		new CassandraMasterDatasetManager().populate(INPUT_FILE);
 		
 		setCurrentTime(LocalDateTime.of(2015, 11, 7, 14, 00));
 		setStopTime(LocalDateTime.of(2015, 11, 7, 18, 00)); // <== correct time considering timestamps-controlled small dataset
@@ -470,10 +469,9 @@ public class BigDataBatch2IT {
 		List<Row> list = resultSet.all();
 		
 		assertEquals(list.size(), 1);
-		Map<String, Long> edits_data = list.get(0).getMap("edits_data", String.class, Long.class);
-		assertEquals((long)edits_data.get("all_edits"), (long)253);
-		assertEquals((long)edits_data.get("minor_edits"), (long)80);
-		assertEquals((long)edits_data.get("average_size"), (long)327);
+		assertEquals((long)list.get(0).getLong("all_edits"), (long)253);
+		assertEquals((long)list.get(0).getLong("minor_edits"), (long)80);
+		assertEquals((long)list.get(0).getLong("average_size"), (long)327);
 		
 		Set<String> distinct_editors_set = list.get(0).getSet("distinct_editors_set", String.class);
 		Set<String> distinct_pages_set = list.get(0).getSet("distinct_pages_set", String.class);
@@ -510,7 +508,7 @@ public class BigDataBatch2IT {
 		ResultSet resultSet01 = session.execute("SELECT * FROM absolute_values");
 		List<Row> list1 = resultSet01.all();
 		
-		assertEquals(list1.size(), 1);
+		assertEquals(1, list1.size());
 		assertEquals((long)list1.get(0).getLong("all_edits"), (long)5462);
 		assertEquals((long)list1.get(0).getLong("minor_edits"), (long)1755);
 		assertEquals((long)list1.get(0).getLong("average_size"), (long)338);
@@ -536,14 +534,10 @@ public class BigDataBatch2IT {
 		assertEquals(49, date2.getSecondOfMinute());
 	}
 
+	@Test
 	public void testConsecutiveExecutionsOfRunTopIdioms() throws ConfigurationException {
 
-		List<Row> list;
-		
 		/* FIRST HOUR */
-		session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
-				JobStatusID.TOP_IDIOMS_BATCH_1.getStatus_id(), 2015, 11, 7, 14);
-		
 		TopIdiomsBatch1 job = new TopIdiomsBatch1(configuration);
 		job.setCurrentTime(LocalDateTime.of(2015, 11, 7, 15, 00));
 		job.process();
@@ -554,9 +548,6 @@ public class BigDataBatch2IT {
 		assertEquals(34, firstHourBatch1Count.one().getLong("count"));
 		ResultSet firstHourBatch1Sum = session.execute("SELECT sum(count) as total_edits FROM top_idioms WHERE year = 2015 and month = 11 and day = 7 and hour = 15");
 		assertEquals(253, firstHourBatch1Sum.one().getLong("total_edits"));
-		
-		session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
-				JobStatusID.TOP_IDIOMS_BATCH_2.getStatus_id(), 2015, 11, 7, 15);
 		
 		TopIdiomsBatch2 job2 = new TopIdiomsBatch2(configuration);
 		job2.setCurrentTime(LocalDateTime.of(2015, 11, 7, 15, 00));
@@ -569,11 +560,8 @@ public class BigDataBatch2IT {
 		assertEquals(34, firstHourBatch2.one().getLong("count"));
 		assertEquals(253, session.execute("SELECT sum(count) as total_edits FROM top_idioms").one().getLong("total_edits"));
 		
-
 		
 		/* SECOND HOUR */
-		session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
-				JobStatusID.TOP_IDIOMS_BATCH_1.getStatus_id(), 2015, 11, 7, 15);
 		
 		job = new TopIdiomsBatch1(configuration);
 		job.setCurrentTime(LocalDateTime.of(2015, 11, 7, 16, 00));
@@ -586,10 +574,6 @@ public class BigDataBatch2IT {
 		ResultSet secondHourBatch1Sum = session.execute("SELECT sum(count) as total_edits FROM top_idioms WHERE year = 2015 and month = 11 and day = 7 and hour = 16");
 		assertEquals(3213, secondHourBatch1Sum.one().getLong("total_edits"));
 
-		
-		session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
-				JobStatusID.TOP_IDIOMS_BATCH_2.getStatus_id(), 2015, 11, 7, 15);
-		
 		job2 = new TopIdiomsBatch2(configuration);
 		job2.setCurrentTime(LocalDateTime.of(2015, 11, 7, 16, 00));
 		job2.process();
@@ -598,7 +582,7 @@ public class BigDataBatch2IT {
 		session.execute("USE batch_views2");
 		
 		ResultSet secondHourBatch2 = session.execute("SELECT count(1) FROM top_idioms");
-		assertEquals(97, secondHourBatch2.one().getLong("count"));
+		assertEquals(65, secondHourBatch2.one().getLong("count"));
 		assertEquals(253 + 3213, session.execute("SELECT sum(count) as total_edits FROM top_idioms").one().getLong("total_edits"));
 		
 	}

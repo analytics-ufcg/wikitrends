@@ -26,6 +26,8 @@ public class TopIdiomsBatch2 extends BatchLayer2Job {
 	
 	@Override
 	public void process() {
+		truncateResultingTable(topIdiomsTable);
+		
 		CassandraJavaUtil.javaFunctions(computeFullRankingFromPartial("top_idioms"))
 			.writerBuilder(getBatchViews2Keyspace(), topIdiomsTable, mapToRow(TopResult.class))
 			.saveToCassandra();

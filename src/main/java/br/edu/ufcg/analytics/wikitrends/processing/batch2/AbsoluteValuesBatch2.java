@@ -1,14 +1,14 @@
 package br.edu.ufcg.analytics.wikitrends.processing.batch2;
 
+import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
+import org.apache.spark.api.java.JavaRDD;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
@@ -24,50 +24,45 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job {
 	private static final long serialVersionUID = -8968582683538025373L;
 	
 	private String absoluteValuesTable;
+
 	private final static JobStatusID ABS_VALUES_STATUS_ID = JobStatusID.ABS_VALUES_BATCH_2;
 	private final static ProcessResultID ABSOLUTE_VALUES_PROCESS_RESULT_ID = ProcessResultID.ABSOLUTE_VALUES;
-	
+
 	public AbsoluteValuesBatch2(Configuration configuration) {
 		super(configuration, ABS_VALUES_STATUS_ID, ABSOLUTE_VALUES_PROCESS_RESULT_ID);
 		
 		absoluteValuesTable = configuration.getString("wikitrends.serving2.cassandra.table.absolutevalues");
 	}
 	
+	public Long computeAllEdits() {
+		Long all_edits_sum = javaFunctions(getJavaSparkContext())
+			.cassandraTable("batch_views1", "absolute_values")
+			.select("all_edits")
+			.map(s -> s.getLong("all_edits"))
+			.reduce((a,b) -> a+b);
+		return all_edits_sum;
+	}
 	
-	/**
-	 * Compute the number of major edits, minor edits and average_size.
-	 * @param sc 
-	 * 
-	 * @return map with the name 'major_edits', 'minor_edits' and 'average_size' and the respective values.
-	 */
-	private Map<String, Long> computeEditsData() {
-    	Map<String, Long> map = new HashMap<String, Long>();
-    	
-    	CassandraConnector connector = CassandraConnector.apply(getJavaSparkContext().getConf());
-    	try (Session session = connector.openSession()) {
-            ResultSet results = session.execute("SELECT edits_data FROM batch_views1." + "absolute_values");
-            
-            List<Row> listRecords = results.all();
-            
-            for(Row r : listRecords) {
-            	Map<String, Long> tmpM = r.getMap("edits_data", String.class, Long.class);
-            	for (String key : tmpM.keySet()) {
-            		if(map.keySet().contains(key)) {
-            			map.put(key, map.get(key) + tmpM.get(key));
-            	    }
-            	    else {
-            	    	map.put(key, tmpM.get(key));
-            	    }
-            	}
-            }
-            map.put("average_size", map.get("average_size")/listRecords.size());
-    	}
-        
-        //System.out.println("Final map: " + map.toString());
-    	
-        return map;
-    }
-	
+	public Long computeMinorEdits() {
+		Long minor_edits_sum = javaFunctions(getJavaSparkContext())
+				.cassandraTable("batch_views1", "absolute_values")
+				.select("minor_edits")
+				.map(s -> s.getLong("minor_edits"))
+				.reduce((a,b) -> a+b);
+			return minor_edits_sum;
+	}
+
+	public Long computeAverageSize() {
+		JavaRDD<Long> average_sizeRDD = javaFunctions(getJavaSparkContext())
+				.cassandraTable("batch_views1", "absolute_values")
+				.select("average_size")
+				.map(s -> s.getLong("average_size"));
+		
+		Long average_size_sum = average_sizeRDD
+				.reduce((a,b) -> a+b);
+		
+		return average_size_sum / average_sizeRDD.count();
+	}
 	
 	/**
 	 * Compute the number of distinct editors in the entire master dataset
@@ -136,7 +131,7 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job {
 		
 		return (int) getJavaSparkContext().parallelize(distinctServersList).distinct().count();
 	}
-
+	
 	/**
 	 * Compute the initial time since the application is active receiving data
 	 * from Wikipedia.
@@ -164,7 +159,11 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job {
 
 	@Override
 	public void process() {
-		Map<String, Long> edits_data = computeEditsData();
+		truncateResultingTable(absoluteValuesTable);
+		
+		Long all_edits = computeAllEdits();
+		Long minor_edits = computeMinorEdits();
+		Long average_size = computeAverageSize();
 
 		Long distinct_pages_count = computeDistinctPagesCount();
 		Integer distincts_editors_count = computeDistinctEditorsCount();
@@ -173,9 +172,9 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job {
 		Long smaller_origin = getSmallerOrigin(); 
 		
 		ResultAbsoluteValuesShot result = new ResultAbsoluteValuesShot(getProcessResultID(),
-																		edits_data.get("all_edits"),
-																		edits_data.get("minor_edits"),
-																		edits_data.get("average_size"),
+																		all_edits,
+																		minor_edits,
+																		average_size,
 																		distinct_pages_count,
 																		distincts_editors_count,
 																		distincts_servers_count,
