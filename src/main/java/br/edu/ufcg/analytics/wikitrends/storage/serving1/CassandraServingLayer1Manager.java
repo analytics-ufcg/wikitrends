@@ -81,7 +81,6 @@ public class CassandraServingLayer1Manager implements Serializable {
         session.execute("CREATE TABLE IF NOT EXISTS batch_views1." +
 					            "absolute_values" +
 								"(id UUID," +
-//								"edits_data MAP<TEXT,BIGINT>," +
 								"all_edits BIGINT," +
 								"minor_edits BIGINT," +
 								"average_size BIGINT," +

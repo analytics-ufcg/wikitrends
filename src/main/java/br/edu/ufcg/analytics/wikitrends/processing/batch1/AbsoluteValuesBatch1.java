@@ -5,7 +5,6 @@ import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -38,11 +37,6 @@ public class AbsoluteValuesBatch1 extends BatchLayer1Job {
 		JavaRDD<EditChange> wikipediaEdits = read()
 				.filter(edit -> edit.getServerName().endsWith("wikipedia.org"))
 				.cache();
-		
-//		Map<String, Long> edits_data = new HashMap<String, Long>();
-//		edits_data.put("all_edits", countAllEdits(wikipediaEdits));
-//		edits_data.put("minor_edits", countMinorEdits(wikipediaEdits));
-//		edits_data.put("average_size", calcAverageEditLength(wikipediaEdits));
 		
 		Long all_edits = countAllEdits(wikipediaEdits);
 		Long minor_edits = countMinorEdits(wikipediaEdits);
@@ -82,13 +76,19 @@ public class AbsoluteValuesBatch1 extends BatchLayer1Job {
 	}
 
 	private Long calcAverageEditLength(JavaRDD<EditChange> wikipediaEdits) {
+		if(wikipediaEdits.count() == 0) {
+			return 0L;
+		}
 		JavaRDD<Long> result = wikipediaEdits.map( edit -> {
 			Map<String, Long> length = edit.getLength();
 			long oldLength = length.containsKey("old")? length.get("old"): 0;
 			long newLength = length.containsKey("new")? length.get("new"): 0;
 			return newLength - oldLength;
 		});
-		return result.reduce((a, b) -> a+b) / result.count();
+		if(result.count() > 0) {
+			return result.reduce((a, b) -> a+b) / result.count();
+		}
+		return 0L;
 	}
 
 	private Set<String> distinctPages(JavaRDD<EditChange> wikipediaEdits) {
