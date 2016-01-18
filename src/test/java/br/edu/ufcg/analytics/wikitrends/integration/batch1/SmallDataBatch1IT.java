@@ -83,6 +83,7 @@ public class SmallDataBatch1IT {
 		new CassandraMasterDatasetManager().populate(INPUT_FILE);
 		
 		setCurrentTime(LocalDateTime.of(2015, 11, 9, 13, 00));
+//		setCurrentTime(LocalDateTime.of(2015, 11, 9, 18, 00));
 	}
 	
 	/**

@@ -58,11 +58,16 @@ public abstract class AbstractBatchJob implements WikiTrendsProcess {
 				LOGGER.info("Getting startTime=".concat(getCurrentTime().toString()).concat(" from job_times.status table"));
 				
 			} else {
-				setCurrentTime(LocalDateTime.of(configuration.getInt("wikitrends.batch.incremental.starttime.year"),
-											 configuration.getInt("wikitrends.batch.incremental.starttime.month"),
-											 configuration.getInt("wikitrends.batch.incremental.starttime.day"),
-											 configuration.getInt("wikitrends.batch.incremental.starttime.hour"), 0));
-				LOGGER.info("Getting startTime=".concat(getCurrentTime().toString()).concat(" from wikitrends.properties file"));
+				if(configuration.getBoolean("wikitrends.batch.incremental.starttime.use") == true) {
+					setCurrentTime(LocalDateTime.of(configuration.getInt("wikitrends.batch.incremental.starttime.year"),
+												 configuration.getInt("wikitrends.batch.incremental.starttime.month"),
+												 configuration.getInt("wikitrends.batch.incremental.starttime.day"),
+												 configuration.getInt("wikitrends.batch.incremental.starttime.hour"), 0));
+					LOGGER.info("Getting startTime=".concat(getCurrentTime().toString()).concat(" from wikitrends.properties file"));
+				}
+				else {
+					LOGGER.warn("Job starting with no starttime defined!");
+				}
 			}
 		}
 		
