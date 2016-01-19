@@ -14,7 +14,7 @@ import java.util.UUID;
 public class AbsoluteValuesShot implements Serializable {
 		private static final long serialVersionUID = 2644747318393169105L;
 		
-		private UUID id;
+//		private UUID id;
 		private Integer hour;
     	private Integer day;
     	private Integer month;
@@ -40,7 +40,7 @@ public class AbsoluteValuesShot implements Serializable {
         							Integer day, 
         							Integer hour) {
             
-        	this.id = UUID.randomUUID();
+//        	this.id = UUID.randomUUID();
         	this.all_edits = all_edits;
         	this.minor_edits = minor_edits;
         	this.average_size = average_size;
@@ -59,13 +59,13 @@ public class AbsoluteValuesShot implements Serializable {
 			// TODO Auto-generated constructor stub
 		}
 
-		public void setid(UUID id) {
-        	this.id = id;
-        }
-        
-        public UUID getid() {
-        	return id;
-        }
+//		public void setid(UUID id) {
+//        	this.id = id;
+//        }
+//        
+//        public UUID getid() {
+//        	return id;
+//        }
 
 		public Integer getDay() {
 			return day;
@@ -157,10 +157,9 @@ public class AbsoluteValuesShot implements Serializable {
 
 		@Override
 		public String toString() {
-			return "AbsoluteValuesShot [id=" + id + ", hour=" + hour + ", day=" + day + ", month=" + month + ", year="
-					+ year + ", all_edits=" + all_edits + ", minor_edits=" + minor_edits + ", average_size="
-					+ average_size + ", distinct_pages_set=" + distinct_pages_set + ", distinct_editors_set="
-					+ distinct_editors_set + ", distinct_servers_set=" + distinct_servers_set + ", smaller_origin="
-					+ smaller_origin + "]";
+			return "AbsoluteValuesShot [hour=" + hour + ", day=" + day + ", month=" + month + ", year=" + year
+					+ ", all_edits=" + all_edits + ", minor_edits=" + minor_edits + ", average_size=" + average_size
+					+ ", distinct_pages_set=" + distinct_pages_set + ", distinct_editors_set=" + distinct_editors_set
+					+ ", distinct_servers_set=" + distinct_servers_set + ", smaller_origin=" + smaller_origin + "]";
 		}
     }

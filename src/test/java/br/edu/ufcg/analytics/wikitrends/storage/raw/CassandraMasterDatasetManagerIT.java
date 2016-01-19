@@ -36,8 +36,8 @@ public class CassandraMasterDatasetManagerIT {
 		session = cluster.newSession();
 
 		master_dataset_manager = new CassandraMasterDatasetManager();
-		master_dataset_manager.dropTables(session);
-		master_dataset_manager.createTables(session);
+		master_dataset_manager.dropAll(session);
+		master_dataset_manager.createAll(session);
 		session.execute("USE master_dataset;");
 
 	}
@@ -45,14 +45,14 @@ public class CassandraMasterDatasetManagerIT {
 	@After
 	public void stop() {
 		
-		master_dataset_manager.dropTables(session);
+		master_dataset_manager.dropAll(session);
 		
 		session.close();
 		cluster.close();
 	}
 
 	/**
-	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager#createTables(Session)}.
+	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager#createAll(Session)}.
 	 */
 	@Test
 	public void testEmptyEditsTableCreation() {
@@ -61,7 +61,7 @@ public class CassandraMasterDatasetManagerIT {
 	}
 
 	/**
-	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager#createTables(Session)}.
+	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager#createAll(Session)}.
 	 */
 	@Test
 	public void testEmptyLogsTableCreation() {
@@ -70,7 +70,7 @@ public class CassandraMasterDatasetManagerIT {
 	}
 
 	/**
-	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager#createTables(Session)}.
+	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager#createAll(Session)}.
 	 */
 	@Test
 	public void testEmptyChangesTableCreation() {

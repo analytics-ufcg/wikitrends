@@ -34,8 +34,8 @@ public class CassandraBatchLayer2ManagerIT {
         session = cluster.newSession();
         session.execute("USE batch_views2;");
         
-        new CassandraServingLayer2Manager().dropTables(session);
-        new CassandraServingLayer2Manager().createTables(session);
+        new CassandraServingLayer2Manager().dropAll(session);
+        new CassandraServingLayer2Manager().createAll(session);
         
         SparkConf conf = new SparkConf();
         conf.setAppName("Testing Serving Layer 2");

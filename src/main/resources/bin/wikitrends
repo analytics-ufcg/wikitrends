@@ -7,36 +7,34 @@ function show_help (){
     echo -e "             <subcommand>\n"
     echo -e "Subcommands:\n"
 
-    echo  "  job ids batch1: TOP_EDITORS_BATCH_1, 
-     			     TOP_IDIOMS_BATCH_1, 
- 			     TOP_PAGES_BATCH_1,
- 			     TOP_CONTENT_PAGES_BATCH_1, 
+    echo  "  job ids batch1: TOP_EDITORS_BATCH_1, TOP_IDIOMS_BATCH_1, 
+ 			     TOP_PAGES_BATCH_1, TOP_CONTENT_PAGES_BATCH_1, 
  			     ABSOLUTE_VALUES_BATCH_1"
  
-    echo "   batch_1		<job_id_batch1>													Runs batch layer 1 job"
+    echo "   batch_1		<job_id_batch1>															Runs batch layer 1 job"
 
-    echo  "  job ids batch2: TOP_EDITORS_BATCH_2,
-                             TOP_IDIOMS_BATCH_2, 
-			     TOP_PAGES_BATCH_2,
-			     TOP_CONTENT_PAGES_BATCH_2,
+    echo  "  job ids batch2: TOP_EDITORS_BATCH_2, TOP_IDIOMS_BATCH_2, 
+			     TOP_PAGES_BATCH_2, TOP_CONTENT_PAGES_BATCH_2,
 	 		     ABSOLUTE_VALUES_BATCH_2"
 
-    echo "   batch_2	<job_id_batch_2>													Runs batch layer 2 job"
+    echo "   batch_2	<job_id_batch_2>															Runs batch layer 2 job"
     
-    echo "   ingestor	start|stop														Starts or stops ingestor"
+    echo "   ingestor	start|stop																	Starts or stops ingestor"
     
-    echo "   master_dataset		create	 <cassandra_host>								Creates tables at cassandra master database"
-    echo "   master_dataset		drop	 <cassandra_host>								Drop tables at cassandra master database"
-    echo "   master_dataset		populate <cassandra_host> <json_input_file>				Migrate data from JSON to cassandra master database"
+    echo "   table option: TOP_EDITORS, TOP_IDIOMS, TOP_PAGES, TOP_CONTENT_PAGES, ABSOLUTE_VALUES, ALL"
     
-    echo "   serving_1	createschema	<cassandra_host>								Creates tables at cassandra serving layer 1 database"
-    echo "   serving_1	dropschema		<cassandra_host> 								Drops tables at cassandra serving layer 1 database"
+    echo "   master_dataset		create 	[<table>]	 <cassandra_host>								Creates tables at cassandra master database"
+    echo "   master_dataset		drop 	[<table>]	 <cassandra_host>								Drop tables at cassandra master database"
+    echo "   master_dataset		populate 			 <cassandra_host> <json_input_file>				Migrate data from JSON to cassandra master database"
     
-    echo "   serving_2	createschema	<cassandra_host>								Creates tables at cassandra serving layer 1 database"
-    echo "   serving_2	dropschema		<cassandra_host>								Drops tables at cassandra serving layer 2 database"
+    echo "   serving_1	create 			[<table>]	<cassandra_host>								Creates tables at cassandra serving layer 1 database"
+    echo "   serving_1	drop	 		[<table>]	<cassandra_host> 								Drops tables at cassandra serving layer 1 database"
+    	
+    echo "   serving_2	create		 	[<table>]	 <cassandra_host>								Creates tables at cassandra serving layer 1 database"
+    echo "   serving_2	drop			[<table>]	<cassandra_host>								Drops tables at cassandra serving layer 2 database"
     
-    echo "   job_times createschema     <cassandra_host>                                Creates tables at cassandra job times database"
-    echo "   job_times dropschema       <cassandra_host>                                Drops tables at cassandra job times database"
+    echo "   job_times create		     <cassandra_host>                                Creates tables at cassandra job times database"
+    echo "   job_times drop		         <cassandra_host>                                Drops tables at cassandra job times database"
     
     echo "   speed		start															Submits speed layer job"
     echo "   speed		status|stop <submission_id>										Gets status or stops speed layer job identified by given id"
@@ -55,7 +53,7 @@ LOCAL_JAR_ADDRESS=${WIKITRENDS_HOME}/wikitrends-2.0-jar-with-dependencies.jar
 MASTER_ADDRESS=spark://master:7077
 TOTAL_EXECUTOR_CORES=2
 ENV_VAR_FILE=${HOME}/.profile
-CASSANDRA_HOST_SEEDS=worker-3
+CASSANDRA_HOST_SEEDS=localhost
 
 OPTIND=1         # Reset in case getopts has been used previously in the shell.
 
@@ -110,14 +108,14 @@ master_dataset)
 	create)
 	    echo "Creating master dataset schema"
 		source ${ENV_VAR_FILE}
-		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE
-	    echo "Master dataset created with success!"
+		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3
+	    echo "Master dataset table[s] created with success!"
 		;;
 	drop)
 	    echo "Dropping master dataset schema"
 		source ${ENV_VAR_FILE}
-		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP
-	    echo "Master dataset dropped with success!"
+		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP $3
+	    echo "Master dataset table[s] dropped with success!"
 		;;
 	populate)
 	    echo "Attempting to migrate master dataset from JSON file"
@@ -155,17 +153,17 @@ batch_2)
 serving_1)
 	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager
 	case $2 in
-	createschema)
+	create)
 	    echo "Creating serving schema"
 		source ${ENV_VAR_FILE}
-		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE ${CASSANDRA_HOST_SEEDS}
-	    echo "Serving layer 1 schema created with success!"
+		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3 ${CASSANDRA_HOST_SEEDS}
+	    echo "Serving layer 1 table[s] creation completed!"
 		;;
-	dropschema)
+	drop)
 	    echo "Dropping serving layer 1 schema"
 		source ${ENV_VAR_FILE}
-		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP ${CASSANDRA_HOST_SEEDS}
-	    echo "Serving layer 1 schema dropped with success!"
+		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP $3 ${CASSANDRA_HOST_SEEDS}
+	    echo "Serving layer 1 table[s] dropped with success!"
 		;;
 	*)
 		show_help
@@ -176,17 +174,17 @@ serving_1)
 serving_2)
 	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.serving2.CassandraServingLayer2Manager
 	case $2 in
-	createschema)
+	create)
 	    echo "Creating serving layer 2 schema"
 		source ${ENV_VAR_FILE}
-		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE ${CASSANDRA_HOST_SEEDS}
-	    echo "Serving layer 2 schema created with success!"
+		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3 ${CASSANDRA_HOST_SEEDS}
+	    echo "Serving layer 2 table[s] creation completed!"
 		;;
-	dropschema)
+	drop)
 	    echo "Dropping serving layer 2 schema"
 		source ${ENV_VAR_FILE}
-		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP ${CASSANDRA_HOST_SEEDS}
-	    echo "Serving layer 2 schema dropped with success!"
+		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP $3 ${CASSANDRA_HOST_SEEDS}
+	    echo "Serving layer 2 table[s] dropped with success!"
 		;;	
 	*)
 		show_help
@@ -197,17 +195,17 @@ serving_2)
 job_times)
 	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.CassandraJobTimesStatusManager
 	case $2 in
-	createschema)
+	create)
 	    echo "Creating job times schema"
 		source ${ENV_VAR_FILE}
 		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE ${CASSANDRA_HOST_SEEDS}
-	    echo "Job times schema created with success!"
+	    echo "Job times table created with success!"
 		;;
-	dropschema)
+	drop)
 	    echo "Dropping job times schema"
 		source ${ENV_VAR_FILE}
 		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP ${CASSANDRA_HOST_SEEDS}
-	    echo "Job times schema dropped with success!"
+	    echo "Job times table dropped with success!"
 		;;
 	*)
 		show_help

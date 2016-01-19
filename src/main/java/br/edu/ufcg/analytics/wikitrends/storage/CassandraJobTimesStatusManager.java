@@ -14,9 +14,9 @@ public class CassandraJobTimesStatusManager implements Serializable {
 	 */
 	private static final long serialVersionUID = -1017103087942947022L;
 
-	public void createTables(Session session) {
+	public void createAll(Session session) {
 		
-		session.execute("CREATE KEYSPACE job_times WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2}");
+		session.execute("CREATE KEYSPACE job_times WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
 
         session.execute("CREATE TABLE IF NOT EXISTS job_times.status (" + 
 		            		"id TEXT," +
@@ -38,7 +38,7 @@ public class CassandraJobTimesStatusManager implements Serializable {
 	 * 
 	 * @param session
 	 */
-	public void dropTables(Session session) {
+	public void dropAll(Session session) {
 	
 		session.execute("DROP KEYSPACE IF EXISTS job_times");
 	}
@@ -66,13 +66,13 @@ public class CassandraJobTimesStatusManager implements Serializable {
 		case "CREATE":
 			try (Cluster cluster = Cluster.builder().addContactPoints(seedNode).build();
 					Session session = cluster.newSession();) {
-				manager.createTables(session);
+				manager.createAll(session);
 			}
 			break;
 		case "DROP":
 			try (Cluster cluster = Cluster.builder().addContactPoints(seedNode).build();
 					Session session = cluster.newSession();) {
-				manager.dropTables(session);
+				manager.dropAll(session);
 			}
 			break;
 		default:

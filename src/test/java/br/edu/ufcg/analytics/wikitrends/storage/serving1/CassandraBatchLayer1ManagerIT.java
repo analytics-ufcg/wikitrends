@@ -37,8 +37,8 @@ public class CassandraBatchLayer1ManagerIT {
         session = cluster.newSession();
         session.execute("USE batch_views1;");
         
-        new CassandraServingLayer1Manager().dropTables(session);
-        new CassandraServingLayer1Manager().createTables(session);
+        new CassandraServingLayer1Manager().dropAll(session);
+        new CassandraServingLayer1Manager().createAll(session);
         
         SparkConf conf = new SparkConf();
         conf.setAppName("Testing Serving Layer");

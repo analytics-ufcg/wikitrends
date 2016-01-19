@@ -68,15 +68,15 @@ public class SmallDataBatch1IT {
 				Session session = cluster.newSession();
 				){
 			
-			new CassandraMasterDatasetManager().dropTables(session);
-			new CassandraServingLayer1Manager().dropTables(session);
+			new CassandraMasterDatasetManager().dropAll(session);
+			new CassandraServingLayer1Manager().dropAll(session);
 			
-			new CassandraJobTimesStatusManager().dropTables(session);
+			new CassandraJobTimesStatusManager().dropAll(session);
 			
-			new CassandraMasterDatasetManager().createTables(session);
-			new CassandraServingLayer1Manager().createTables(session);
+			new CassandraMasterDatasetManager().createAll(session);
+			new CassandraServingLayer1Manager().createAll(session);
 			
-			new CassandraJobTimesStatusManager().createTables(session);
+			new CassandraJobTimesStatusManager().createAll(session);
 
 		}
 
@@ -95,8 +95,8 @@ public class SmallDataBatch1IT {
 
 		try (Cluster cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
 				Session session = cluster.newSession();) {
-			new CassandraMasterDatasetManager().dropTables(session);
-			new CassandraServingLayer1Manager().dropTables(session);
+			new CassandraMasterDatasetManager().dropAll(session);
+			new CassandraServingLayer1Manager().dropAll(session);
 		}
 
 	}
@@ -289,10 +289,9 @@ public class SmallDataBatch1IT {
 		List<Row> list = resultSet.all();
 		
 		assertTrue(list.size() == 1);
-		Map<String, Long> edits_data = list.get(0).getMap("edits_data", String.class, Long.class);
-		assertEquals((long)edits_data.get("all_edits"), (long)510);
-		assertEquals((long)edits_data.get("minor_edits"), (long)154);
-		assertEquals((long)edits_data.get("average_size"), (long)401);
+		assertEquals((long)list.get(0).getLong("all_edits"), (long)510);
+		assertEquals((long)list.get(0).getLong("minor_edits"), (long)154);
+		assertEquals((long)list.get(0).getLong("average_size"), (long)401);
 		
 		Set<String> distinct_editors_set = list.get(0).getSet("distinct_editors_set", String.class);
 		Set<String> distinct_pages_set = list.get(0).getSet("distinct_pages_set", String.class);

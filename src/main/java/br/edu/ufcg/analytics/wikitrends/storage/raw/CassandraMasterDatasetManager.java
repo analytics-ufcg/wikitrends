@@ -41,22 +41,50 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 	/**
 	 * @param session Opened {@link Session} to a cassandra DB.
 	 */
-	public void createTables(Session session) {
+	public void createAll(Session session) {
 
-		session.execute("CREATE KEYSPACE IF NOT EXISTS master_dataset WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2}");
+		createMasterDatasetKeyspace(session);
 
-		session.execute("CREATE TABLE IF NOT EXISTS master_dataset.changes(" +
-				"nonce UUID," +
+		createChangesTable(session);
+
+		createLogsTable(session);
+
+		createEditsTable(session);
+
+	}
+
+	public void createEditsTable(Session session) {
+		session.execute("CREATE TABLE IF NOT EXISTS master_dataset.edits("+ 
+				"nonce UUID," + 
+				"id INT," +
+				"minor BOOLEAN," +
+				"patrolled BOOLEAN," +
+				"length MAP<TEXT, INT>," +
+				"revision MAP<TEXT, INT>," +
+
+	            "server_url TEXT," +
+	            "server_name TEXT," +
+	            "server_script_path TEXT," +
+	            "wiki TEXT," +
+
+				"type TEXT," +
+				"namespace INT," +
+				"user TEXT," +
+				"bot BOOLEAN," +
+				"comment TEXT," +
+				"title TEXT," +
+
 				"year INT," +
 				"month INT," +
 				"day INT," +
 				"hour INT," +
 				"event_timestamp TIMESTAMP," +
-				"content TEXT," +
 
 				"PRIMARY KEY((year, month, day, hour), nonce));"
-		);
+				);
+	}
 
+	public void createLogsTable(Session session) {
 		session.execute("CREATE TABLE IF NOT EXISTS master_dataset.logs(" +
 				"nonce UUID," +
 				"id INT," +
@@ -86,44 +114,36 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 
 				"PRIMARY KEY((year, month, day, hour), nonce));"
 				);
+	}
 
-		session.execute("CREATE TABLE IF NOT EXISTS master_dataset.edits("+ 
-				"nonce UUID," + 
-				"id INT," +
-				"minor BOOLEAN," +
-				"patrolled BOOLEAN," +
-				"length MAP<TEXT, INT>," +
-				"revision MAP<TEXT, INT>," +
-
-	            "server_url TEXT," +
-	            "server_name TEXT," +
-	            "server_script_path TEXT," +
-	            "wiki TEXT," +
-
-				"type TEXT," +
-				"namespace INT," +
-				"user TEXT," +
-				"bot BOOLEAN," +
-				"comment TEXT," +
-				"title TEXT," +
-
+	public void createChangesTable(Session session) {
+		session.execute("CREATE TABLE IF NOT EXISTS master_dataset.changes(" +
+				"nonce UUID," +
 				"year INT," +
 				"month INT," +
 				"day INT," +
 				"hour INT," +
 				"event_timestamp TIMESTAMP," +
+				"content TEXT," +
 
 				"PRIMARY KEY((year, month, day, hour), nonce));"
-				);
+		);
+	}
 
+	public void createMasterDatasetKeyspace(Session session) {
+		session.execute("CREATE KEYSPACE IF NOT EXISTS master_dataset WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
 	}
 
 	/**
 	 * @param session Opened {@link Session} to a cassandra DB.
 	 */
-	public void dropTables(Session session) {
+	public void dropAll(Session session) {
 
 		session.execute("DROP KEYSPACE IF EXISTS master_dataset");
+	}
+	
+	public void dropTable(Session session, String table) {
+		session.execute("DROP TABLE IF EXISTS master_dataset." + table);
 	}
 
 	public void populate(String source) {
@@ -182,12 +202,13 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 
 		if (args.length < 1) {
 			System.err.println(
-					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager CREATE|POPULATE");
+					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager CREATE [<table>] |POPULATE");
 			System.exit(1);
 		}
 
 		String operation = args[0];
-		String seed = System.getProperty("spark.cassandra.connection.host");
+		String operation2 = args[1];
+		String seed = args[2];
 
 		CassandraMasterDatasetManager manager = new CassandraMasterDatasetManager();
 
@@ -195,13 +216,40 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 		case "CREATE":
 			try (Cluster cluster = Cluster.builder().addContactPoints(seed).build();
 					Session session = cluster.newSession();) {
-				manager.createTables(session);
+				manager.createMasterDatasetKeyspace(session);
+				switch(operation2) {
+				case("EDITS"):
+					manager.createEditsTable(session);
+					break;
+				case("LOGS"):
+					manager.createLogsTable(session);
+					break;
+				case("CHANGES"):
+					manager.createChangesTable(session);
+					break;
+				default:
+					manager.createAll(session);
+					break;
+				}
 			}
 			break;
 		case "DROP":
 			try (Cluster cluster = Cluster.builder().addContactPoints(seed).build();
 					Session session = cluster.newSession();) {
-				manager.dropTables(session);
+				switch(operation2) {
+				case("EDITS"):
+					manager.dropTable(session, "edits");
+					break;
+				case("LOGS"):
+					manager.dropTable(session, "logs");
+					break;
+				case("CHANGES"):
+					manager.dropTable(session, "changes");
+					break;
+				default:
+					manager.dropAll(session);
+					break;
+				}
 			}
 			break;
 		case "POPULATE":

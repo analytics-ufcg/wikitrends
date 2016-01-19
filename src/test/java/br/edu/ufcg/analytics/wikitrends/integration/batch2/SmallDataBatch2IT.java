@@ -70,15 +70,15 @@ public class SmallDataBatch2IT {
 			Session session = cluster.newSession();
 			){
 			
-			new CassandraMasterDatasetManager().dropTables(session);
-			new CassandraServingLayer1Manager().dropTables(session);
-			new CassandraServingLayer2Manager().dropTables(session);
-			new CassandraJobTimesStatusManager().dropTables(session);
+			new CassandraMasterDatasetManager().dropAll(session);
+			new CassandraServingLayer1Manager().dropAll(session);
+			new CassandraServingLayer2Manager().dropAll(session);
+			new CassandraJobTimesStatusManager().dropAll(session);
 			
-			new CassandraMasterDatasetManager().createTables(session);
-			new CassandraServingLayer1Manager().createTables(session);
-			new CassandraServingLayer2Manager().createTables(session);
-			new CassandraJobTimesStatusManager().createTables(session);
+			new CassandraMasterDatasetManager().createAll(session);
+			new CassandraServingLayer1Manager().createAll(session);
+			new CassandraServingLayer2Manager().createAll(session);
+			new CassandraJobTimesStatusManager().createAll(session);
 
 		}
 

@@ -2,6 +2,8 @@ package br.edu.ufcg.analytics.wikitrends.storage.serving1;
 
 import java.io.Serializable;
 
+import org.apache.curator.framework.api.CreateBackgroundModeACLable;
+
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 
@@ -14,11 +16,30 @@ public class CassandraServingLayer1Manager implements Serializable {
 	 */
 	private static final long serialVersionUID = -1017103087942947022L;
 
-	public void createTables(Session session) {
+	public void createAll(Session session) {
 		
-		session.execute("CREATE KEYSPACE batch_views1 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2}");
+		createBatchViews1Keyspace(session);
 
-		/* BEGIN:PRODUCTION */
+		createTopEditorsTable(session);
+
+        createTopIdiomsTable(session);
+           
+        createTopPagesTable(session);
+            
+        createTopContentPagesTable(session);
+            
+        createAbsValuesTable(session);
+
+	}
+
+
+	public void createBatchViews1Keyspace(Session session) {
+		session.execute("CREATE KEYSPACE IF NOT EXISTS batch_views1 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
+	}
+
+
+
+	public void createTopEditorsTable(Session session) {
 		session.execute("CREATE TABLE IF NOT EXISTS batch_views1." + 
 								"top_editors" + 
 								"(name TEXT," +
@@ -32,8 +53,12 @@ public class CassandraServingLayer1Manager implements Serializable {
 								"PRIMARY KEY((year, month, day, hour), count, name)) " + 
 								"WITH CLUSTERING ORDER BY (count DESC, name ASC);"
 							);
+	}
 
-        session.execute("CREATE TABLE IF NOT EXISTS batch_views1." +
+
+
+	public void createTopIdiomsTable(Session session) {
+		session.execute("CREATE TABLE IF NOT EXISTS batch_views1." +
 								"top_idioms" +
 								
 								"(name TEXT," +
@@ -47,8 +72,12 @@ public class CassandraServingLayer1Manager implements Serializable {
 								"PRIMARY KEY((year, month, day, hour), count, name)," +
 								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
             		);
-           
-        session.execute("CREATE TABLE IF NOT EXISTS batch_views1." +
+	}
+
+
+
+	public void createTopPagesTable(Session session) {
+		session.execute("CREATE TABLE IF NOT EXISTS batch_views1." +
 								"top_pages" +
 								
 								"(name TEXT," +
@@ -62,8 +91,12 @@ public class CassandraServingLayer1Manager implements Serializable {
 								"PRIMARY KEY((year, month, day, hour), count, name)," +
 								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
             		);
-            
-        session.execute("CREATE TABLE IF NOT EXISTS batch_views1." +
+	}
+
+
+
+	public void createTopContentPagesTable(Session session) {
+		session.execute("CREATE TABLE IF NOT EXISTS batch_views1." +
 								"top_content_pages" +
 								
 								"(name TEXT," +
@@ -77,11 +110,14 @@ public class CassandraServingLayer1Manager implements Serializable {
 								"PRIMARY KEY((year, month, day, hour), count, name)," +
 								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
             		);
-            
-        session.execute("CREATE TABLE IF NOT EXISTS batch_views1." +
+	}
+
+
+
+	public void createAbsValuesTable(Session session) {
+		session.execute("CREATE TABLE IF NOT EXISTS batch_views1." +
 					            "absolute_values" +
-								"(id UUID," +
-								"all_edits BIGINT," +
+								"(all_edits BIGINT," +
 								"minor_edits BIGINT," +
 								"average_size BIGINT," +
 								
@@ -96,52 +132,9 @@ public class CassandraServingLayer1Manager implements Serializable {
 								"day INT," +
 								"hour INT," +
 
-								"PRIMARY KEY((year, month, day, hour), id)," +
-								") WITH CLUSTERING ORDER BY (id DESC);"
+								"PRIMARY KEY((year, month, day, hour))"
+								+ ")"
 				);
-            
-		/* END:PRODUCTION */
-           
-//        session.execute("CREATE TABLE IF NOT EXISTS batch_views1.users_ranking(" + 
-//							"name TEXT," +
-//							"count BIGINT," +
-//							
-//							"year INT," +
-//							"month INT," +
-//							"day INT," +
-//							"hour INT," +
-//							
-//							"PRIMARY KEY((year, month, day, hour), count, name)) " + 
-//							"WITH CLUSTERING ORDER BY (count DESC, name ASC);"
-//        		);
-//            
-//        session.execute("CREATE TABLE IF NOT EXISTS batch_views1.servers_ranking (" + 
-//		            		"year INT," +
-//		            		"month INT," +
-//		            		"day INT," +
-//		            		"hour INT," +
-//		            		
-//		            		"name TEXT," +
-//		            		"count INT," +
-//		            		
-//		            		"PRIMARY KEY((year, month, day, hour), count, name)) " + 
-//		            		"WITH CLUSTERING ORDER BY (count DESC, name ASC);"
-//            	);
-//           
-//        session.execute("CREATE TABLE IF NOT EXISTS batch_views1.status (" + 
-//		            		"id TEXT," +
-//		            		
-//		            		"year INT," +
-//		            		"month INT," +
-//		            		"day INT," +
-//		            		"hour INT," +
-//		            		
-//		            		"PRIMARY KEY((id), year, month, day, hour)) " + 
-//		            		"WITH CLUSTERING ORDER BY (year DESC, month DESC, day DESC, hour DESC);"
-//            	);
-        
-        
-
 	}
 
 
@@ -151,9 +144,13 @@ public class CassandraServingLayer1Manager implements Serializable {
 	 * 
 	 * @param session
 	 */
-	public void dropTables(Session session) {
+	public void dropAll(Session session) {
 	
 		session.execute("DROP KEYSPACE IF EXISTS batch_views1");
+	}
+	
+	public void dropTable(Session session, String table) {
+		session.execute("DROP TABLE IF EXISTS batch_views1." + table);
 	}
 
 	/**
@@ -166,12 +163,13 @@ public class CassandraServingLayer1Manager implements Serializable {
 
 		if (args.length < 2) {
 			System.err.println(
-					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager OPERATION <seed_address>");
+					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager OPERATION [<table>] <seed_address>");
 			System.exit(1);
 		}
 
 		String operation = args[0];
-		String seedNode = args[1];
+		String operation2 = args[1];
+		String seedNode = args[2];
 
 		CassandraServingLayer1Manager manager = new CassandraServingLayer1Manager();
 
@@ -179,13 +177,52 @@ public class CassandraServingLayer1Manager implements Serializable {
 		case "CREATE":
 			try (Cluster cluster = Cluster.builder().addContactPoints(seedNode).build();
 					Session session = cluster.newSession();) {
-				manager.createTables(session);
+				manager.createBatchViews1Keyspace(session);
+				switch(operation2) {
+				case("TOP_EDITORS"):
+					manager.createTopEditorsTable(session);
+					break;
+				case("TOP_IDIOMS"):
+					manager.createTopIdiomsTable(session);
+					break;
+				case("TOP_PAGES"):
+					manager.createTopPagesTable(session);
+					break;
+				case("TOP_CONTENT_PAGES"):
+					manager.createTopContentPagesTable(session);
+					break;
+				case("ABSOLUTE_VALUES"):
+					manager.createAbsValuesTable(session);
+					break;
+				default:
+					manager.createAll(session);
+					break;
+				}
 			}
 			break;
 		case "DROP":
 			try (Cluster cluster = Cluster.builder().addContactPoints(seedNode).build();
 					Session session = cluster.newSession();) {
-				manager.dropTables(session);
+				switch(operation2) {
+				case("TOP_EDITORS"):
+					manager.dropTable(session, "top_editors");
+					break;
+				case("TOP_IDIOMS"):
+					manager.dropTable(session, "top_idioms");
+					break;
+				case("TOP_PAGES"):
+					manager.dropTable(session, "top_pages");
+					break;
+				case("TOP_CONTENT_PAGES"):
+					manager.dropTable(session, "top_content_pages");
+					break;
+				case("ABSOLUTE_VALUES"):
+					manager.dropTable(session, "absolute_values");
+					break;
+				default:
+					manager.dropAll(session);
+					break;
+				}
 			}
 			break;
 		default:
