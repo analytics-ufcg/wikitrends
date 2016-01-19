@@ -61,7 +61,8 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job {
 		Long average_size_sum = average_sizeRDD
 				.reduce((a,b) -> a+b);
 		
-		return average_size_sum / average_sizeRDD.filter(aveSizes -> { return aveSizes.getLong("average_size") > 0L; }).count();
+//		return average_size_sum / average_sizeRDD.filter(aveSizes -> { return aveSizes.getLong("average_size") > 0L; }).count();
+		return average_size_sum/average_sizeRDD.count();
 	}
 	
 	/**

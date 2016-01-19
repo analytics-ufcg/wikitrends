@@ -78,13 +78,13 @@ public class BigDataBatch2IT {
 				Session session = cluster.newSession();
 				){
 			
-			new CassandraMasterDatasetManager().dropAll(session);
+//			new CassandraMasterDatasetManager().dropAll(session);
 			new CassandraServingLayer1Manager().dropAll(session);
 			new CassandraServingLayer2Manager().dropAll(session);
 			
 			new CassandraJobTimesStatusManager().dropAll(session);
 			
-			new CassandraMasterDatasetManager().createAll(session);
+//			new CassandraMasterDatasetManager().createAll(session);
 			new CassandraServingLayer1Manager().createAll(session);
 			new CassandraServingLayer2Manager().createAll(session);
 			
@@ -92,7 +92,7 @@ public class BigDataBatch2IT {
 
 		}
 
-		new CassandraMasterDatasetManager().populate(INPUT_FILE);
+//		new CassandraMasterDatasetManager().populate(INPUT_FILE);
 		
 		setCurrentTime(LocalDateTime.of(2015, 11, 7, 14, 00));
 		setStopTime(LocalDateTime.of(2015, 11, 7, 18, 00)); // <== correct time considering timestamps-controlled small dataset
@@ -584,6 +584,60 @@ public class BigDataBatch2IT {
 		ResultSet secondHourBatch2 = session.execute("SELECT count(1) FROM top_idioms");
 		assertEquals(65, secondHourBatch2.one().getLong("count"));
 		assertEquals(253 + 3213, session.execute("SELECT sum(count) as total_edits FROM top_idioms").one().getLong("total_edits"));
+		
+	}
+	
+	
+	@Test
+	public void testConsecutiveExecutionsOfRunAbsValues() throws ConfigurationException {
+
+		/* FIRST HOUR */
+		AbsoluteValuesBatch1 job = new AbsoluteValuesBatch1(configuration);
+		job.setCurrentTime(LocalDateTime.of(2015, 11, 7, 15, 00));
+		job.process();
+		job.finalizeSparkContext();
+
+		session.execute("USE batch_views1");
+		ResultSet firstHourBatch1Count = session.execute("SELECT count(1) FROM absolute_values WHERE year = 2015 and month = 11 and day = 7 and hour = 15");
+		assertEquals(1, firstHourBatch1Count.one().getLong("count"));
+		ResultSet firstHourBatch1Sum = session.execute("SELECT sum(all_edits) as total_all_edits FROM absolute_values WHERE year = 2015 and month = 11 and day = 7 and hour = 15");
+		assertEquals(253, firstHourBatch1Sum.one().getLong("total_all_edits"));
+		
+		AbsoluteValuesBatch2 job2 = new AbsoluteValuesBatch2(configuration);
+		job2.setCurrentTime(LocalDateTime.of(2015, 11, 7, 15, 00));
+		job2.process();
+		job2.finalizeSparkContext();
+
+		session.execute("USE batch_views2");
+		
+		ResultSet firstHourBatch2 = session.execute("SELECT count(1) FROM absolute_values");
+		assertEquals(1, firstHourBatch2.one().getLong("count"));
+		assertEquals(253, session.execute("SELECT sum(all_edits) as total_all_edits FROM absolute_values").one().getLong("total_all_edits"));
+		
+		
+		/* SECOND HOUR */
+		
+		job = new AbsoluteValuesBatch1(configuration);
+		job.setCurrentTime(LocalDateTime.of(2015, 11, 7, 16, 00));
+		job.process();
+		job.finalizeSparkContext();
+
+		session.execute("USE batch_views1");
+		ResultSet secondHourBatch1Count = session.execute("SELECT count(1) FROM absolute_values WHERE year = 2015 and month = 11 and day = 7 and hour = 16");
+		assertEquals(1, secondHourBatch1Count.one().getLong("count"));
+		ResultSet secondHourBatch1Sum = session.execute("SELECT sum(all_edits) as total_edits FROM absolute_values WHERE year = 2015 and month = 11 and day = 7 and hour = 16");
+		assertEquals(3213, secondHourBatch1Sum.one().getLong("total_edits"));
+
+		job2 = new AbsoluteValuesBatch2(configuration);
+		job2.setCurrentTime(LocalDateTime.of(2015, 11, 7, 16, 00));
+		job2.process();
+		job2.finalizeSparkContext();
+
+		session.execute("USE batch_views2");
+		
+		ResultSet secondHourBatch2 = session.execute("SELECT count(1) FROM absolute_values");
+		assertEquals(1, secondHourBatch2.one().getLong("count"));
+		assertEquals(253 + 3213, session.execute("SELECT sum(all_edits) as total_edits FROM absolute_values").one().getLong("total_edits"));
 		
 	}
 }
