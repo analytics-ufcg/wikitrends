@@ -1,5 +1,9 @@
 package br.edu.ufcg.analytics.wikitrends.view.api.controller;
 
+import java.util.List;
+
+import com.datastax.driver.core.Row;
+
 import br.edu.ufcg.analytics.wikitrends.view.api.controller.beans.RankingRow;
 
 public interface WikiTrendsController {

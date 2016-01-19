@@ -14,7 +14,7 @@ app.config(function ($routeProvider) {
 });
 
 app.controller('StaticController', function ($scope, $http) {
-    $http.get('statistics').then(function (response) {
+    $http.get('v2/statistics').then(function (response) {
         response.data.forEach(function (d) {
             $scope[d.key] = parseInt(d.value, 10)
         })

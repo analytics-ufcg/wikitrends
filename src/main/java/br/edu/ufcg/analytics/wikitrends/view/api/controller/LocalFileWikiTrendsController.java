@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.datastax.driver.core.Row;
+
 import br.edu.ufcg.analytics.wikitrends.view.api.controller.beans.RankingRow;
 
 /**
@@ -20,16 +22,16 @@ import br.edu.ufcg.analytics.wikitrends.view.api.controller.beans.RankingRow;
 @Deprecated
 public class LocalFileWikiTrendsController implements WikiTrendsController {
 
-	/* (non-Javadoc)
-	 * @see br.edu.ufcg.analytics.wikitrends.api.controller.WikiController#statistics()
-	 */
-	@Override
-	@RequestMapping("/v1/statistics")
-	public RankingRow[] statistics() {
-		String source = "/var/www/wikitrends/data/absolute.tsv";
-		
-		return query(source, Integer.MAX_VALUE);
-	}
+//	/* (non-Javadoc)
+//	 * @see br.edu.ufcg.analytics.wikitrends.api.controller.WikiController#statistics()
+//	 */
+//	@Override
+//	@RequestMapping("/v1/statistics")
+//	public RankingRow[] statistics() {
+//		String source = "/var/www/wikitrends/data/absolute.tsv";
+//		
+//		return query(source, Integer.MAX_VALUE);
+//	}
 
 	/* (non-Javadoc)
 	 * @see br.edu.ufcg.analytics.wikitrends.api.controller.WikiController#editors(java.lang.String)
@@ -81,6 +83,12 @@ public class LocalFileWikiTrendsController implements WikiTrendsController {
 			e.printStackTrace();
 		}
 		return results.toArray(new RankingRow[results.size()]);
+	}
+
+	@Override
+	public RankingRow[] statistics() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

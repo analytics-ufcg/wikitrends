@@ -1,5 +1,6 @@
 package br.edu.ufcg.analytics.wikitrends.view.api.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -7,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.DataType;
+import com.datastax.driver.core.ColumnDefinitions.Definition;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
@@ -30,15 +33,17 @@ public class CassandraDBWikiTrendsController implements WikiTrendsController {
 		cluster = Cluster.builder().addContactPoints(seedNodes.split(",")).build();
 	}
 
-//	/* (non-Javadoc)
-//	 * @see br.edu.ufcg.analytics.wikitrends.api.controller.WikiController#statistics()
-//	 */
-//	@Override
-//	@RequestMapping("/v2/statistics")
-//	public RankingRow[] statistics() {
-//		return queryAbsolute(Integer.MAX_VALUE);
-//	}
-//
+	/* (non-Javadoc)
+	 * @see br.edu.ufcg.analytics.wikitrends.api.controller.WikiController#statistics()
+	 */
+	@Override
+	@RequestMapping("/v2/statistics")
+	public RankingRow[] statistics() {
+		String tableName = "batch_views2.absolute_values";
+		
+		return getValues(tableName);
+	}
+
 	/* (non-Javadoc)
 	 * @see br.edu.ufcg.analytics.wikitrends.api.controller.WikiController#idioms(java.lang.String)
 	 */
@@ -65,11 +70,25 @@ public class CassandraDBWikiTrendsController implements WikiTrendsController {
 		}
 		return results;
 	}
+	
+	private RankingRow[] getValues(String tableName) {
+		ArrayList<RankingRow> results = new ArrayList<RankingRow>();
+		try (Session session = cluster.newSession();) {
+			ResultSet resultSet = session.execute("SELECT * FROM " + tableName);
+			List<Row> all = resultSet.all();
 
-	@Override
-	public RankingRow[] statistics() {
-		// TODO Auto-generated method stub
-		return null;
+			Row row = all.get(0);
+			
+			for (Definition column : resultSet.getColumnDefinitions()) {
+				if (column.getType().equals(DataType.bigint())){
+					results.add(new RankingRow(column.getName(), Long.toString(row.getLong(column.getName()))));
+				}
+				else if (column.getType().equals(DataType.cint())) {
+					results.add(new RankingRow(column.getName(), Integer.toString(row.getInt(column.getName()))));	
+				}
+			}			
+		}
+		return results.toArray(new RankingRow[results.size()]);
 	}
 
 	@Override
@@ -86,28 +105,10 @@ public class CassandraDBWikiTrendsController implements WikiTrendsController {
 	public RankingRow[] pages(@RequestParam(value="size", defaultValue="20") String size, @RequestParam(value="contentonly", defaultValue="false") String contentOnly) {
 		int numberOfResults = Integer.valueOf(size);
 		boolean content = Boolean.valueOf(contentOnly);
-		String tableName = "batch_views2." + (content?"content_":"") + "pages";
+		String tableName = "batch_views2.top_" + (content?"content_":"") + "pages";
 		
 		return getRanking(numberOfResults, tableName);
 	}
-
-//	
-//	private RankingRow[] queryAbsolute(int numberOfResults) {
-//		List<RankingRow> results = new ArrayList<>();
-//		
-//		Map<String, Long> mapComputed = computeEditsData();
-//		for(Entry<String, Long> s : mapComputed.entrySet()) {
-//			results.add(new RankingRow(s.getKey(), s.getValue().toString()));
-//		}
-//		
-//		results.add(new RankingRow("distinct_editors", computeDistinctEditorsCount().toString()));
-//		results.add(new RankingRow("distinct_pages", computeDistinctPagesCount().toString()));
-//		results.add(new RankingRow("distinct_servers", computeDistinctServersCount().toString()));
-//		results.add(new RankingRow("origin", computeSmallerOrigin().toString()));
-//		
-//		return results.toArray(new RankingRow[results.size()]);
-//	}
-	
 }
 
 
