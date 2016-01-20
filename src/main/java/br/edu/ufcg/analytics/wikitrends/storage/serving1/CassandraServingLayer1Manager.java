@@ -2,8 +2,6 @@ package br.edu.ufcg.analytics.wikitrends.storage.serving1;
 
 import java.io.Serializable;
 
-import org.apache.curator.framework.api.CreateBackgroundModeACLable;
-
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
 
@@ -39,9 +37,9 @@ public class CassandraServingLayer1Manager implements Serializable {
 
 
 
-	public void createTopEditorsTable(Session session) {
+	public void createTopTable(Session session, String name) {
 		session.execute("CREATE TABLE IF NOT EXISTS batch_views1." + 
-								"top_editors" + 
+								name + 
 								"(name TEXT," +
 								"count BIGINT," +
 								
@@ -53,6 +51,12 @@ public class CassandraServingLayer1Manager implements Serializable {
 								"PRIMARY KEY((year, month, day, hour), count, name)) " + 
 								"WITH CLUSTERING ORDER BY (count DESC, name ASC);"
 							);
+	}
+
+
+
+	public void createTopEditorsTable(Session session) {
+		createTopTable(session, "top_editors");
 	}
 
 
@@ -163,22 +167,24 @@ public class CassandraServingLayer1Manager implements Serializable {
 
 		if (args.length < 2) {
 			System.err.println(
-					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager OPERATION [<table>] <seed_address>");
+					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager CREATE|DROP <ALL|TOP_EDITORS|TOP_IDIOMS|TOP_PAGES|TOP_CONTENT_PAGES|ABSOLUTE_VALUES>");
 			System.exit(1);
 		}
 
 		String operation = args[0];
-		String operation2 = args[1];
-		String seedNode = args[2];
+		String table = args[1];
+		
+		String[] seeds = System.getProperty("spark.cassandra.connection.host").split(",");
+
 
 		CassandraServingLayer1Manager manager = new CassandraServingLayer1Manager();
 
 		switch (operation) {
 		case "CREATE":
-			try (Cluster cluster = Cluster.builder().addContactPoints(seedNode).build();
+			try (Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
 					Session session = cluster.newSession();) {
 				manager.createBatchViews1Keyspace(session);
-				switch(operation2) {
+				switch(table) {
 				case("TOP_EDITORS"):
 					manager.createTopEditorsTable(session);
 					break;
@@ -201,9 +207,9 @@ public class CassandraServingLayer1Manager implements Serializable {
 			}
 			break;
 		case "DROP":
-			try (Cluster cluster = Cluster.builder().addContactPoints(seedNode).build();
+			try (Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
 					Session session = cluster.newSession();) {
-				switch(operation2) {
+				switch(table) {
 				case("TOP_EDITORS"):
 					manager.dropTable(session, "top_editors");
 					break;

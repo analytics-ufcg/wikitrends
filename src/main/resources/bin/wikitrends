@@ -156,13 +156,13 @@ serving_1)
 	create)
 	    echo "Creating serving schema"
 		source ${ENV_VAR_FILE}
-		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3 ${CASSANDRA_HOST_SEEDS}
+		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3
 	    echo "Serving layer 1 table[s] creation completed!"
 		;;
 	drop)
 	    echo "Dropping serving layer 1 schema"
 		source ${ENV_VAR_FILE}
-		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP $3 ${CASSANDRA_HOST_SEEDS}
+		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP $3
 	    echo "Serving layer 1 table[s] dropped with success!"
 		;;
 	*)
@@ -177,13 +177,13 @@ serving_2)
 	create)
 	    echo "Creating serving layer 2 schema"
 		source ${ENV_VAR_FILE}
-		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3 ${CASSANDRA_HOST_SEEDS}
+		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3
 	    echo "Serving layer 2 table[s] creation completed!"
 		;;
 	drop)
 	    echo "Dropping serving layer 2 schema"
 		source ${ENV_VAR_FILE}
-		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP $3 ${CASSANDRA_HOST_SEEDS}
+		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP $3
 	    echo "Serving layer 2 table[s] dropped with success!"
 		;;	
 	*)

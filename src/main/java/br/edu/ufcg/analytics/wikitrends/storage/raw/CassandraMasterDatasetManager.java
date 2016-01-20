@@ -131,7 +131,7 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 	}
 
 	public void createMasterDatasetKeyspace(Session session) {
-		session.execute("CREATE KEYSPACE IF NOT EXISTS master_dataset WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
+		session.execute("CREATE KEYSPACE IF NOT EXISTS master_dataset WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2}");
 	}
 
 	/**
@@ -200,33 +200,30 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 	 */
 	public static void main(String[] args) {
 
-		if (args.length < 1) {
+		if (args.length != 2) {
 			System.err.println(
-					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager CREATE [<table>] |POPULATE");
+					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager CREATE|DROP <EDITS|LOGS|CHANGES|ALL>");
+			System.err.println(
+					"       or");
+			System.err.println(
+					"		java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager POPULATE <SOURCE FILE>");
 			System.exit(1);
 		}
 
-		String operation = null;
-		String operation2 = null;
-		String seed = null;
-		if(args.length == 3) {
-			operation = args[0];
-			operation2 = args[1];
-			seed = args[2];
-		}
-		else {
-			operation = args[0];
-			seed = args[1];
-		}
+		String operation = args[0];
+		
+		String[] seeds = System.getProperty("spark.cassandra.connection.host").split(",");
 
 		CassandraMasterDatasetManager manager = new CassandraMasterDatasetManager();
 
 		switch (operation) {
 		case "CREATE":
-			try (Cluster cluster = Cluster.builder().addContactPoints(seed).build();
+			try (Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
 					Session session = cluster.newSession();) {
 				manager.createMasterDatasetKeyspace(session);
-				switch(operation2) {
+				String table = args[1];
+				
+				switch(table) {
 				case("EDITS"):
 					manager.createEditsTable(session);
 					break;
@@ -243,9 +240,10 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 			}
 			break;
 		case "DROP":
-			try (Cluster cluster = Cluster.builder().addContactPoints(seed).build();
+			try (Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
 					Session session = cluster.newSession();) {
-				switch(operation2) {
+				String table = args[1];
+				switch(table) {
 				case("EDITS"):
 					manager.dropTable(session, "edits");
 					break;
@@ -262,16 +260,7 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 			}
 			break;
 		case "POPULATE":
-			if (args.length < 2) {
-				System.err.println(
-						"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager POPULATE <source file>");
-				System.exit(1);
-			}
-
-			String source = args[1];
-
-			manager.populate(source);
-
+			manager.populate(args[1]);
 			break;
 		default:
 			System.err.println("Unsupported operation. Choose CREATE, DROP or POPULATE");
