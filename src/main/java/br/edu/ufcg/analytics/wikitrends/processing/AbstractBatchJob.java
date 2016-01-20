@@ -32,7 +32,7 @@ public abstract class AbstractBatchJob implements WikiTrendsProcess {
 	private LocalDateTime stopTime;
 	
 	// transient: do not serialize this variable
-	private transient JavaSparkContext sc;
+	protected transient JavaSparkContext sc;
 
 	private String PROCESS_STATUS_ID;
 	

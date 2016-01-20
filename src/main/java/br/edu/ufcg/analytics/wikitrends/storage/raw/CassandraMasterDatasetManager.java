@@ -206,9 +206,18 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 			System.exit(1);
 		}
 
-		String operation = args[0];
-		String operation2 = args[1];
-		String seed = args[2];
+		String operation = null;
+		String operation2 = null;
+		String seed = null;
+		if(args.length == 3) {
+			operation = args[0];
+			operation2 = args[1];
+			seed = args[2];
+		}
+		else {
+			operation = args[0];
+			seed = args[1];
+		}
 
 		CassandraMasterDatasetManager manager = new CassandraMasterDatasetManager();
 
