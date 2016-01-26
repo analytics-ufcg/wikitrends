@@ -133,7 +133,7 @@ batch_1)
 	source ${ENV_VAR_FILE}
 	
 	echo "Submitting ${2} job"
-	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} ${2}
+	spark-submit --conf spark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} --conf spark.cassandra.output.consistency.level=LOCAL_ONE --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} ${2}
 	echo "${2} job finished!"
 	
     echo "Finished executing batch layer 1 jobs!"
@@ -144,7 +144,7 @@ batch_2)
 	source ${ENV_VAR_FILE}
 	
 	echo "Submitting ${2} job"
-	spark-submit --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} ${2}
+	spark-submit --conf spark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} --conf spark.cassandra.output.consistency.level=LOCAL_ONE --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} ${2}
 	echo "${2} job finished!"
 
     echo "Finished executing batch layer 2 jobs!"
@@ -193,18 +193,18 @@ serving_2)
     ;;
 
 job_times)
-	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.CassandraJobTimesStatusManager
+	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.status.CassandraJobTimesStatusManager
 	case $2 in
 	create)
 	    echo "Creating job times schema"
 		source ${ENV_VAR_FILE}
-		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE ${CASSANDRA_HOST_SEEDS}
+		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE
 	    echo "Job times table created with success!"
 		;;
 	drop)
 	    echo "Dropping job times schema"
 		source ${ENV_VAR_FILE}
-		java -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP ${CASSANDRA_HOST_SEEDS}
+		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP
 	    echo "Job times table dropped with success!"
 		;;
 	*)
