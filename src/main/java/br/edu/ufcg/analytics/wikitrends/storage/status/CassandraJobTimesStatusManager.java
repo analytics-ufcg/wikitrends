@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.storage;
+package br.edu.ufcg.analytics.wikitrends.storage.status;
 
 import java.io.Serializable;
 
@@ -16,7 +16,7 @@ public class CassandraJobTimesStatusManager implements Serializable {
 
 	public void createAll(Session session) {
 		
-		session.execute("CREATE KEYSPACE job_times WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
+		session.execute("CREATE KEYSPACE job_times WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2}");
 
         session.execute("CREATE TABLE IF NOT EXISTS job_times.status (" + 
 		            		"id TEXT," +
@@ -51,32 +51,33 @@ public class CassandraJobTimesStatusManager implements Serializable {
 	 */
 	public static void main(String[] args) {
 
-		if (args.length < 2) {
+		if (args.length != 1) {
 			System.err.println(
-					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.CassandraJobTimesStatusManager OPERATION <seed_address>");
+					"Usage: java -cp <CLASSPATH> br.edu.ufcg.analytics.wikitrends.storage.CassandraJobTimesStatusManager CREATE|DROP");
 			System.exit(1);
 		}
 
 		String operation = args[0];
-		String seedNode = args[1];
+		String[] seeds = System.getProperty("spark.cassandra.connection.host").split(",");
+
 
 		CassandraJobTimesStatusManager manager = new CassandraJobTimesStatusManager();
 
 		switch (operation) {
 		case "CREATE":
-			try (Cluster cluster = Cluster.builder().addContactPoints(seedNode).build();
+			try (Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
 					Session session = cluster.newSession();) {
 				manager.createAll(session);
 			}
 			break;
 		case "DROP":
-			try (Cluster cluster = Cluster.builder().addContactPoints(seedNode).build();
+			try (Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
 					Session session = cluster.newSession();) {
 				manager.dropAll(session);
 			}
 			break;
 		default:
-			System.err.println("Unsupported operation. Choose CREATE as operation.");
+			System.err.println("Unsupported operation. Choose CREATE or DROP.");
 			break;
 		}
 	}

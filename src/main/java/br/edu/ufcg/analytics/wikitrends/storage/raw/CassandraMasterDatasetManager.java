@@ -131,7 +131,7 @@ public class CassandraMasterDatasetManager extends CassandraManager implements S
 	}
 
 	public void createMasterDatasetKeyspace(Session session) {
-		session.execute("CREATE KEYSPACE IF NOT EXISTS master_dataset WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2}");
+		session.execute("CREATE KEYSPACE IF NOT EXISTS master_dataset WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
 	}
 
 	/**

@@ -14,29 +14,35 @@ public class CassandraServingLayer1Manager implements Serializable {
 	 */
 	private static final long serialVersionUID = -1017103087942947022L;
 
+	private static final String ABSOLUTE_VALUES_TABLE = "absolute_values";
+	private static final String TOP_CONTENT_PAGES_TABLE = "top_content_pages";
+	private static final String TOP_PAGES_TABLE = "top_pages";
+	private static final String TOP_IDIOMS_TABLE = "top_idioms";
+	private static final String TOP_EDITORS_TABLE = "top_editors";
+
 	public void createAll(Session session) {
-		
 		createBatchViews1Keyspace(session);
-
-		createTopEditorsTable(session);
-
-        createTopIdiomsTable(session);
-           
-        createTopPagesTable(session);
-            
-        createTopContentPagesTable(session);
-            
+		createTopTable(session, TOP_EDITORS_TABLE);
+        createTopTable(session, TOP_IDIOMS_TABLE);
+        createTopTable(session, TOP_PAGES_TABLE);
+        createTopTable(session, TOP_CONTENT_PAGES_TABLE);
         createAbsValuesTable(session);
-
 	}
 
-
+	/**
+	 * @param session
+	 */
 	public void createBatchViews1Keyspace(Session session) {
 		session.execute("CREATE KEYSPACE IF NOT EXISTS batch_views1 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
 	}
 
 
 
+	/**
+	 * A "ranking" table is partitioned by date and ordered by count in decreasing order. 
+	 * @param session Cassandra DB session
+	 * @param name Table name
+	 */
 	public void createTopTable(Session session, String name) {
 		session.execute("CREATE TABLE IF NOT EXISTS batch_views1." + 
 								name + 
@@ -55,72 +61,9 @@ public class CassandraServingLayer1Manager implements Serializable {
 
 
 
-	public void createTopEditorsTable(Session session) {
-		createTopTable(session, "top_editors");
-	}
-
-
-
-	public void createTopIdiomsTable(Session session) {
-		session.execute("CREATE TABLE IF NOT EXISTS batch_views1." +
-								"top_idioms" +
-								
-								"(name TEXT," +
-								"count BIGINT," +
-								
-								"year INT," +
-								"month INT," +
-								"day INT," +
-								"hour INT," +
-								
-								"PRIMARY KEY((year, month, day, hour), count, name)," +
-								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
-            		);
-	}
-
-
-
-	public void createTopPagesTable(Session session) {
-		session.execute("CREATE TABLE IF NOT EXISTS batch_views1." +
-								"top_pages" +
-								
-								"(name TEXT," +
-								"count BIGINT," +
-								
-								"year INT," +
-								"month INT," +
-								"day INT," +
-								"hour INT," +
-
-								"PRIMARY KEY((year, month, day, hour), count, name)," +
-								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
-            		);
-	}
-
-
-
-	public void createTopContentPagesTable(Session session) {
-		session.execute("CREATE TABLE IF NOT EXISTS batch_views1." +
-								"top_content_pages" +
-								
-								"(name TEXT," +
-								"count BIGINT," +
-								
-								"year INT," +
-								"month INT," +
-								"day INT," +
-								"hour INT," +
-								
-								"PRIMARY KEY((year, month, day, hour), count, name)," +
-								") WITH CLUSTERING ORDER BY (count DESC, name ASC);"
-            		);
-	}
-
-
-
 	public void createAbsValuesTable(Session session) {
 		session.execute("CREATE TABLE IF NOT EXISTS batch_views1." +
-					            "absolute_values" +
+					            ABSOLUTE_VALUES_TABLE +
 								"(all_edits BIGINT," +
 								"minor_edits BIGINT," +
 								"average_size BIGINT," +
@@ -186,16 +129,16 @@ public class CassandraServingLayer1Manager implements Serializable {
 				manager.createBatchViews1Keyspace(session);
 				switch(table) {
 				case("TOP_EDITORS"):
-					manager.createTopEditorsTable(session);
+					manager.createTopTable(session, TOP_EDITORS_TABLE);
 					break;
 				case("TOP_IDIOMS"):
-					manager.createTopIdiomsTable(session);
+					manager.createTopTable(session, TOP_IDIOMS_TABLE);
 					break;
 				case("TOP_PAGES"):
-					manager.createTopPagesTable(session);
+					manager.createTopTable(session, TOP_PAGES_TABLE);
 					break;
 				case("TOP_CONTENT_PAGES"):
-					manager.createTopContentPagesTable(session);
+					manager.createTopTable(session, TOP_CONTENT_PAGES_TABLE);
 					break;
 				case("ABSOLUTE_VALUES"):
 					manager.createAbsValuesTable(session);
@@ -211,19 +154,19 @@ public class CassandraServingLayer1Manager implements Serializable {
 					Session session = cluster.newSession();) {
 				switch(table) {
 				case("TOP_EDITORS"):
-					manager.dropTable(session, "top_editors");
+					manager.dropTable(session, TOP_EDITORS_TABLE);
 					break;
 				case("TOP_IDIOMS"):
-					manager.dropTable(session, "top_idioms");
+					manager.dropTable(session, TOP_IDIOMS_TABLE);
 					break;
 				case("TOP_PAGES"):
-					manager.dropTable(session, "top_pages");
+					manager.dropTable(session, TOP_PAGES_TABLE);
 					break;
 				case("TOP_CONTENT_PAGES"):
-					manager.dropTable(session, "top_content_pages");
+					manager.dropTable(session, TOP_CONTENT_PAGES_TABLE);
 					break;
 				case("ABSOLUTE_VALUES"):
-					manager.dropTable(session, "absolute_values");
+					manager.dropTable(session, ABSOLUTE_VALUES_TABLE);
 					break;
 				default:
 					manager.dropAll(session);
