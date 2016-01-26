@@ -2,7 +2,9 @@ package br.edu.ufcg.analytics.wikitrends.processing.batch2;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapRowToTuple;
+import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
 import org.apache.commons.configuration.Configuration;
@@ -12,12 +14,14 @@ import org.apache.spark.api.java.JavaSparkContext;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
+import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
 import br.edu.ufcg.analytics.wikitrends.processing.AbstractBatchJob;
 import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
 import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.TopResult;
+import br.edu.ufcg.analytics.wikitrends.storage.status.JobStatus;
 import scala.Tuple2;
 
 /**
@@ -59,20 +63,24 @@ public abstract class BatchLayer2Job extends AbstractBatchJob implements WikiTre
 	
 	public void createJavaSparkContext(Configuration configuration) {
 		SparkConf conf = new SparkConf();
-		String appName = configuration.getString("wikitrends.job.batch2.id");
-		Iterator<String> keys = configuration.getKeys();
-		while (keys.hasNext()) {
-			String key = keys.next();
-			conf.set(key, configuration.getString(key));
-		}
-		
-		if(configuration.containsKey("spark.master.host")) {
-			String master_host = configuration.getString("spark.master.host");
-			setJavaSparkContext(new JavaSparkContext(master_host, appName, conf));
-		}
-		else {
-			setJavaSparkContext(new JavaSparkContext(conf.setAppName(appName)));
-		}
+		conf.setAppName(this.getClass().getSimpleName());
+		setJavaSparkContext(new JavaSparkContext(conf));
+
+//		SparkConf conf = new SparkConf();
+//		String appName = configuration.getString("wikitrends.job.batch2.id");
+//		Iterator<String> keys = configuration.getKeys();
+//		while (keys.hasNext()) {
+//			String key = keys.next();
+//			conf.set(key, configuration.getString(key));
+//		}
+//		
+//		if(configuration.containsKey("spark.master.host")) {
+//			String master_host = configuration.getString("spark.master.host");
+//			setJavaSparkContext(new JavaSparkContext(master_host, appName, conf));
+//		}
+//		else {
+//			setJavaSparkContext(new JavaSparkContext(conf.setAppName(appName)));
+//		}
 	}
 	
 	/**
@@ -89,12 +97,18 @@ public abstract class BatchLayer2Job extends AbstractBatchJob implements WikiTre
 	 * @return rdd of topResults
 	 */
 	public JavaRDD<TopResult> computeFullRankingFromPartial(String tableName) {
-			return javaFunctions(getJavaSparkContext())
-				    .cassandraTable("batch_views1", tableName, mapRowToTuple(String.class, Long.class))
-				    .select("name", "count")
-				    .mapToPair(row -> new Tuple2<String, Long>(row._1, row._2))
-				    .reduceByKey((a,b) -> a+b)
-				    .map( tuple -> new TopResult(getProcessResultID(), tuple._1, tuple._2));
+			JavaRDD<TopResult> rdd = javaFunctions(getJavaSparkContext())
+			    .cassandraTable("batch_views1", tableName, mapRowToTuple(String.class, Long.class))
+			    .select("name", "count")
+			    .mapToPair(row -> new Tuple2<String, Long>(row._1, row._2))
+			    .reduceByKey((a,b) -> a+b)
+			    .map( tuple -> new TopResult(getProcessResultID(), tuple._1, tuple._2));
+			
+//			rdd.sortBy( r -> r.getCount() , false, rdd.partitions().size())
+//			.zipWithIndex()
+//			.map;
+			
+			return rdd;
 		
     }
 
@@ -106,8 +120,8 @@ public abstract class BatchLayer2Job extends AbstractBatchJob implements WikiTre
 	}
 	
 	public void run(){
-		try (Cluster cluster = Cluster.builder().addContactPoints(getSeeds()).build();
-				Session session = cluster.newSession();) {
+//		try (Cluster cluster = Cluster.builder().addContactPoints(getSeeds()).build();
+//				Session session = cluster.newSession();) {
 			
 			process();
 			
@@ -115,19 +129,33 @@ public abstract class BatchLayer2Job extends AbstractBatchJob implements WikiTre
 					" processed with startTime= ").concat(getCurrentTime().toString()).concat(" and stopTime= ").concat(getStopTime().toString()));
 			
 			while(getCurrentTime().isBefore(getStopTime())) {
-				session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
-										getProcessStartTimeStatusID(), 
-										getCurrentTime().getYear(), 
-										getCurrentTime().getMonthValue(), 
-										getCurrentTime().getDayOfMonth(), 
-										getCurrentTime().getHour());
+				
+				JavaRDD<JobStatus> rdd = getJavaSparkContext().parallelize(Arrays.asList(
+						new JobStatus(
+								getProcessStartTimeStatusID(), 
+								getCurrentTime().getYear(),
+								getCurrentTime().getMonthValue(),
+								getCurrentTime().getDayOfMonth(),
+								getCurrentTime().getHour())));
+
+				CassandraJavaUtil.javaFunctions(rdd)
+				.writerBuilder("job_times", "status", mapToRow(JobStatus.class))
+				.saveToCassandra();
+
+				
+//				session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
+//										getProcessStartTimeStatusID(), 
+//										getCurrentTime().getYear(), 
+//										getCurrentTime().getMonthValue(), 
+//										getCurrentTime().getDayOfMonth(), 
+//										getCurrentTime().getHour());
 				
 				this.setCurrentTime(getCurrentTime().plusHours(1));
 			}
 			
-		} finally {
-			finalizeSparkContext();
-		}
+//		} finally {
+//			finalizeSparkContext();
+//		}
 	}
 	
 	public abstract void process();

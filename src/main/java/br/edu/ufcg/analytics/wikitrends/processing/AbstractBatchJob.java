@@ -1,8 +1,11 @@
 package br.edu.ufcg.analytics.wikitrends.processing;
 
+import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
+
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.apache.commons.configuration.Configuration;
@@ -11,11 +14,6 @@ import org.apache.spark.api.java.JavaSparkContext;
 //import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
 
@@ -39,52 +37,32 @@ public abstract class AbstractBatchJob implements WikiTrendsProcess {
 	public AbstractBatchJob(Configuration configuration, JobStatusID processStatusId) {
 		this.configuration = configuration;
 		
-//		PropertyConfigurator.configure(configuration.getString("wikitrends.log4j_properties_file_path"));
-		
 		createJavaSparkContext(this.configuration);
 		
 		setProcessStatusID(processStatusId);
 		
-		setSeeds(configuration.getStringArray("spark.cassandra.connection.host"));
-
-		try (Cluster cluster = Cluster.builder().addContactPoints(getSeeds()).build();
-				Session session = cluster.newSession();) {
-			ResultSet resultSet = session.execute("SELECT * FROM job_times.status WHERE id = ? LIMIT 1", getProcessStartTimeStatusID());
-			List<Row> all = resultSet.all();
-			if(!all.isEmpty()){
-				Row row = all.get(0);
-				setCurrentTime(LocalDateTime.of(row.getInt("year"), row.getInt("month"), row.getInt("day"), row.getInt("hour"), 0).plusHours(1));
-				
-				LOGGER.info("Getting startTime=".concat(getCurrentTime().toString()).concat(" from job_times.status table"));
-				
-			} else {
-				if(configuration.getBoolean("wikitrends.batch.incremental.starttime.use") == true) {
-					setCurrentTime(LocalDateTime.of(configuration.getInt("wikitrends.batch.incremental.starttime.year"),
-												 configuration.getInt("wikitrends.batch.incremental.starttime.month"),
-												 configuration.getInt("wikitrends.batch.incremental.starttime.day"),
-												 configuration.getInt("wikitrends.batch.incremental.starttime.hour"), 0));
-					LOGGER.info("Getting startTime=".concat(getCurrentTime().toString()).concat(" from wikitrends.properties file"));
-				}
-				else {
-					LOGGER.warn("Job starting with no starttime defined!");
-				}
-			}
+		List<LocalDateTime> singleTimeCollection = javaFunctions(getJavaSparkContext()).cassandraTable("job_times", "status")
+				.where("id = ?", getProcessStartTimeStatusID())
+				.limit(1L)
+				.map( row -> LocalDateTime.of(row.getInt("year"), row.getInt("month"), row.getInt("day"), row.getInt("hour"), 0).plusHours(1) )
+				.collect();
+		
+		if(singleTimeCollection.isEmpty()){
+			setCurrentTime(LocalDateTime.parse(configuration.getString("wikitrends.batch.incremental.starttime"), DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+			LOGGER.info("Getting startTime=".concat(getCurrentTime().toString()).concat(" from wikitrends.properties file"));
+		}else{
+			setCurrentTime(singleTimeCollection.get(0));
+			LOGGER.info("Getting startTime=".concat(getCurrentTime().toString()).concat(" from job_times.status table"));
 		}
 		
-		if(configuration.getBoolean("wikitrends.batch.incremental.stoptime.use") == true) {
-			setStopTime(LocalDateTime.of(configuration.getInt("wikitrends.batch.incremental.stoptime.year"),
-										 configuration.getInt("wikitrends.batch.incremental.stoptime.month"),
-										 configuration.getInt("wikitrends.batch.incremental.stoptime.day"),
-										 configuration.getInt("wikitrends.batch.incremental.stoptime.hour"), 0));
-			
-			LOGGER.info("Getting stopTime=".concat(getStopTime().toString()).concat(" from wikitrends.properties table"));
-			
-		} else {
+		if(configuration.getBoolean("wikitrends.batch.incremental.stoptime.use", false)){
+			setStopTime(LocalDateTime.parse(configuration.getString("wikitrends.batch.incremental.stoptime"), DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+			LOGGER.info("Getting stopTime=".concat(getCurrentTime().toString()).concat(" from wikitrends.properties file"));
+		}else{
 			setStopTime(LocalDateTime.ofInstant(Instant.ofEpochMilli((System.currentTimeMillis() / 3600000) * 3600000), ZoneId.systemDefault()));
-			
-			LOGGER.info("Getting stopTime=".concat(getStopTime().toString()).concat(" from OS"));
+			LOGGER.info("Getting stopTime=".concat(getCurrentTime().toString()).concat(" from OS"));
 		}
-		
+
 		LOGGER.info("Started job ".concat(this.getClass().getName()).concat(
 				" with startTime= ").concat(getCurrentTime().toString()).concat(" and stopTime= ").concat(getStopTime().toString()));
 	}

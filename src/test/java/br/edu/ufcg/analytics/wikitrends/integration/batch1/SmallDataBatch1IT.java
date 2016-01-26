@@ -27,9 +27,9 @@ import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopContentPagesBatch1;
 import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopEditorsBatch1;
 import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopIdiomsBatch1;
 import br.edu.ufcg.analytics.wikitrends.processing.batch1.TopPagesBatch1;
-import br.edu.ufcg.analytics.wikitrends.storage.CassandraJobTimesStatusManager;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager;
+import br.edu.ufcg.analytics.wikitrends.storage.status.CassandraJobTimesStatusManager;
 
 /**
  * @author Guilherme Gadelha

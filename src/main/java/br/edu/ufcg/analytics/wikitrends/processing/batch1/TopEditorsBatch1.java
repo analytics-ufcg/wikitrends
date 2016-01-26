@@ -54,6 +54,7 @@ public class TopEditorsBatch1 extends BatchLayer1Job {
 	public void process() {
 		JavaRDD<EditChange> wikipediaEdits = read()
 				.filter(edit -> edit.getServerName().endsWith("wikipedia.org"))
+//				.filter(edit -> !edit.getBot())
 				.cache();
 
 		JavaPairRDD<String, Integer> userRDD = wikipediaEdits

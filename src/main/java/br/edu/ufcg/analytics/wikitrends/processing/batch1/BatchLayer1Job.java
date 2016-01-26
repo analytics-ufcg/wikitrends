@@ -1,8 +1,9 @@
 package br.edu.ufcg.analytics.wikitrends.processing.batch1;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
+import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
-import java.util.Iterator;
+import java.util.Arrays;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.SparkConf;
@@ -11,8 +12,6 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.Session;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.datastax.spark.connector.japi.CassandraRow;
 
@@ -22,6 +21,7 @@ import br.edu.ufcg.analytics.wikitrends.processing.AbstractBatchJob;
 import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
 import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
 import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
+import br.edu.ufcg.analytics.wikitrends.storage.status.JobStatus;
 
 /**
  * {@link WikiTrendsProcess} implementation when a {@link WikiTrendsCommands#BATCH} is chosen. 
@@ -92,46 +92,34 @@ public abstract class BatchLayer1Job extends AbstractBatchJob {
 	
 	public void createJavaSparkContext(Configuration configuration) {
 		SparkConf conf = new SparkConf();
-		String appName = configuration.getString("wikitrends.job.batch1.id");
-		Iterator<String> keys = configuration.getKeys();
-		while (keys.hasNext()) {
-			String key = keys.next();
-			conf.set(key, configuration.getString(key));
-		}
-		
-		if(configuration.containsKey("spark.master.host")) {
-			String master_host = configuration.getString("spark.master.host");
-			setJavaSparkContext(new JavaSparkContext(master_host, appName, conf));
-		}
-		else {
-			setJavaSparkContext(new JavaSparkContext(conf.setAppName(appName)));
-		}
+		conf.setAppName(this.getClass().getSimpleName());
+		setJavaSparkContext(new JavaSparkContext(conf));
 	}
 	
 	public void run() {
-		try (Cluster cluster = Cluster.builder().addContactPoints(getSeeds()).build();
-				Session session = cluster.newSession();) {
-			
-			while(getCurrentTime().isBefore(getStopTime())) {
-				process();
-				
-				LOGGER.info("Job ".concat(this.getClass().getName()).concat(
-						" processed with startTime= ").concat(getCurrentTime().toString()).concat(" and stopTime= ").concat(getStopTime().toString()));
-			
-				session.execute("INSERT INTO job_times.status (id, year, month, day, hour) VALUES (?, ?, ?, ?, ?)", 
-										getProcessStartTimeStatusID(), 
-										getCurrentTime().getYear(), 
-										getCurrentTime().getMonthValue(), 
-										getCurrentTime().getDayOfMonth(), 
-										getCurrentTime().getHour());
-				
-				this.setCurrentTime(getCurrentTime().plusHours(1));
-			}
-		} finally {
-			finalizeSparkContext();
+
+		while(getCurrentTime().isBefore(getStopTime())) {
+			process();
+
+			LOGGER.info("Job ".concat(this.getClass().getName()).concat(
+					" processed with startTime= ").concat(getCurrentTime().toString()).concat(" and stopTime= ").concat(getStopTime().toString()));
+
+			JavaRDD<JobStatus> rdd = getJavaSparkContext().parallelize(Arrays.asList(
+					new JobStatus(
+							getProcessStartTimeStatusID(), 
+							getCurrentTime().getYear(),
+							getCurrentTime().getMonthValue(),
+							getCurrentTime().getDayOfMonth(),
+							getCurrentTime().getHour())));
+
+			CassandraJavaUtil.javaFunctions(rdd)
+			.writerBuilder("job_times", "status", mapToRow(JobStatus.class))
+			.saveToCassandra();
+
+			this.setCurrentTime(getCurrentTime().plusHours(1));
 		}
 	}
-	
+
 	public abstract void process();
 	
 }
