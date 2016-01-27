@@ -53,7 +53,7 @@ public class CassandraServingLayer2Manager implements Serializable {
 		session.execute("CREATE TABLE IF NOT EXISTS batch_views2."
 				+ table +
 				"(id TEXT," +
-				"position INT" +
+				"position INT," +
 				"name TEXT," +
 				"count BIGINT," +
 				"PRIMARY KEY((id), position)" +
