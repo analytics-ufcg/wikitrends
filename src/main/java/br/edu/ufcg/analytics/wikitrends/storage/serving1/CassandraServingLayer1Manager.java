@@ -33,7 +33,7 @@ public class CassandraServingLayer1Manager implements Serializable {
 	 * @param session
 	 */
 	public void createBatchViews1Keyspace(Session session) {
-		session.execute("CREATE KEYSPACE IF NOT EXISTS batch_views1 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}");
+		session.execute("CREATE KEYSPACE IF NOT EXISTS batch_views1 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2}");
 	}
 
 
