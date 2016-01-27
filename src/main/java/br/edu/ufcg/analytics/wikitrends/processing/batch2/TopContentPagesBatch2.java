@@ -7,7 +7,7 @@ import org.apache.commons.configuration.Configuration;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
 import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
-import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.TopResult;
+import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.RankingEntry;
 
 public class TopContentPagesBatch2 extends BatchLayer2Job {
 	
@@ -26,10 +26,8 @@ public class TopContentPagesBatch2 extends BatchLayer2Job {
 	
 	@Override
 	public void process() {
-		truncateResultingTable(topContentPagesTable);
-		
 		CassandraJavaUtil.javaFunctions(computeFullRankingFromPartial("top_content_pages"))
-			.writerBuilder(getBatchViews2Keyspace(), topContentPagesTable, mapToRow(TopResult.class))
+			.writerBuilder(getBatchViews2Keyspace(), topContentPagesTable, mapToRow(RankingEntry.class))
 			.saveToCassandra();
 	}
 	

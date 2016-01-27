@@ -1,6 +1,9 @@
 package br.edu.ufcg.analytics.wikitrends.processing.batch1;
 
+import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
+
+import java.time.LocalDateTime;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -17,14 +20,29 @@ public class TopIdiomsBatch1 extends BatchLayer1Job {
 
 	private static final long serialVersionUID = -1738945554412789213L;
 	
-	private String idiomsTable;
-	private final static JobStatusID TOP_IDIOMS_STATUS_ID = JobStatusID.TOP_IDIOMS_BATCH_1;
+	private String tableName;
 	
 	public TopIdiomsBatch1(Configuration configuration) {
-		super(configuration, TOP_IDIOMS_STATUS_ID);
-		
-		idiomsTable = configuration.getString("wikitrends.serving1.cassandra.table.idioms");
+		super(configuration, JobStatusID.TOP_IDIOMS_BATCH_1);
+		tableName = configuration.getString("wikitrends.serving1.cassandra.table.idioms");
 	}
+	
+	@Override
+	public JavaRDD<EditChange> read() {
+		
+		LocalDateTime currentTime = getCurrentTime();
+		
+		JavaRDD<EditChange> wikipediaEdits = javaFunctions(getJavaSparkContext()).cassandraTable("master_dataset", "edits")
+				.select("server_name")
+				.where("year = ? and month = ? and day = ? and hour = ?", currentTime.getYear(), currentTime.getMonthValue(), currentTime.getDayOfMonth(), currentTime.getHour())
+				.map(row -> {
+					EditChange edit = new EditChange();
+					edit.setServerName(row.getString("server_name"));
+					return edit;
+				});
+		return wikipediaEdits;
+	}
+
 	
 	@Override
 	public void process() {
@@ -38,7 +56,7 @@ public class TopIdiomsBatch1 extends BatchLayer1Job {
 		JavaRDD<TopClass> serverRanking = transformToTopEntry(serverRDD);
 		
 		CassandraJavaUtil.javaFunctions(serverRanking)
-			.writerBuilder(getBatchViews1Keyspace(), idiomsTable, mapToRow(TopClass.class))
+			.writerBuilder(getBatchViews1Keyspace(), tableName, mapToRow(TopClass.class))
 			.saveToCassandra();
 	}
 

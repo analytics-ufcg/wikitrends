@@ -36,15 +36,13 @@ public class TopEditorsBatch1 extends BatchLayer1Job {
 		LocalDateTime currentTime = getCurrentTime();
 		
 		JavaRDD<EditChange> wikipediaEdits = javaFunctions(getJavaSparkContext()).cassandraTable("master_dataset", "edits")
-				.select("bot", "server_name", "user", "namespace", "minor")
+				.select("bot", "server_name", "user")
 				.where("year = ? and month = ? and day = ? and hour = ?", currentTime.getYear(), currentTime.getMonthValue(), currentTime.getDayOfMonth(), currentTime.getHour())
 				.map(row -> {
 					EditChange edit = new EditChange();
 					edit.setBot(row.getBoolean("bot"));
 					edit.setServerName(row.getString("server_name"));
 					edit.setUser(row.getString("user"));
-					edit.setNamespace(row.getInt("namespace"));
-					edit.setMinor(row.getBoolean("minor"));
 					return edit;
 				});
 		return wikipediaEdits;

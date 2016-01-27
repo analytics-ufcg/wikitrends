@@ -160,7 +160,7 @@ public class AbsoluteValuesBatch2 extends BatchLayer2Job {
 
 	@Override
 	public void process() {
-		truncateResultingTable(absoluteValuesTable);
+//		truncateResultingTable(absoluteValuesTable);
 		
 		Long all_edits = computeAllEdits();
 		Long minor_edits = computeMinorEdits();

@@ -24,8 +24,6 @@ public abstract class AbstractBatchJob implements WikiTrendsProcess {
 
 	protected transient Configuration configuration;
 	
-	private String[] seeds;
-	
 	private LocalDateTime currentTime;
 	private LocalDateTime stopTime;
 	
@@ -73,14 +71,6 @@ public abstract class AbstractBatchJob implements WikiTrendsProcess {
 
 	public void setProcessStatusID(JobStatusID processStatusId) {
 		this.PROCESS_STATUS_ID = processStatusId.getStatus_id();
-	}
-
-	public String[] getSeeds() {
-		return seeds;
-	}
-
-	public void setSeeds(String[] seeds) {
-		this.seeds = seeds;
 	}
 
 	public LocalDateTime getStopTime() {

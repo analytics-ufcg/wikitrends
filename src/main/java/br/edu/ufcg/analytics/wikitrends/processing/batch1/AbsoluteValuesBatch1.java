@@ -120,5 +120,26 @@ public class AbsoluteValuesBatch1 extends BatchLayer1Job {
 			return o1.getEventTimestamp().compareTo(o2.getEventTimestamp());
 		}
 	}
+
+
+	@Override
+	public JavaRDD<EditChange> read() {
+	JavaRDD<EditChange> wikipediaEdits = CassandraJavaUtil.javaFunctions(getJavaSparkContext()).cassandraTable("master_dataset", "edits")
+			.select("event_timestamp", "bot", "title", "server_name", "user", "namespace", "minor", "length")
+			.where("year = ? and month = ? and day = ? and hour = ?", getCurrentTime().getYear(), getCurrentTime().getMonthValue(), getCurrentTime().getDayOfMonth(), getCurrentTime().getHour())
+			.map( row -> {
+				EditChange edit = new EditChange();
+				edit.setEventTimestamp(row.getDate("event_timestamp"));
+				edit.setBot(row.getBoolean("bot"));
+				edit.setTitle(row.getString("title"));
+				edit.setUser(row.getString("user"));
+				edit.setNamespace(row.getInt("namespace"));
+				edit.setServerName(row.getString("server_name"));
+				edit.setMinor(row.getBoolean("minor"));
+				edit.setLength(row.getMap("length", CassandraJavaUtil.typeConverter(String.class), CassandraJavaUtil.typeConverter(Long.class)));
+				return edit;
+			});
+	return wikipediaEdits;
+}
 }
 

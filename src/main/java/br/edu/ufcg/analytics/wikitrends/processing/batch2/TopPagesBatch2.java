@@ -2,12 +2,16 @@ package br.edu.ufcg.analytics.wikitrends.processing.batch2;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
+import java.util.Arrays;
+
 import org.apache.commons.configuration.Configuration;
+import org.apache.spark.api.java.JavaRDD;
 
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
 import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
-import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.TopResult;
+import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.KeyValuePair;
+import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.RankingEntry;
 
 public class TopPagesBatch2 extends BatchLayer2Job {
 	
@@ -25,11 +29,17 @@ public class TopPagesBatch2 extends BatchLayer2Job {
 	
 	@Override
 	public void process() {
-		truncateResultingTable(topPagesTable);
-		
-		CassandraJavaUtil.javaFunctions(computeFullRankingFromPartial("top_pages"))
-		.writerBuilder(getBatchViews2Keyspace(), topPagesTable, mapToRow(TopResult.class))
+		JavaRDD<RankingEntry> fullRanking = computeFullRankingFromPartial("top_pages");
+		CassandraJavaUtil.javaFunctions(fullRanking)
+		.writerBuilder(getBatchViews2Keyspace(), topPagesTable, mapToRow(RankingEntry.class))
 		.saveToCassandra();
+		
+		JavaRDD<KeyValuePair> distinctRDD = getJavaSparkContext().parallelize(Arrays.asList(new KeyValuePair("distinct_pages_count", fullRanking.count())));
+		
+		CassandraJavaUtil.javaFunctions(distinctRDD)
+		.writerBuilder(getBatchViews2Keyspace(), "absolute_values", mapToRow(KeyValuePair.class))
+		.saveToCassandra();
+
 	}
 
 }

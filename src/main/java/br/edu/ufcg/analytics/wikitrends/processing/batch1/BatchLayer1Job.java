@@ -1,6 +1,5 @@
 package br.edu.ufcg.analytics.wikitrends.processing.batch1;
 
-import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
 import java.util.Arrays;
@@ -10,10 +9,8 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function;
 
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
-import com.datastax.spark.connector.japi.CassandraRow;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
@@ -57,31 +54,8 @@ public abstract class BatchLayer1Job extends AbstractBatchJob {
 		this.batchViews1Keyspace = batchViewsKeyspace;
 	}
 	
-	public JavaRDD<EditChange> read() {
-		JavaRDD<EditChange> wikipediaEdits = javaFunctions(getJavaSparkContext()).cassandraTable("master_dataset", "edits")
-				.select("event_timestamp", "bot", "title", "server_name", "user", "namespace", "minor", "length")
-				.where("year = ? and month = ? and day = ? and hour = ?", getCurrentTime().getYear(), getCurrentTime().getMonthValue(), getCurrentTime().getDayOfMonth(), getCurrentTime().getHour())
-				.map(new Function<CassandraRow, EditChange>() {
-					private static final long serialVersionUID = 1L;
+	public abstract JavaRDD<EditChange> read();
 
-					@Override
-					public EditChange call(CassandraRow v1) throws Exception {
-						EditChange edit = new EditChange();
-						edit.setEventTimestamp(v1.getDate("event_timestamp"));
-						edit.setBot(v1.getBoolean("bot"));
-						edit.setTitle(v1.getString("title"));
-						edit.setUser(v1.getString("user"));
-						edit.setNamespace(v1.getInt("namespace"));
-						edit.setServerName(v1.getString("server_name"));
-						edit.setMinor(v1.getBoolean("minor"));
-						edit.setLength(v1.getMap("length", CassandraJavaUtil.typeConverter(String.class), CassandraJavaUtil.typeConverter(Long.class)));
-						return edit;
-					}
-
-				});
-		return wikipediaEdits;
-	}
-	
 	protected JavaRDD<TopClass> transformToTopEntry(JavaPairRDD<String,Integer> pairRDD) {
 		JavaRDD<TopClass> result = pairRDD
 				.reduceByKey( (a,b) -> a+b )
