@@ -9,10 +9,7 @@ public class CassandraServingLayer2Manager implements Serializable {
 	
 
 	private static final String ABSOLUTE_VALUES_TABLE = "absolute_values";
-	private static final String TOP_CONTENT_PAGES_TABLE = "top_content_pages";
-	private static final String TOP_PAGES_TABLE = "top_pages";
-	private static final String TOP_IDIOMS_TABLE = "top_idioms";
-	private static final String TOP_EDITORS_TABLE = "top_editors";
+	private static final String RANKING_TABLE = "rankings";
 	/**
 	 * SerialVersionUID for CassandraResultsLayerManager
 	 * 
@@ -23,29 +20,19 @@ public class CassandraServingLayer2Manager implements Serializable {
 	// Prepare the schema
 	public void createAll(Session session) {
 		createBatchViews2Keyspace(session);
-		createTopTable(session, TOP_EDITORS_TABLE);
-		createTopTable(session, TOP_IDIOMS_TABLE);
-		createTopTable(session, TOP_PAGES_TABLE);
-		createTopTable(session, TOP_CONTENT_PAGES_TABLE);
+		createTopTable(session, RANKING_TABLE);
 		createAbsValuesTable(session);
 	}
 
 	public void createAbsValuesTable(Session session) {
 		session.execute("CREATE TABLE IF NOT EXISTS batch_views2." +
 				            ABSOLUTE_VALUES_TABLE +
-							"(id TEXT," +
-							"all_edits BIGINT," +
-							"minor_edits BIGINT," +
-							"average_size BIGINT," +
-							
-							"distinct_pages_count BIGINT," +
-							"distinct_editors_count INT," +
-							"distinct_servers_count INT," +
-							
-							"smaller_origin BIGINT," +
-							
-							"PRIMARY KEY(id)" +
-							");"
+							"(" + 
+							"id TEXT," +
+							"name TEXT," +
+							"value BIGINT," +
+							"PRIMARY KEY((id), name)" +
+							") WITH CLUSTERING ORDER BY (name ASC);"
 				);
 	}
 
@@ -101,18 +88,18 @@ public class CassandraServingLayer2Manager implements Serializable {
 					Session session = cluster.newSession();) {
 				manager.createBatchViews2Keyspace(session);
 				switch(table) {
-				case("TOP_EDITORS"):
-					manager.createTopTable(session, TOP_EDITORS_TABLE);
-					break;
-				case("TOP_IDIOMS"):
-					manager.createTopTable(session, TOP_IDIOMS_TABLE);
-					break;
-				case("TOP_PAGES"):
-					manager.createTopTable(session, TOP_PAGES_TABLE);
-					break;
-				case("TOP_CONTENT_PAGES"):
-					manager.createTopTable(session, TOP_CONTENT_PAGES_TABLE);
-					break;
+//				case("TOP_EDITORS"):
+//					manager.createTopTable(session, TOP_EDITORS_TABLE);
+//					break;
+//				case("TOP_IDIOMS"):
+//					manager.createTopTable(session, TOP_IDIOMS_TABLE);
+//					break;
+//				case("TOP_PAGES"):
+//					manager.createTopTable(session, TOP_PAGES_TABLE);
+//					break;
+//				case("TOP_CONTENT_PAGES"):
+//					manager.createTopTable(session, TOP_CONTENT_PAGES_TABLE);
+//					break;
 				case("ABSOLUTE_VALUES"):
 					manager.createAbsValuesTable(session);
 					break;
@@ -126,18 +113,18 @@ public class CassandraServingLayer2Manager implements Serializable {
 			try (Cluster cluster = Cluster.builder().addContactPoints(seeds).build();
 					Session session = cluster.newSession();) {
 				switch(table) {
-				case("TOP_EDITORS"):
-					manager.dropTable(session, TOP_EDITORS_TABLE);
-					break;
-				case("TOP_IDIOMS"):
-					manager.dropTable(session, TOP_IDIOMS_TABLE);
-					break;
-				case("TOP_PAGES"):
-					manager.dropTable(session, TOP_PAGES_TABLE);
-					break;
-				case("TOP_CONTENT_PAGES"):
-					manager.dropTable(session, TOP_CONTENT_PAGES_TABLE);
-					break;
+//				case("TOP_EDITORS"):
+//					manager.dropTable(session, TOP_EDITORS_TABLE);
+//					break;
+//				case("TOP_IDIOMS"):
+//					manager.dropTable(session, TOP_IDIOMS_TABLE);
+//					break;
+//				case("TOP_PAGES"):
+//					manager.dropTable(session, TOP_PAGES_TABLE);
+//					break;
+//				case("TOP_CONTENT_PAGES"):
+//					manager.dropTable(session, TOP_CONTENT_PAGES_TABLE);
+//					break;
 				case("ABSOLUTE_VALUES"):
 					manager.dropTable(session, ABSOLUTE_VALUES_TABLE);
 					break;

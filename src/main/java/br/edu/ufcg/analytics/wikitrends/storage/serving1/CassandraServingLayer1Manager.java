@@ -64,22 +64,16 @@ public class CassandraServingLayer1Manager implements Serializable {
 	public void createAbsValuesTable(Session session) {
 		session.execute("CREATE TABLE IF NOT EXISTS batch_views1." +
 					            ABSOLUTE_VALUES_TABLE +
-								"(all_edits BIGINT," +
-								"minor_edits BIGINT," +
-								"average_size BIGINT," +
-								
-								"distinct_pages_set SET<TEXT>," +
-								"distinct_editors_set SET<TEXT>," +
-								"distinct_servers_set SET<TEXT>," +
-
-								"smaller_origin BIGINT," +
+								"("+ 
+								"name TEXT," +
+								"value BIGINT," +
 
 								"year INT," +
 								"month INT," +
 								"day INT," +
 								"hour INT," +
 
-								"PRIMARY KEY((year, month, day, hour))"
+								"PRIMARY KEY((year, month, day, hour), name)"
 								+ ")"
 				);
 	}

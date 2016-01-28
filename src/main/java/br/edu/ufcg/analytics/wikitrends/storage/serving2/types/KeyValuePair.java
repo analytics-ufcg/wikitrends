@@ -7,13 +7,27 @@ public class KeyValuePair implements Serializable {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 7067611819442680877L;
+	private static final long serialVersionUID = -3736647272504204181L;
+	private String id;
 	private String name;
 	private Long value;
-	public KeyValuePair(String name, Long value) {
+	public KeyValuePair(String id, String name, Long value) {
 		super();
+		this.id = id;
 		this.name = name;
 		this.value = value;
+	}
+	/**
+	 * @return the id
+	 */
+	public String getId() {
+		return id;
+	}
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(String id) {
+		this.id = id;
 	}
 	/**
 	 * @return the name
@@ -44,7 +58,7 @@ public class KeyValuePair implements Serializable {
 	 */
 	@Override
 	public String toString() {
-		return "KeyValuePair [name=" + name + ", value=" + value + "]";
+		return "KeyValuePair [id=" + id + ", name=" + name + ", value=" + value + "]";
 	}
 	
 	
