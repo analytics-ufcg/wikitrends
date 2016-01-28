@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.DataType;
-import com.datastax.driver.core.ColumnDefinitions.Definition;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
@@ -51,7 +49,7 @@ public class CassandraDBWikiTrendsController implements WikiTrendsController {
 	@RequestMapping("/v2/idioms")
 	public RankingRow[] idioms(@RequestParam(value="size", defaultValue="20") String size) {
 		int numberOfResults = Integer.valueOf(size);
-		String tableName = "batch_views2.top_idioms";
+		String tableName = "top_idioms";
 		
 		return getRanking(numberOfResults, tableName);
 	}
@@ -59,7 +57,7 @@ public class CassandraDBWikiTrendsController implements WikiTrendsController {
 	private RankingRow[] getRanking(int numberOfResults, String tableName) {
 		RankingRow[] results;
 		try (Session session = cluster.newSession();) {
-			ResultSet resultSet = session.execute("SELECT * FROM " + tableName + " LIMIT ?", numberOfResults);
+			ResultSet resultSet = session.execute("SELECT * FROM " + "batch_views2.rankings" + " where id = ? LIMIT ?", tableName, numberOfResults);
 			List<Row> all = resultSet.all();
 			results = new RankingRow[all.size()];
 
@@ -74,19 +72,10 @@ public class CassandraDBWikiTrendsController implements WikiTrendsController {
 	private RankingRow[] getValues(String tableName) {
 		ArrayList<RankingRow> results = new ArrayList<RankingRow>();
 		try (Session session = cluster.newSession();) {
-			ResultSet resultSet = session.execute("SELECT * FROM " + tableName);
-			List<Row> all = resultSet.all();
-
-			Row row = all.get(0);
-			
-			for (Definition column : resultSet.getColumnDefinitions()) {
-				if (column.getType().equals(DataType.bigint())){
-					results.add(new RankingRow(column.getName(), Long.toString(row.getLong(column.getName()))));
-				}
-				else if (column.getType().equals(DataType.cint())) {
-					results.add(new RankingRow(column.getName(), Integer.toString(row.getInt(column.getName()))));	
-				}
-			}			
+			List<Row> all = session.execute("SELECT * FROM " + tableName).all();
+			for (Row row : all) {
+				results.add(new RankingRow(row.getString("name"), Long.toString(row.getLong("value"))));
+			}
 		}
 		return results.toArray(new RankingRow[results.size()]);
 	}
@@ -95,7 +84,7 @@ public class CassandraDBWikiTrendsController implements WikiTrendsController {
 	@RequestMapping("/v2/editors")
 	public RankingRow[] editors(@RequestParam(value="size", defaultValue="20") String size) {
 		int numberOfResults = Integer.valueOf(size);
-		String tableName = "batch_views2.top_editors";
+		String tableName = "top_editors";
 		
 		return getRanking(numberOfResults, tableName);
 	}
@@ -105,7 +94,7 @@ public class CassandraDBWikiTrendsController implements WikiTrendsController {
 	public RankingRow[] pages(@RequestParam(value="size", defaultValue="20") String size, @RequestParam(value="contentonly", defaultValue="false") String contentOnly) {
 		int numberOfResults = Integer.valueOf(size);
 		boolean content = Boolean.valueOf(contentOnly);
-		String tableName = "batch_views2.top_" + (content?"content_":"") + "pages";
+		String tableName = "top_" + (content?"content_":"") + "pages";
 		
 		return getRanking(numberOfResults, tableName);
 	}
