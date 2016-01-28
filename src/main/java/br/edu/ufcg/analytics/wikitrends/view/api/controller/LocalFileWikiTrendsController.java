@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.datastax.driver.core.Row;
-
 import br.edu.ufcg.analytics.wikitrends.view.api.controller.beans.RankingRow;
 
 /**
