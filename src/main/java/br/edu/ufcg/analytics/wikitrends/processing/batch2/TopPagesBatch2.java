@@ -31,10 +31,10 @@ public class TopPagesBatch2 extends BatchLayer2Job {
 	public void process() {
 		JavaRDD<RankingEntry> fullRanking = computeFullRankingFromPartial("top_pages");
 		CassandraJavaUtil.javaFunctions(fullRanking)
-		.writerBuilder(getBatchViews2Keyspace(), topPagesTable, mapToRow(RankingEntry.class))
+		.writerBuilder(getBatchViews2Keyspace(), "rankings", mapToRow(RankingEntry.class))
 		.saveToCassandra();
 		
-		JavaRDD<KeyValuePair> distinctRDD = getJavaSparkContext().parallelize(Arrays.asList(new KeyValuePair("distinct_pages_count", fullRanking.count())));
+		JavaRDD<KeyValuePair> distinctRDD = getJavaSparkContext().parallelize(Arrays.asList(new KeyValuePair("absolute_values", "distinct_pages_count", fullRanking.count())));
 		
 		CassandraJavaUtil.javaFunctions(distinctRDD)
 		.writerBuilder(getBatchViews2Keyspace(), "absolute_values", mapToRow(KeyValuePair.class))

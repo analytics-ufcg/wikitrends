@@ -6,7 +6,6 @@ import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.SparkConf;
@@ -15,7 +14,6 @@ import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaPairInputDStream;
-import org.apache.spark.streaming.api.java.JavaPairReceiverInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka.KafkaUtils;
 
@@ -146,6 +144,7 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 				.reduceByKey((a, b) -> a + b, 1);
 			
 			allEdits.print();
+			minorEdits.print();
 					    		
 			ssc.start();
 			ssc.awaitTermination();

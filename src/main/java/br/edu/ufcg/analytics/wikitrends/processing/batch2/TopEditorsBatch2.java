@@ -32,10 +32,11 @@ public class TopEditorsBatch2 extends BatchLayer2Job {
 		JavaRDD<RankingEntry> fullRanking = computeFullRankingFromPartial("top_editors");
 		
 		CassandraJavaUtil.javaFunctions(fullRanking)
-		.writerBuilder(getBatchViews2Keyspace(), topEditorsTable, mapToRow(RankingEntry.class))
+		.writerBuilder(getBatchViews2Keyspace(), "rankings", mapToRow(RankingEntry.class))
 		.saveToCassandra();
 		
-		JavaRDD<KeyValuePair> distinctRDD = getJavaSparkContext().parallelize(Arrays.asList(new KeyValuePair("distinct_editors_count", fullRanking.count())));
+		JavaRDD<KeyValuePair> distinctRDD = getJavaSparkContext().parallelize(Arrays.asList(
+				new KeyValuePair("absolute_values", "distinct_editors_count", fullRanking.count())));
 		
 		CassandraJavaUtil.javaFunctions(distinctRDD)
 		.writerBuilder(getBatchViews2Keyspace(), "absolute_values", mapToRow(KeyValuePair.class))

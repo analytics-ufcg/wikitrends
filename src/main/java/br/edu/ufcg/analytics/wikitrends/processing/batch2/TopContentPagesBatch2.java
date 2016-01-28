@@ -27,7 +27,7 @@ public class TopContentPagesBatch2 extends BatchLayer2Job {
 	@Override
 	public void process() {
 		CassandraJavaUtil.javaFunctions(computeFullRankingFromPartial("top_content_pages"))
-			.writerBuilder(getBatchViews2Keyspace(), topContentPagesTable, mapToRow(RankingEntry.class))
+			.writerBuilder(getBatchViews2Keyspace(), "rankings", mapToRow(RankingEntry.class))
 			.saveToCassandra();
 	}
 	

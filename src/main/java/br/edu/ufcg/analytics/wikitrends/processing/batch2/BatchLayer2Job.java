@@ -11,8 +11,6 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.Session;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
