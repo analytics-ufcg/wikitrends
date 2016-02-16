@@ -1,8 +1,9 @@
-package br.edu.ufcg.analytics.wikitrends.storage.serving1.types;
+package br.edu.ufcg.analytics.wikitrends.storage.batchview.types;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
-public class TopClass implements Serializable {
+public class RankingEntryPerHour implements Serializable {
 	
 	/**
 	 *  SerialVersionUID to class TopClass
@@ -19,7 +20,7 @@ public class TopClass implements Serializable {
         private String name;
         private Long count;
 
-        public TopClass(String name, Long count, Integer year, Integer month, Integer day, Integer hour) {
+        public RankingEntryPerHour(String name, Long count, Integer year, Integer month, Integer day, Integer hour) {
         	setName(name);
         	setCount(count);
             setYear(year);
@@ -28,6 +29,9 @@ public class TopClass implements Serializable {
     		setHour(hour);
         }
         
+        public RankingEntryPerHour(String name, Long count, LocalDateTime date) {
+        	this(name, count, date.getYear(), date.getMonthValue(), date.getDayOfMonth(), date.getHour());
+        }
 
 		public String getName() {
 			return name;

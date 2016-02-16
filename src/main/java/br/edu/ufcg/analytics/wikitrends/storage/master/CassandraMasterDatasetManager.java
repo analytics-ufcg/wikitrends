@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.storage.raw;
+package br.edu.ufcg.analytics.wikitrends.storage.master;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
@@ -15,16 +15,15 @@ import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import br.edu.ufcg.analytics.wikitrends.storage.CassandraManager;
-import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
-import br.edu.ufcg.analytics.wikitrends.storage.raw.types.LogChange;
-import br.edu.ufcg.analytics.wikitrends.storage.raw.types.RawWikimediaChange;
+import br.edu.ufcg.analytics.wikitrends.storage.master.types.EditChange;
+import br.edu.ufcg.analytics.wikitrends.storage.master.types.LogChange;
+import br.edu.ufcg.analytics.wikitrends.storage.master.types.RawWikimediaChange;
 
 /**
  * @author Ricardo Araújo Santos - ricoaraujosantos@gmail.com
  *
  */
-public class CassandraMasterDatasetManager extends CassandraManager implements Serializable {
+public class CassandraMasterDatasetManager implements Serializable {
 
 	/**
 	 * 

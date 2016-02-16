@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.storage.raw.types;
+package br.edu.ufcg.analytics.wikitrends.storage.master.types;
 
 import java.io.Serializable;
 import java.util.UUID;

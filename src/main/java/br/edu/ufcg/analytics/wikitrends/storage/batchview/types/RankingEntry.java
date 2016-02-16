@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.storage.serving2.types;
+package br.edu.ufcg.analytics.wikitrends.storage.batchview.types;
 
 import java.io.Serializable;
 
