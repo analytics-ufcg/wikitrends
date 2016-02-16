@@ -24,6 +24,7 @@ import com.google.gson.JsonParser;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
+import br.edu.ufcg.analytics.wikitrends.storage.batchview.types.KeyValuePair;
 import br.edu.ufcg.analytics.wikitrends.storage.master.types.EditChange;
 import br.edu.ufcg.analytics.wikitrends.storage.master.types.LogChange;
 import br.edu.ufcg.analytics.wikitrends.storage.master.types.RawWikimediaChange;
@@ -145,7 +146,13 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 			
 			allEdits.print();
 			minorEdits.print();
+			
+			JavaDStream<KeyValuePair> speedLayerMetrics = allEdits.union(minorEdits).map( pair -> new KeyValuePair("final_metrics", pair._1, (long)pair._2));
 					    		
+			CassandraStreamingJavaUtil.javaFunctions(speedLayerMetrics)
+					.writerBuilder("batch_views", "final_metrics", mapToRow(KeyValuePair.class))
+					.saveToCassandra();
+
 			ssc.start();
 			ssc.awaitTermination();
 		}
