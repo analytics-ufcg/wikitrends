@@ -103,7 +103,7 @@ ingestor)
     esac
     ;;
 master_dataset)
-	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager
+	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.master.CassandraMasterDatasetManager
 	case $2 in
 	create)
 	    echo "Creating master dataset schema"
@@ -128,42 +128,20 @@ master_dataset)
     esac
     ;;
 
-batch_1)
-    echo "Submitting batch layer 1 jobs"
-	source ${ENV_VAR_FILE}
-	
-	echo "Submitting ${2} job"
-	spark-submit --conf spark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} --conf spark.cassandra.output.consistency.level=LOCAL_ONE --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} ${2}
-	echo "${2} job finished!"
-	
-    echo "Finished executing batch layer 1 jobs!"
-    ;;
-
-batch_2)
-    echo "Submitting batch layer 2 jobs"
-	source ${ENV_VAR_FILE}
-	
-	echo "Submitting ${2} job"
-	spark-submit --conf spark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} --conf spark.cassandra.output.consistency.level=LOCAL_ONE --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} ${2}
-	echo "${2} job finished!"
-
-    echo "Finished executing batch layer 2 jobs!"
-    ;;
-
-serving_1)
-	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.serving1.CassandraServingLayer1Manager
+batch_views)
+	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.batchview.CassandraBatchViewsManager
 	case $2 in
 	create)
-	    echo "Creating serving schema"
+	    echo "Creating batch views schema"
 		source ${ENV_VAR_FILE}
 		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3
-	    echo "Serving layer 1 table[s] creation completed!"
+	    echo "Batch views creation completed!"
 		;;
 	drop)
-	    echo "Dropping serving layer 1 schema"
+	    echo "Dropping batch views schema"
 		source ${ENV_VAR_FILE}
 		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP $3
-	    echo "Serving layer 1 table[s] dropped with success!"
+	    echo "Batch views dropped with success!"
 		;;
 	*)
 		show_help
@@ -171,48 +149,23 @@ serving_1)
     esac
     ;;
 
-serving_2)
-	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.serving2.CassandraServingLayer2Manager
-	case $2 in
-	create)
-	    echo "Creating serving layer 2 schema"
-		source ${ENV_VAR_FILE}
-		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE $3
-	    echo "Serving layer 2 table[s] creation completed!"
-		;;
-	drop)
-	    echo "Dropping serving layer 2 schema"
-		source ${ENV_VAR_FILE}
-		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP $3
-	    echo "Serving layer 2 table[s] dropped with success!"
-		;;	
-	*)
-		show_help
-		;;    
-    esac
+batch)
+    echo "Submitting batch layer jobs"
+	source ${ENV_VAR_FILE}
+	
+	view_name=${2}
+	shift 2
+	
+	echo "Submitting hourly ${view_name} job"
+	spark-submit --conf spark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} --conf spark.cassandra.output.consistency.level=LOCAL_ONE --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} ${view_name}_PARTIAL $*
+	echo "Hourly ${view_name} job finished!"
+	
+	echo "Submitting summary ${view_name} job"
+	spark-submit --conf spark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} --conf spark.cassandra.output.consistency.level=LOCAL_ONE --master ${MASTER_ADDRESS} --total-executor-cores ${TOTAL_EXECUTOR_CORES} --class ${MAIN_CLASS} ${LOCAL_JAR_ADDRESS} ${view_name}_FINAL $*
+	echo "Summary ${view_name} job finished!"
+	
+    echo "Finished executing batch layer jobs!"
     ;;
-
-job_times)
-	MANAGER_CLASS=br.edu.ufcg.analytics.wikitrends.storage.status.CassandraJobTimesStatusManager
-	case $2 in
-	create)
-	    echo "Creating job times schema"
-		source ${ENV_VAR_FILE}
-		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} CREATE
-	    echo "Job times table created with success!"
-		;;
-	drop)
-	    echo "Dropping job times schema"
-		source ${ENV_VAR_FILE}
-		java -Dspark.cassandra.connection.host=${CASSANDRA_HOST_SEEDS} -cp "${WIKITRENDS_HOME}/lib/*" ${MANAGER_CLASS} DROP
-	    echo "Job times table dropped with success!"
-		;;
-	*)
-		show_help
-		;;    
-    esac
-    ;;
-    
 
 speed)
 	MASTER_ADDRESS=${MASTER_ADDRESS%:*}:6066
