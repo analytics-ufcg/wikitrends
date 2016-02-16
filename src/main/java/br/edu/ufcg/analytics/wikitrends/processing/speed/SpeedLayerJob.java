@@ -56,7 +56,7 @@ public class SpeedLayerJob implements WikiTrendsProcess {
 	 * @see br.edu.ufcg.analytics.wikitrends.spark.SparkJob#run()
 	 */
 	@Override
-	public void run() {
+	public void run(String... args) {
 		
 
 		SparkConf conf;

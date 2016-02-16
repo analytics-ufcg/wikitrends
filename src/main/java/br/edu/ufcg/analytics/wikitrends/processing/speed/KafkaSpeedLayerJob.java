@@ -24,9 +24,9 @@ import com.google.gson.JsonParser;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
-import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
-import br.edu.ufcg.analytics.wikitrends.storage.raw.types.LogChange;
-import br.edu.ufcg.analytics.wikitrends.storage.raw.types.RawWikimediaChange;
+import br.edu.ufcg.analytics.wikitrends.storage.master.types.EditChange;
+import br.edu.ufcg.analytics.wikitrends.storage.master.types.LogChange;
+import br.edu.ufcg.analytics.wikitrends.storage.master.types.RawWikimediaChange;
 import kafka.serializer.StringDecoder;
 import scala.Tuple2;
 
@@ -97,7 +97,7 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 	 * @see br.edu.ufcg.analytics.wikitrends.spark.SparkJob#run()
 	 */
 	@Override
-	public void run() {
+	public void run(String... args) {
 		SparkConf conf;
 		conf = new SparkConf();
 		conf.setAppName(appName);
@@ -135,7 +135,7 @@ public class KafkaSpeedLayerJob implements WikiTrendsProcess {
 
 					@Override
 					public Tuple2<String, Integer> call(Tuple2<String, String> line) throws Exception {
-						JsonElement minor = new JsonParser().parse(line._1).getAsJsonObject().get("minor");
+						JsonElement minor = new JsonParser().parse(line._2).getAsJsonObject().get("minor");
 						int weight = minor != null && minor.getAsBoolean() ? 1: 0;
 						return new Tuple2<>("stream_minor_edits", weight);
 					}

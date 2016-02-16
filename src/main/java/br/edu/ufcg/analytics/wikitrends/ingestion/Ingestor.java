@@ -3,6 +3,9 @@ package br.edu.ufcg.analytics.wikitrends.ingestion;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.UUID;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.configuration.Configuration;
@@ -22,7 +25,7 @@ import io.socket.SocketIOException;
  * 
  * @author Felipe Vieira - felipe29vieira@gmail.com
  */
-public class Ingestor implements WikiTrendsProcess {
+public class Ingestor implements WikiTrendsProcess, IOCallback {
 
 	/**
 	 * 
@@ -36,6 +39,8 @@ public class Ingestor implements WikiTrendsProcess {
 	private int trials;
 
 	private String wikimediaStreamURL;
+	
+	private Logger logger;
 
 	/**
 	 * Default constructor
@@ -46,7 +51,9 @@ public class Ingestor implements WikiTrendsProcess {
 		this.producer = new KafkaStreamProducer(configuration);
 		this.trials = 10;
 		wikimediaStreamURL = configuration.getString("wikitrends.ingestion.wikimedia.stream");
-		
+
+		configLoggers();
+
 		try {
 			dataSource = new SocketIO(new URL(wikimediaStreamURL));
 		} catch (MalformedURLException e) {
@@ -55,65 +62,76 @@ public class Ingestor implements WikiTrendsProcess {
 		}
 	}
 
+	private void configLoggers() {
+		Logger rootLogger = Logger.getLogger("");
+		Handler[] handlers = rootLogger.getHandlers();
+		rootLogger.removeHandler(rootLogger.getHandlers()[0]);
+		if (handlers[0] instanceof ConsoleHandler) {
+			rootLogger.removeHandler(handlers[0]);
+		}
+
+		Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+	    logger.setLevel(Level.INFO);
+	    
+	    this.logger = Logger.getLogger(Ingestor.class.getName());
+	}
+
 	/* (non-Javadoc)
 	 * @see br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess#run()
 	 */
 	@Override
-	public void run(){
-		// Avoiding logs
-		// FIXME is there a way of doing this for the whole application?
-		Logger l0 = Logger.getLogger("");
-		l0.removeHandler(l0.getHandlers()[0]);
-		 
-		dataSource.connect(new IOCallback() {
-			@Override
-			public void onMessage(String data, IOAcknowledge ack) {
-				System.out.println("Server said: " + data);
-			}
-			
-			@Override
-			public void onMessage(JsonElement arg0, IOAcknowledge arg1) {
-				System.out.println("Server said: " + arg0);
-			}
+	public void run(String... args){
+		dataSource.connect(this);
+	}
 
-			@Override
-			public void onError(SocketIOException socketIOException) {
-				System.out.println("an Error occured");
-				socketIOException.printStackTrace();
+	@Override
+	public void onDisconnect() {
+		logger.info("Ingestor has been disconnected.");
+		while(trials > 0){
+			trials--;
+			try {
+				Thread.sleep(10000);
+				System.out.printf("Attempting to connect... (%d more trials before giving up)/n", trials);
+				dataSource = new SocketIO(new URL(wikimediaStreamURL));
+				this.run();
+				return;
+			} catch (MalformedURLException | InterruptedException e) {
+				e.printStackTrace();
+				throw new WikiTrendsConfigurationException(e);
 			}
+		}
+	}
 
-			@Override
-			public void onDisconnect() {
-				System.out.println("Connection terminated.");
-				while(trials > 0){
-					trials--;
-					try {
-						Thread.sleep(10000);
-						System.out.printf("Attempting to connect... (%d more trials before giving up)/n", trials);
-						dataSource = new SocketIO(new URL(wikimediaStreamURL));
-						return;
-					} catch (MalformedURLException | InterruptedException e) {
-						e.printStackTrace();
-						throw new WikiTrendsConfigurationException(e);
-					}
-				}
-			}
+	@Override
+	public void onConnect() {
+		trials = 10;
+		dataSource.emit("subscribe", "*");
+		logger.info("Connection established");
+	}
 
-			@Override
-			public void onConnect() {
-				trials = 10;
-				dataSource.emit("subscribe", "*");
-				System.out.println("Connection established");
-			}
+	@Override
+	public void onMessage(String data, IOAcknowledge ack) {
+		logger.info("Server said: " + data);
+	}
 
-			@Override
-			public void on(String eventName, IOAcknowledge eventAcknowledge, JsonElement... eventArguments) {
-				JsonObject jsonObject = eventArguments[0].getAsJsonObject();
-				String uuid = UUID.randomUUID().toString();
-				jsonObject.addProperty("uuid", uuid);
-				
-				producer.sendMessage(uuid, jsonObject.toString());
-			}			
-		});
+	@Override
+	public void onMessage(JsonElement json, IOAcknowledge ack) {
+		logger.info("Server said: " + json);
+	}
+
+	@Override
+	public void on(String event, IOAcknowledge ack, JsonElement... args) {
+		JsonObject jsonObject = args[0].getAsJsonObject();
+		String uuid = UUID.randomUUID().toString();
+		jsonObject.addProperty("uuid", uuid);
+		
+		producer.sendMessage(uuid, jsonObject.toString());
+	}
+
+	@Override
+	public void onError(SocketIOException socketIOException) {
+		logger.info("An error occured on Ingestor connection. Will attempt to recover");
+		socketIOException.printStackTrace();
+		onDisconnect();
 	}
 }
