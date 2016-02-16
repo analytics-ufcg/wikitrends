@@ -1,6 +1,7 @@
 package br.edu.ufcg.analytics.wikitrends;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.configuration.Configuration;
@@ -26,15 +27,16 @@ public class WikiTrends {
 	 */
 	public static void main(String[] args) throws ConfigurationException, IOException, InterruptedException, ExecutionException {
 		
-		if (args.length < 1 || args.length > 2) {
-			System.err.println("Usage: java -cp <path-to-jar-files> WikiTrends <COMMAND> [wikitrends.properties]");
+		if (args.length < 1) {
+			System.err.println("Usage: java -Dwikitrends.properties.file=<path-to-properties-file> -cp <path-to-jar-files> WikiTrends <COMMAND> [arguments]");
 			System.exit(1);
 		}
 		
-		Configuration configuration = new PropertiesConfiguration(args.length == 2? args[1]: DEFAULT_CONFIG_FILEPATH);
+		Configuration configuration = new PropertiesConfiguration(System.getProperty("wikitrends.properties.file", DEFAULT_CONFIG_FILEPATH));
 		
-		WikiTrendsCommands.valueOf(args[0]).build(configuration).run();
+		String command = args[0].toUpperCase();
 		
+		WikiTrendsCommands.valueOf(command).build(configuration).run(Arrays.copyOfRange(args, 1, args.length));
 	}
 }
 

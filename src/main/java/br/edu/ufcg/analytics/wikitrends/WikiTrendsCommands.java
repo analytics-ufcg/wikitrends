@@ -4,6 +4,20 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.apache.commons.configuration.Configuration;
 
+import br.edu.ufcg.analytics.wikitrends.ingestion.Ingestor;
+import br.edu.ufcg.analytics.wikitrends.processing.speed.KafkaSpeedLayerJob;
+import br.edu.ufcg.analytics.wikitrends.view.api.WikiTrendsRESTServer;
+import br.edu.ufcg.analytics.wikitrends.processing.batch.ContentPagesFinalRankingBatchJob;
+import br.edu.ufcg.analytics.wikitrends.processing.batch.ContentPagesPartialRankingBatchJob;
+import br.edu.ufcg.analytics.wikitrends.processing.batch.EditorsFinalRankingBatchJob;
+import br.edu.ufcg.analytics.wikitrends.processing.batch.EditorsPartialRankingBatchJob;
+import br.edu.ufcg.analytics.wikitrends.processing.batch.MetricsFinalBatchJob;
+import br.edu.ufcg.analytics.wikitrends.processing.batch.IdiomsFinalRankingBatchJob;
+import br.edu.ufcg.analytics.wikitrends.processing.batch.IdiomsPartialRankingBatchJob;
+import br.edu.ufcg.analytics.wikitrends.processing.batch.PagesFinalRankingBatchJob;
+import br.edu.ufcg.analytics.wikitrends.processing.batch.PagesPartialRankingBatchJob;
+import br.edu.ufcg.analytics.wikitrends.processing.batch.MetricsPartialBatchJob;
+
 /**
  * Possible layers to submit WikiTrends jobs according to &lambda; architecture.
  * 
@@ -12,27 +26,29 @@ import org.apache.commons.configuration.Configuration;
  */
 public enum WikiTrendsCommands {
 	
-	TOP_IDIOMS_BATCH_1 ("wikitrends.batch1.top_idioms.class"),
-	TOP_EDITORS_BATCH_1 ("wikitrends.batch1.top_editors.class"),
-	TOP_PAGES_BATCH_1 ("wikitrends.batch1.top_pages.class"),
-	TOP_CONTENT_PAGES_BATCH_1 ("wikitrends.batch1.top_content_pages.class"),
-	ABSOLUTE_VALUES_BATCH_1 ("wikitrends.batch1.absolute_values.class"),
-	
-	TOP_IDIOMS_BATCH_2 ("wikitrends.batch2.top_idioms.class"),
-	TOP_EDITORS_BATCH_2 ("wikitrends.batch2.top_editors.class"),
-	TOP_PAGES_BATCH_2 ("wikitrends.batch2.top_pages.class"),
-	TOP_CONTENT_PAGES_BATCH_2("wikitrends.batch2.top_content_pages.class"),
-	ABSOLUTE_VALUES_BATCH_2 ("wikitrends.batch2.absolute_values.class"),
-	
-	SERVING ("wikitrends.serving.class"),
-	INGESTOR ("wikitrends.ingestion.class"),
-	SPEED ("wikitrends.speed.class"),
-	WEB ("wikitrends.view.class");
-	
-	private String property;
+	IDIOMS_PARTIAL (IdiomsPartialRankingBatchJob.class),
+	IDIOMS_FINAL (IdiomsFinalRankingBatchJob.class),
 
-	private WikiTrendsCommands(String className) {
-		this.property = className;
+	EDITORS_PARTIAL (EditorsPartialRankingBatchJob.class),
+	EDITORS_FINAL (EditorsFinalRankingBatchJob.class),
+
+	PAGES_PARTIAL (PagesPartialRankingBatchJob.class),
+	PAGES_FINAL (PagesFinalRankingBatchJob.class),
+
+	CONTENT_PAGES_PARTIAL (ContentPagesPartialRankingBatchJob.class),
+	CONTENT_PAGES_FINAL (ContentPagesFinalRankingBatchJob.class),
+
+	METRICS_PARTIAL (MetricsPartialBatchJob.class),
+	METRICS_FINAL (MetricsFinalBatchJob.class),
+
+	INGESTOR (Ingestor.class),
+	SPEED (KafkaSpeedLayerJob.class),
+	WEB (WikiTrendsRESTServer.class);
+	
+	private Class<? extends WikiTrendsProcess> clazz;
+
+	private WikiTrendsCommands(Class<? extends WikiTrendsProcess> clazz) {
+		this.clazz = clazz;
 	}
 
 	/**
@@ -41,9 +57,9 @@ public enum WikiTrendsCommands {
 	 */
 	public WikiTrendsProcess build(Configuration configuration){
 		try {
-			return (WikiTrendsProcess) Class.forName(configuration.getString(property)).getConstructor(Configuration.class).newInstance(configuration);
+			return (WikiTrendsProcess) clazz.getConstructor(Configuration.class).newInstance(configuration);
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
-				| NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+				| NoSuchMethodException | SecurityException e) {
 			throw new RuntimeException(e);
 		}
 	}
