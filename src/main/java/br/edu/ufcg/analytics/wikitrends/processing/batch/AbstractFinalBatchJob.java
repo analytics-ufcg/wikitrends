@@ -1,9 +1,10 @@
-package br.edu.ufcg.analytics.wikitrends.processing.batch2;
+package br.edu.ufcg.analytics.wikitrends.processing.batch;
 
-import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
-import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapRowToTuple;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 
 import org.apache.commons.configuration.Configuration;
@@ -15,11 +16,7 @@ import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
-import br.edu.ufcg.analytics.wikitrends.processing.AbstractBatchJob;
-import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
-import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.RankingEntry;
-import br.edu.ufcg.analytics.wikitrends.storage.status.JobStatus;
-import scala.Tuple2;
+import br.edu.ufcg.analytics.wikitrends.storage.batchview.types.JobStatus;
 
 /**
  * {@link WikiTrendsProcess} implementation when a {@link WikiTrendsCommands#BATCH} is chosen. 
@@ -27,93 +24,81 @@ import scala.Tuple2;
  * @author Guilherme Gadelha
  * @author Ricardo Ara&eacute;jo Santos - ricoaraujosantos@gmail.com
  */
-public abstract class BatchLayer2Job extends AbstractBatchJob implements WikiTrendsProcess {
+public abstract class AbstractFinalBatchJob implements WikiTrendsProcess {
 
 	private static final long serialVersionUID = 1218454132437246895L;
-	
-	private String batchViews2Keyspace;
 
-	private String PROCESS_RESULT_ID;
-	
-	public BatchLayer2Job(Configuration configuration, JobStatusID processStatusId, ProcessResultID pId) {
-		super(configuration, processStatusId);
-		setBatchViews2Keyspace(configuration.getString("wikitrends.serving2.cassandra.keyspace"));
-		setProcessResultID(pId);
-	}
+	private String keyspace;
+	private BatchViewID inputBatchViewID;
+	private BatchViewID outputBatchViewID;
+	private transient JavaSparkContext sc;
 	
 	
-	public void setProcessResultID(ProcessResultID pId) {
-		this.PROCESS_RESULT_ID = pId.getID();
-	}
-	
-	public String getProcessResultID() {
-		return this.PROCESS_RESULT_ID;
+	public AbstractFinalBatchJob(Configuration configuration, BatchViewID inputBatchViewID, BatchViewID outputBatchViewID) {
+		this.inputBatchViewID = inputBatchViewID;
+		this.outputBatchViewID = outputBatchViewID;
+		this.sc = createJavaSparkContext(configuration);
+		this.keyspace = configuration.getString("wikitrends.batchview.keyspace");
 	}
 
-	public String getBatchViews2Keyspace() {
-		return batchViews2Keyspace;
-	}
-
-	public void setBatchViews2Keyspace(String batchViews2Keyspace) {
-		this.batchViews2Keyspace = batchViews2Keyspace;
-	}
-	
-	public void createJavaSparkContext(Configuration configuration) {
+	private JavaSparkContext createJavaSparkContext(Configuration configuration) {
 		SparkConf conf = new SparkConf();
 		conf.setAppName(this.getClass().getSimpleName());
-		setJavaSparkContext(new JavaSparkContext(conf));
+		return new JavaSparkContext(conf);
 	}
 	
+	
+
 	/**
-	 * Compute final ranking for the given table/process. 
-	 * 
-	 *  If final table is not empty it
-	 * takes the values from the final table and merge them with the new values from the
-	 * new hour.
-	 * 
-	 *  If the final table is empty it takes the values calculated from the current hour and
-	 *  put them directly in the final table. 
-	 * 
-	 * @param tableName
-	 * @return rdd of topResults
+	 * @return the sc
 	 */
-	public JavaRDD<RankingEntry> computeFullRankingFromPartial(String tableName) {
-		return javaFunctions(getJavaSparkContext())
-				.cassandraTable("batch_views1", tableName, mapRowToTuple(String.class, Long.class))
-				.select("name", "count")
-				.mapToPair(row -> new Tuple2<String, Long>(row._1, row._2))
-				.reduceByKey((a,b) -> a+b)
-				.mapToPair( pair -> pair.swap() )
-				.sortByKey(false)
-				.zipWithIndex()
-				.map( tuple -> new RankingEntry(getProcessResultID(), tuple._2, tuple._1._2, tuple._1._1));
+	public JavaSparkContext getJavaSparkContext() {
+		return sc;
+	}
+	
+
+	/**
+	 * @return the rankingsTable
+	 */
+	public String getInputBatchViewID() {
+		return inputBatchViewID.toString();
 	}
 
-	public void run(){
+	/**
+	 * @return the statusID
+	 */
+	public String getOutputBatchViewID() {
+		return outputBatchViewID.toString();
+	}
+
+	public String getKeyspace() {
+		return keyspace;
+	}
+
+
+	public void run(String... args){
 
 		process();
 
+		LocalDateTime currentTime = LocalDateTime.ofInstant(Instant.ofEpochMilli((System.currentTimeMillis() / 3600000) * 3600000), ZoneId.systemDefault());
+
+		LOGGER.info("Getting time=".concat(currentTime.toString()).concat(" from OS"));
+
 		LOGGER.info("Job ".concat(this.getClass().getName()).concat(
-				" processed with startTime= ").concat(getCurrentTime().toString()).concat(" and stopTime= ").concat(getStopTime().toString()));
+				" processed with time= ").concat(currentTime.toString()));
 
-		while(getCurrentTime().isBefore(getStopTime())) {
+		JavaRDD<JobStatus> rdd = getJavaSparkContext().parallelize(Arrays.asList(
+				new JobStatus(
+						getOutputBatchViewID(), 
+						currentTime.getYear(),
+						currentTime.getMonthValue(),
+						currentTime.getDayOfMonth(),
+						currentTime.getHour())));
 
-			JavaRDD<JobStatus> rdd = getJavaSparkContext().parallelize(Arrays.asList(
-					new JobStatus(
-							getProcessStartTimeStatusID(), 
-							getCurrentTime().getYear(),
-							getCurrentTime().getMonthValue(),
-							getCurrentTime().getDayOfMonth(),
-							getCurrentTime().getHour())));
-
-			CassandraJavaUtil.javaFunctions(rdd)
-			.writerBuilder("job_times", "status", mapToRow(JobStatus.class))
-			.saveToCassandra();
-
-
-			this.setCurrentTime(getCurrentTime().plusHours(1));
-		}
+		CassandraJavaUtil.javaFunctions(rdd)
+		.writerBuilder(keyspace, BatchViewID.STATUS.toString(), mapToRow(JobStatus.class))
+		.saveToCassandra();
 	}
-	
+
 	public abstract void process();
 }

@@ -1,12 +1,17 @@
-package br.edu.ufcg.analytics.wikitrends.processing.batch1;
+package br.edu.ufcg.analytics.wikitrends.processing.batch;
 
+import static com.datastax.spark.connector.japi.CassandraJavaUtil.javaFunctions;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
@@ -14,11 +19,7 @@ import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsCommands;
 import br.edu.ufcg.analytics.wikitrends.WikiTrendsProcess;
-import br.edu.ufcg.analytics.wikitrends.processing.AbstractBatchJob;
-import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
-import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
-import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
-import br.edu.ufcg.analytics.wikitrends.storage.status.JobStatus;
+import br.edu.ufcg.analytics.wikitrends.storage.batchview.types.JobStatus;
 
 /**
  * {@link WikiTrendsProcess} implementation when a {@link WikiTrendsCommands#BATCH} is chosen. 
@@ -26,12 +27,17 @@ import br.edu.ufcg.analytics.wikitrends.storage.status.JobStatus;
  * @author Guilherme Gadelha
  * @author Ricardo Ara&eacute;jo Santos - ricoaraujosantos@gmail.com
  */
-public abstract class BatchLayer1Job extends AbstractBatchJob {
+public abstract class AbstractPartialBatchJob implements WikiTrendsProcess {
+
+	private static final String statusTableName = BatchViewID.STATUS.toString();
 
 	private static final long serialVersionUID = 833872580572610849L;
 
-	private String batchViews1Keyspace;
+	private String keyspace;
+	private transient JavaSparkContext sc;
+	private BatchViewID batchViewID;
 	
+
 	/**
 	 * Default constructor.
 	 * 
@@ -41,59 +47,89 @@ public abstract class BatchLayer1Job extends AbstractBatchJob {
 	 * 
 	 * @param configuration 
 	 */
-	public BatchLayer1Job(Configuration configuration, JobStatusID processStartTimeStatusId) {
-		super(configuration, processStartTimeStatusId);
-		setBatchViews1Keyspace(configuration.getString("wikitrends.serving1.cassandra.keyspace"));
+	public AbstractPartialBatchJob(Configuration configuration, BatchViewID statusID) {
+		this.sc = createJavaSparkContext(configuration);
+		this.batchViewID = statusID;
+		this.keyspace = configuration.getString("wikitrends.batchview.keyspace");
 	}
 	
-	public String getBatchViews1Keyspace() {
-		return batchViews1Keyspace;
-	}
-
-	public void setBatchViews1Keyspace(String batchViewsKeyspace) {
-		this.batchViews1Keyspace = batchViewsKeyspace;
-	}
-	
-	public abstract JavaRDD<EditChange> read();
-
-	protected JavaRDD<TopClass> transformToTopEntry(JavaPairRDD<String,Integer> pairRDD) {
-		JavaRDD<TopClass> result = pairRDD
-				.reduceByKey( (a,b) -> a+b )
-				.map( edit -> new TopClass(edit._1, (long) edit._2, getCurrentTime().getYear(), getCurrentTime().getMonthValue(), getCurrentTime().getDayOfMonth(), getCurrentTime().getHour()) );
-		
-		return result;
-	}
-	
-	public void createJavaSparkContext(Configuration configuration) {
+	private JavaSparkContext createJavaSparkContext(Configuration configuration) {
 		SparkConf conf = new SparkConf();
 		conf.setAppName(this.getClass().getSimpleName());
-		setJavaSparkContext(new JavaSparkContext(conf));
+		return new JavaSparkContext(conf);
 	}
 	
-	public void run() {
+	public JavaSparkContext getJavaSparkContext() {
+		return this.sc;
+	}
+	
+	public String getBatchViewID() {
+		return batchViewID.toString();
+	}
 
-		while(getCurrentTime().isBefore(getStopTime())) {
-			process();
+	
+	/**
+	 * @return the keyspace
+	 */
+	public String getKeyspace() {
+		return keyspace;
+	}
+
+	@Override
+	public void run(String... args) {
+		
+		LocalDateTime currentTime = getStartTime(args);
+		LocalDateTime stopTime = getFinishTime(args);
+		
+		LOGGER.info("Started job ".concat(this.getClass().getName()).concat(
+				" with startTime= ").concat(currentTime.toString()).concat(" and stopTime= ").concat(stopTime.toString()));
+
+
+		while(currentTime.isBefore(stopTime)) {
+			process(currentTime);
 
 			LOGGER.info("Job ".concat(this.getClass().getName()).concat(
-					" processed with startTime= ").concat(getCurrentTime().toString()).concat(" and stopTime= ").concat(getStopTime().toString()));
+					" processed with startTime= ").concat(currentTime.toString()).concat(" and stopTime= ").concat(stopTime.toString()));
 
 			JavaRDD<JobStatus> rdd = getJavaSparkContext().parallelize(Arrays.asList(
 					new JobStatus(
-							getProcessStartTimeStatusID(), 
-							getCurrentTime().getYear(),
-							getCurrentTime().getMonthValue(),
-							getCurrentTime().getDayOfMonth(),
-							getCurrentTime().getHour())));
+							getBatchViewID(), 
+							currentTime.getYear(),
+							currentTime.getMonthValue(),
+							currentTime.getDayOfMonth(),
+							currentTime.getHour())));
 
 			CassandraJavaUtil.javaFunctions(rdd)
-			.writerBuilder("job_times", "status", mapToRow(JobStatus.class))
+			.writerBuilder(getKeyspace(), statusTableName, mapToRow(JobStatus.class))
 			.saveToCassandra();
 
-			this.setCurrentTime(getCurrentTime().plusHours(1));
+			currentTime = currentTime.plusHours(1);
 		}
 	}
 
-	public abstract void process();
+	private LocalDateTime getStartTime(String[] args) {
+		if(args.length == 0){
+			List<LocalDateTime> singleTimeCollection = javaFunctions(getJavaSparkContext())
+					.cassandraTable(getKeyspace(), statusTableName).where("id = ?", getBatchViewID()).limit(1L)
+					.map(row -> LocalDateTime
+							.of(row.getInt("year"), row.getInt("month"), row.getInt("day"), row.getInt("hour"), 0)
+							.plusHours(1))
+					.collect();
+			return singleTimeCollection.get(0);
+		}else{
+			return LocalDateTime.parse(args[0], DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+		}
+	}
+
+	private LocalDateTime getFinishTime(String[] args) {
+		if(args.length == 2){
+			return LocalDateTime.parse(args[1], DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+		}else{
+			return LocalDateTime.ofInstant(Instant.ofEpochMilli((System.currentTimeMillis() / 3600000) * 3600000),
+					ZoneId.systemDefault());
+		}
+	}
 	
+	protected abstract void process(LocalDateTime currentTime);
+
 }

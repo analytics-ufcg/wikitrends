@@ -1,4 +1,6 @@
-package br.edu.ufcg.analytics.wikitrends.processing;
+package br.edu.ufcg.analytics.wikitrends.processing.batch;
+
+import java.io.Serializable;
 
 /**
  * The string that identifies the job status
@@ -8,27 +10,25 @@ package br.edu.ufcg.analytics.wikitrends.processing;
  * @author Guilherme Gadelha
  *
  */
-public enum JobStatusID {
-	TOP_IDIOMS_BATCH_1 ("top_idioms_batch_1"),
-	TOP_EDITORS_BATCH_1 ("top_editors_batch_1"),
-	TOP_PAGES_BATCH_1 ("top_pages_batch_1"),
-	TOP_CONTENT_PAGES_BATCH_1 ("top_content_pages_batch_1"),
-	ABS_VALUES_BATCH_1 ("abs_values_batch_1"),
+public enum BatchViewID implements Serializable {
 	
-	TOP_IDIOMS_BATCH_2 ("top_idioms_batch_2"),
-	TOP_EDITORS_BATCH_2 ("top_editors_batch_2"),
-	TOP_PAGES_BATCH_2 ("top_pages_batch_2"),
-	TOP_CONTENT_PAGES_BATCH_2 ("top_content_pages_batch_2"),
-	ABS_VALUES_BATCH_2 ("abs_values_batch_2");
+	STATUS,
 	
-	private String status_id;
-
-	JobStatusID(String status_id) {
-		this.status_id = status_id;
-	}
-
-	public String getStatus_id() {
-		return status_id;
+	IDIOMS_PARTIAL_RANKINGS,
+	EDITORS_PARTIAL_RANKINGS,
+	PAGES_PARTIAL_RANKINGS,
+	CONTENT_PAGES_PARTIAL_RANKINGS,
+	PARTIAL_METRICS,
+	
+	IDIOMS_FINAL_RANKING,
+	EDITORS_FINAL_RANKING,
+	PAGES_FINAL_RANKING,
+	CONTENT_PAGES_FINAL_RANKING,
+	FINAL_METRICS;
+	
+	@Override
+	public String toString() {
+		return name().toLowerCase();
 	}
 
 }

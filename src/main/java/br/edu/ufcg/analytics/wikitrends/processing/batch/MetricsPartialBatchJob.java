@@ -1,7 +1,8 @@
-package br.edu.ufcg.analytics.wikitrends.processing.batch1;
+package br.edu.ufcg.analytics.wikitrends.processing.batch;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -10,46 +11,20 @@ import org.apache.spark.api.java.JavaRDD;
 
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
-import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
-import br.edu.ufcg.analytics.wikitrends.storage.raw.types.EditChange;
-import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.KeyValuePairPerHour;
+import br.edu.ufcg.analytics.wikitrends.storage.batchview.types.KeyValuePairPerHour;
+import br.edu.ufcg.analytics.wikitrends.storage.master.types.EditChange;
 
-public class AbsoluteValuesBatch1 extends BatchLayer1Job {
+public class MetricsPartialBatchJob extends AbstractPartialBatchJob {
 
 	private static final long serialVersionUID = 4394268380743075556L;
 
-	private static final JobStatusID ABSOLUTE_VALUES_STATUS_ID = JobStatusID.ABS_VALUES_BATCH_1;
-
-	private String absoluteValuesTable;
-
-	public AbsoluteValuesBatch1(Configuration configuration) {
-		super(configuration, ABSOLUTE_VALUES_STATUS_ID);
-		
-		absoluteValuesTable = configuration.getString("wikitrends.serving1.cassandra.table.absolutevalues");
+	public MetricsPartialBatchJob(Configuration configuration) {
+		super(configuration, BatchViewID.PARTIAL_METRICS);
 	}
 	
 	@Override
-	public JavaRDD<EditChange> read() {
-		
-		JavaRDD<EditChange> wikipediaEdits = CassandraJavaUtil.javaFunctions(getJavaSparkContext()).cassandraTable("master_dataset", "edits")
-				.select("server_name", "minor", "length")
-				.where("year = ? and month = ? and day = ? and hour = ?", getCurrentTime().getYear(), getCurrentTime().getMonthValue(), getCurrentTime().getDayOfMonth(), getCurrentTime().getHour())
-				.map( row -> {
-					EditChange edit = new EditChange();
-					edit.setServerName(row.getString("server_name"));
-					edit.setMinor(row.getBoolean("minor"));
-					edit.setLength(row.getMap("length", CassandraJavaUtil.typeConverter(String.class), CassandraJavaUtil.typeConverter(Long.class)));
-					return edit;
-				});
-		return wikipediaEdits;
-	}
-
-	
-	@Override
-	public void process() {
-		JavaRDD<EditChange> wikipediaEdits = read()
-				.filter(edit -> edit.getServerName().endsWith("wikipedia.org"))
-				.cache();
+	public void process(LocalDateTime currentTime) {
+		JavaRDD<EditChange> wikipediaEdits = read(currentTime);
 		
 		long allEdits = wikipediaEdits.count();
 		
@@ -60,10 +35,10 @@ public class AbsoluteValuesBatch1 extends BatchLayer1Job {
 			return length.getOrDefault("new", 0L) - length.getOrDefault("old", 0L);
 		}).fold(0L, (a, b) -> a+b);
 		
-		int year = getCurrentTime().getYear();
-		int month = getCurrentTime().getMonthValue();
-		int day = getCurrentTime().getDayOfMonth();
-		int hour = getCurrentTime().getHour();
+		int year = currentTime.getYear();
+		int month = currentTime.getMonthValue();
+		int day = currentTime.getDayOfMonth();
+		int hour = currentTime.getHour();
 		
 		JavaRDD<KeyValuePairPerHour> distinctRDD = getJavaSparkContext().parallelize(Arrays.asList(
 				new KeyValuePairPerHour(year, month, day, hour, "all_edits", allEdits),
@@ -72,9 +47,24 @@ public class AbsoluteValuesBatch1 extends BatchLayer1Job {
 				));
 		
 		CassandraJavaUtil.javaFunctions(distinctRDD)
-		.writerBuilder(getBatchViews1Keyspace(), absoluteValuesTable, mapToRow(KeyValuePairPerHour.class))
+		.writerBuilder(getKeyspace(), getBatchViewID().toString(), mapToRow(KeyValuePairPerHour.class))
 		.saveToCassandra();
 	}
-
+	
+	private JavaRDD<EditChange> read(LocalDateTime currentTime) {
+		
+		JavaRDD<EditChange> wikipediaEdits = CassandraJavaUtil.javaFunctions(getJavaSparkContext()).cassandraTable("master_dataset", "edits")
+				.select("server_name", "minor", "length")
+				.where("year = ? and month = ? and day = ? and hour = ?", currentTime.getYear(), currentTime.getMonthValue(), currentTime.getDayOfMonth(), currentTime.getHour())
+				.map( row -> {
+					EditChange edit = new EditChange();
+					edit.setServerName(row.getString("server_name"));
+					edit.setMinor(row.getBoolean("minor"));
+					edit.setLength(row.getMap("length", CassandraJavaUtil.typeConverter(String.class), CassandraJavaUtil.typeConverter(Long.class)));
+					return edit;
+				})
+				.filter(edit -> edit.getServerName().endsWith("wikipedia.org"));
+		return wikipediaEdits;
+	}
 }
 

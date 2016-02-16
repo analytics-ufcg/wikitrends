@@ -1,34 +1,12 @@
-package br.edu.ufcg.analytics.wikitrends.processing.batch2;
-
-import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
+package br.edu.ufcg.analytics.wikitrends.processing.batch;
 
 import org.apache.commons.configuration.Configuration;
 
-import com.datastax.spark.connector.japi.CassandraJavaUtil;
-
-import br.edu.ufcg.analytics.wikitrends.processing.JobStatusID;
-import br.edu.ufcg.analytics.wikitrends.storage.serving2.types.RankingEntry;
-
-public class TopContentPagesBatch2 extends BatchLayer2Job {
+public class ContentPagesFinalRankingBatchJob extends AbstractFinalRankingBatchJob {
 	
 	private static final long serialVersionUID = 5181147901979329455L;
 	
-	private String topContentPagesTable;
-	
-	private final static JobStatusID TOP_CONTENT_PAGES_STATUS_ID = JobStatusID.TOP_CONTENT_PAGES_BATCH_2;
-	private final static ProcessResultID TOP_CONTENT_PAGES_PROCESS_RESULT_ID = ProcessResultID.TOP_CONTENT_PAGES;
-	
-	public TopContentPagesBatch2(Configuration configuration)  {
-		super(configuration, TOP_CONTENT_PAGES_STATUS_ID, TOP_CONTENT_PAGES_PROCESS_RESULT_ID);
-		
-		topContentPagesTable = configuration.getString("wikitrends.serving2.cassandra.table.topcontentpages");
+	public ContentPagesFinalRankingBatchJob(Configuration configuration)  {
+		super(configuration, BatchViewID.CONTENT_PAGES_PARTIAL_RANKINGS, BatchViewID.CONTENT_PAGES_FINAL_RANKING,  "distinct_content_pages_count");
 	}
-	
-	@Override
-	public void process() {
-		CassandraJavaUtil.javaFunctions(computeFullRankingFromPartial("top_content_pages"))
-			.writerBuilder(getBatchViews2Keyspace(), "rankings", mapToRow(RankingEntry.class))
-			.saveToCassandra();
-	}
-	
 }
