@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.storage.raw;
+package br.edu.ufcg.analytics.wikitrends.storage.master;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -10,6 +10,8 @@ import org.junit.Test;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
+
+import br.edu.ufcg.analytics.wikitrends.storage.master.CassandraMasterDatasetManager;
 
 /**
  * Integration test for master dataset manager using cassandra database
@@ -52,7 +54,7 @@ public class CassandraMasterDatasetManagerIT {
 	}
 
 	/**
-	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager#createAll(Session)}.
+	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.master.CassandraMasterDatasetManager#createAll(Session)}.
 	 */
 	@Test
 	public void testEmptyEditsTableCreation() {
@@ -61,7 +63,7 @@ public class CassandraMasterDatasetManagerIT {
 	}
 
 	/**
-	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager#createAll(Session)}.
+	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.master.CassandraMasterDatasetManager#createAll(Session)}.
 	 */
 	@Test
 	public void testEmptyLogsTableCreation() {
@@ -70,7 +72,7 @@ public class CassandraMasterDatasetManagerIT {
 	}
 
 	/**
-	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager#createAll(Session)}.
+	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.master.CassandraMasterDatasetManager#createAll(Session)}.
 	 */
 	@Test
 	public void testEmptyChangesTableCreation() {
@@ -79,7 +81,7 @@ public class CassandraMasterDatasetManagerIT {
 	}
 
 	/**
-	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager#populateFrom(String, String)}.
+	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.master.CassandraMasterDatasetManager#populateFrom(String, String)}.
 	 */
 	@Test
 	public void testPopulateEdits() {
@@ -95,7 +97,7 @@ public class CassandraMasterDatasetManagerIT {
 	}
 
 	/**
-	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.raw.CassandraMasterDatasetManager#populateFrom(String, String)}.
+	 * Test method for {@link br.edu.ufcg.analytics.wikitrends.storage.master.CassandraMasterDatasetManager#populateFrom(String, String)}.
 	 */
 	@Test
 	public void testPopulateLogs() {

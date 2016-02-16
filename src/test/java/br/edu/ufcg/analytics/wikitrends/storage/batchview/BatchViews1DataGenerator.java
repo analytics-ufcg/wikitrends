@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.storage.serving1;
+package br.edu.ufcg.analytics.wikitrends.storage.batchview;
 
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
@@ -16,8 +16,8 @@ import org.joda.time.DateTime;
 
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 
-import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.AbsoluteValuesShot;
-import br.edu.ufcg.analytics.wikitrends.storage.serving1.types.TopClass;
+import br.edu.ufcg.analytics.wikitrends.storage.batchview.types.KeyValuePairPerHour;
+import br.edu.ufcg.analytics.wikitrends.storage.batchview.types.RankingEntryPerHour;
 
 public class BatchViews1DataGenerator {
 	
@@ -42,31 +42,22 @@ public class BatchViews1DataGenerator {
 //        Integer total_executor_cores = 4;
 //        Long input_size = 5145694870L; // in bytes (?)
 //        
-        List<AbsoluteValuesShot> listAbsoluteValues = new ArrayList<AbsoluteValuesShot>();
+        List<KeyValuePairPerHour> listAbsoluteValues = new ArrayList<KeyValuePairPerHour>();
         for(int i = 0; i < 6; i++) {
+        	listAbsoluteValues.add(new KeyValuePairPerHour(2014, 5, 23, i+1, "all_edits", all_edits+(i*10000000L)));
+        	listAbsoluteValues.add(new KeyValuePairPerHour(2014, 5, 23, i+1, "minor_edits", minor_edits+(i*1000000L)));
+        	listAbsoluteValues.add(new KeyValuePairPerHour(2014, 5, 23, i+1, "average_size", average_size+(i*10L)));
+        	listAbsoluteValues.add(new KeyValuePairPerHour(2014, 5, 23, i+1, "origin", origin+(i*100000L)));
+
         	distinct_pages.add("page"+String.valueOf(i));
         	distinct_editors.add("ed" + String.valueOf(i));
         	distinct_servers.add("server" + String.valueOf(i));
-        	
-        	AbsoluteValuesShot avs = new AbsoluteValuesShot(all_edits+i*10000000,
-        													minor_edits+i*1000000,
-        													average_size+i,
-    														distinct_pages,
-															distinct_editors,
-															distinct_servers,
-															origin+(i*100000),
-															2014,
-															5,
-															23,
-															i+1);
-        	
-        	listAbsoluteValues.add(avs);
         }
 
-        JavaRDD<AbsoluteValuesShot> absoluteValuesRDD = sc.parallelize(listAbsoluteValues);
+        JavaRDD<KeyValuePairPerHour> absoluteValuesRDD = sc.parallelize(listAbsoluteValues);
                
         CassandraJavaUtil.javaFunctions(absoluteValuesRDD)
-        	.writerBuilder("batch_views1", "absolute_values", mapToRow(AbsoluteValuesShot.class))
+        	.writerBuilder("batch_views1", "absolute_values", mapToRow(KeyValuePairPerHour.class))
         	.saveToCassandra();
     }
 	
@@ -109,28 +100,28 @@ public class BatchViews1DataGenerator {
         };
         
         
-        List<TopClass> topEditors = new ArrayList<TopClass>();
+        List<RankingEntryPerHour> topEditors = new ArrayList<RankingEntryPerHour>();
 		for(int i=0; i < 5; i++) {
 			DateTime dt21 = new DateTime(2013, 4, 3, 7+i, 0);
 			DateTime dt22 = new DateTime(2013, 4, 3, 8+i, 0);
 			DateTime dt23 = new DateTime(2013, 4, 4, 7+i, 0);
 			DateTime dt24 = new DateTime(2013, 4, 4, 8+i, 0);
 
-			TopClass ti1 = new TopClass(m1.keySet().toArray()[0].toString(), (long)m1.get(m1.keySet().toArray()[0]), dt21.getYear(), dt21.getMonthOfYear(), dt21.getDayOfWeek(), dt21.getHourOfDay());
+			RankingEntryPerHour ti1 = new RankingEntryPerHour(m1.keySet().toArray()[0].toString(), (long)m1.get(m1.keySet().toArray()[0]), dt21.getYear(), dt21.getMonthOfYear(), dt21.getDayOfWeek(), dt21.getHourOfDay());
 	        
-	        TopClass ti2 = new TopClass(m2.keySet().toArray()[1].toString(), (long)m2.get(m2.keySet().toArray()[1]), dt22.getYear(), dt22.getMonthOfYear(), dt22.getDayOfWeek(), dt22.getHourOfDay());
+	        RankingEntryPerHour ti2 = new RankingEntryPerHour(m2.keySet().toArray()[1].toString(), (long)m2.get(m2.keySet().toArray()[1]), dt22.getYear(), dt22.getMonthOfYear(), dt22.getDayOfWeek(), dt22.getHourOfDay());
 	       
-	        TopClass ti3 = new TopClass(m3.keySet().toArray()[2].toString(), (long)m3.get(m3.keySet().toArray()[2]), dt23.getYear(), dt23.getMonthOfYear(), dt23.getDayOfWeek(), dt23.getHourOfDay());
+	        RankingEntryPerHour ti3 = new RankingEntryPerHour(m3.keySet().toArray()[2].toString(), (long)m3.get(m3.keySet().toArray()[2]), dt23.getYear(), dt23.getMonthOfYear(), dt23.getDayOfWeek(), dt23.getHourOfDay());
 	        
-	        TopClass ti4 = new TopClass(m4.keySet().toArray()[3].toString(), (long)m4.get(m4.keySet().toArray()[3]), dt24.getYear(), dt24.getMonthOfYear(), dt24.getDayOfWeek(), dt24.getHourOfDay());
+	        RankingEntryPerHour ti4 = new RankingEntryPerHour(m4.keySet().toArray()[3].toString(), (long)m4.get(m4.keySet().toArray()[3]), dt24.getYear(), dt24.getMonthOfYear(), dt24.getDayOfWeek(), dt24.getHourOfDay());
 	        
 	        topEditors.addAll(Arrays.asList(ti1, ti2, ti3, ti4));
         }
 		
-        JavaRDD<TopClass> topEditorsRDD = sc.parallelize(topEditors);
+        JavaRDD<RankingEntryPerHour> topEditorsRDD = sc.parallelize(topEditors);
 
         CassandraJavaUtil.javaFunctions(topEditorsRDD)
-        		.writerBuilder("batch_views1", "top_editors", mapToRow(TopClass.class))
+        		.writerBuilder("batch_views1", "top_editors", mapToRow(RankingEntryPerHour.class))
         		.saveToCassandra();
 
     }
@@ -174,28 +165,28 @@ public class BatchViews1DataGenerator {
         };
         
         
-        List<TopClass> topIdioms = new ArrayList<TopClass>();
+        List<RankingEntryPerHour> topIdioms = new ArrayList<RankingEntryPerHour>();
 		for(int i=0; i < 5; i++) {
 			DateTime dt21 = new DateTime(2013, 4, 3, 7+i, 0);
 			DateTime dt22 = new DateTime(2013, 4, 3, 8+i, 0);
 			DateTime dt23 = new DateTime(2013, 4, 4, 7+i, 0);
 			DateTime dt24 = new DateTime(2013, 4, 4, 8+i, 0);
 			
-	        TopClass ti1 = new TopClass(m1.keySet().toArray()[0].toString(), (long)m1.get(m1.keySet().toArray()[0]), dt21.getYear(), dt21.getMonthOfYear(), dt21.getDayOfWeek(), dt21.getHourOfDay());
+	        RankingEntryPerHour ti1 = new RankingEntryPerHour(m1.keySet().toArray()[0].toString(), (long)m1.get(m1.keySet().toArray()[0]), dt21.getYear(), dt21.getMonthOfYear(), dt21.getDayOfWeek(), dt21.getHourOfDay());
 	        
-	        TopClass ti2 = new TopClass(m2.keySet().toArray()[1].toString(), (long)m2.get(m2.keySet().toArray()[1]), dt22.getYear(), dt22.getMonthOfYear(), dt22.getDayOfWeek(), dt22.getHourOfDay());
+	        RankingEntryPerHour ti2 = new RankingEntryPerHour(m2.keySet().toArray()[1].toString(), (long)m2.get(m2.keySet().toArray()[1]), dt22.getYear(), dt22.getMonthOfYear(), dt22.getDayOfWeek(), dt22.getHourOfDay());
 	        
-	        TopClass ti3 = new TopClass(m3.keySet().toArray()[2].toString(), (long)m3.get(m3.keySet().toArray()[2]), dt23.getYear(), dt23.getMonthOfYear(), dt23.getDayOfWeek(), dt23.getHourOfDay());
+	        RankingEntryPerHour ti3 = new RankingEntryPerHour(m3.keySet().toArray()[2].toString(), (long)m3.get(m3.keySet().toArray()[2]), dt23.getYear(), dt23.getMonthOfYear(), dt23.getDayOfWeek(), dt23.getHourOfDay());
 	        
-	        TopClass ti4 = new TopClass(m4.keySet().toArray()[3].toString(), (long)m4.get(m4.keySet().toArray()[3]), dt24.getYear(), dt24.getMonthOfYear(), dt24.getDayOfWeek(), dt24.getHourOfDay());
+	        RankingEntryPerHour ti4 = new RankingEntryPerHour(m4.keySet().toArray()[3].toString(), (long)m4.get(m4.keySet().toArray()[3]), dt24.getYear(), dt24.getMonthOfYear(), dt24.getDayOfWeek(), dt24.getHourOfDay());
 	        
 	        topIdioms.addAll(Arrays.asList(ti1, ti2, ti3, ti4));
         }
 
-        JavaRDD<TopClass> topIdiomsRDD = sc.parallelize(topIdioms);
+        JavaRDD<RankingEntryPerHour> topIdiomsRDD = sc.parallelize(topIdioms);
         
         CassandraJavaUtil.javaFunctions(topIdiomsRDD)
-				.writerBuilder("batch_views1", "top_idioms", mapToRow(TopClass.class))
+				.writerBuilder("batch_views1", "top_idioms", mapToRow(RankingEntryPerHour.class))
 				.saveToCassandra();
         
     }
@@ -238,29 +229,29 @@ public class BatchViews1DataGenerator {
         	m4.put("page_5", 10);
         };
         
-        List<TopClass> topPages = new ArrayList<TopClass>();
+        List<RankingEntryPerHour> topPages = new ArrayList<RankingEntryPerHour>();
 		for(int i=0; i < 5; i++) {
 			DateTime dt21 = new DateTime(2013, 4, 3, 7+i, 0);
 			DateTime dt22 = new DateTime(2013, 4, 3, 8+i, 0);
 			DateTime dt23 = new DateTime(2013, 4, 4, 7+i, 0);
 			DateTime dt24 = new DateTime(2013, 4, 4, 8+i, 0);
 			
-	        TopClass ti1 = new TopClass(m1.keySet().toArray()[0].toString(), (long)m1.get(m1.keySet().toArray()[0]), dt21.getYear(), dt21.getMonthOfYear(), dt21.getDayOfWeek(), dt21.getHourOfDay());
+	        RankingEntryPerHour ti1 = new RankingEntryPerHour(m1.keySet().toArray()[0].toString(), (long)m1.get(m1.keySet().toArray()[0]), dt21.getYear(), dt21.getMonthOfYear(), dt21.getDayOfWeek(), dt21.getHourOfDay());
 	        
-	        TopClass ti2 = new TopClass(m2.keySet().toArray()[1].toString(), (long)m2.get(m2.keySet().toArray()[1]), dt22.getYear(), dt22.getMonthOfYear(), dt22.getDayOfWeek(), dt22.getHourOfDay());
+	        RankingEntryPerHour ti2 = new RankingEntryPerHour(m2.keySet().toArray()[1].toString(), (long)m2.get(m2.keySet().toArray()[1]), dt22.getYear(), dt22.getMonthOfYear(), dt22.getDayOfWeek(), dt22.getHourOfDay());
 	        
-	        TopClass ti3 = new TopClass(m3.keySet().toArray()[2].toString(), (long)m3.get(m3.keySet().toArray()[2]), dt23.getYear(), dt23.getMonthOfYear(), dt23.getDayOfWeek(), dt23.getHourOfDay());
+	        RankingEntryPerHour ti3 = new RankingEntryPerHour(m3.keySet().toArray()[2].toString(), (long)m3.get(m3.keySet().toArray()[2]), dt23.getYear(), dt23.getMonthOfYear(), dt23.getDayOfWeek(), dt23.getHourOfDay());
 	        
-	        TopClass ti4 = new TopClass(m4.keySet().toArray()[3].toString(), (long)m4.get(m4.keySet().toArray()[3]), dt24.getYear(), dt24.getMonthOfYear(), dt24.getDayOfWeek(), dt24.getHourOfDay());
+	        RankingEntryPerHour ti4 = new RankingEntryPerHour(m4.keySet().toArray()[3].toString(), (long)m4.get(m4.keySet().toArray()[3]), dt24.getYear(), dt24.getMonthOfYear(), dt24.getDayOfWeek(), dt24.getHourOfDay());
 	        
 	        topPages.addAll(Arrays.asList(ti1, ti2, ti3, ti4));
         }
         
 
-        JavaRDD<TopClass> topPagesRDD = sc.parallelize(topPages);
+        JavaRDD<RankingEntryPerHour> topPagesRDD = sc.parallelize(topPages);
         
         CassandraJavaUtil.javaFunctions(topPagesRDD)
-				.writerBuilder("batch_views1", "top_pages", mapToRow(TopClass.class))
+				.writerBuilder("batch_views1", "top_pages", mapToRow(RankingEntryPerHour.class))
 				.saveToCassandra();
     }
 	
@@ -302,28 +293,28 @@ public class BatchViews1DataGenerator {
         	m4.put("content_page_5", 10);
         };
         
-        List<TopClass> topContentPages = new ArrayList<TopClass>();
+        List<RankingEntryPerHour> topContentPages = new ArrayList<RankingEntryPerHour>();
 		for(int i=0; i < 5; i++) {
 			DateTime dt21 = new DateTime(2013, 4, 3, 7+i, 0);
 			DateTime dt22 = new DateTime(2013, 4, 3, 8+i, 0);
 			DateTime dt23 = new DateTime(2013, 4, 4, 7+i, 0);
 			DateTime dt24 = new DateTime(2013, 4, 4, 8+i, 0);
 			
-	        TopClass ti1 = new TopClass(m1.keySet().toArray()[0].toString(), (long)m1.get(m1.keySet().toArray()[0]), dt21.getYear(), dt21.getMonthOfYear(), dt21.getDayOfWeek(), dt21.getHourOfDay());
+	        RankingEntryPerHour ti1 = new RankingEntryPerHour(m1.keySet().toArray()[0].toString(), (long)m1.get(m1.keySet().toArray()[0]), dt21.getYear(), dt21.getMonthOfYear(), dt21.getDayOfWeek(), dt21.getHourOfDay());
 	        
-	        TopClass ti2 = new TopClass(m2.keySet().toArray()[1].toString(), (long)m2.get(m2.keySet().toArray()[1]), dt22.getYear(), dt22.getMonthOfYear(), dt22.getDayOfWeek(), dt22.getHourOfDay());
+	        RankingEntryPerHour ti2 = new RankingEntryPerHour(m2.keySet().toArray()[1].toString(), (long)m2.get(m2.keySet().toArray()[1]), dt22.getYear(), dt22.getMonthOfYear(), dt22.getDayOfWeek(), dt22.getHourOfDay());
 	        
-	        TopClass ti3 = new TopClass(m3.keySet().toArray()[2].toString(), (long)m3.get(m3.keySet().toArray()[2]), dt23.getYear(), dt23.getMonthOfYear(), dt23.getDayOfWeek(), dt23.getHourOfDay());
+	        RankingEntryPerHour ti3 = new RankingEntryPerHour(m3.keySet().toArray()[2].toString(), (long)m3.get(m3.keySet().toArray()[2]), dt23.getYear(), dt23.getMonthOfYear(), dt23.getDayOfWeek(), dt23.getHourOfDay());
 	        
-	        TopClass ti4 = new TopClass(m4.keySet().toArray()[3].toString(), (long)m4.get(m4.keySet().toArray()[3]), dt24.getYear(), dt24.getMonthOfYear(), dt24.getDayOfWeek(), dt24.getHourOfDay());
+	        RankingEntryPerHour ti4 = new RankingEntryPerHour(m4.keySet().toArray()[3].toString(), (long)m4.get(m4.keySet().toArray()[3]), dt24.getYear(), dt24.getMonthOfYear(), dt24.getDayOfWeek(), dt24.getHourOfDay());
 	        
 	        topContentPages.addAll(Arrays.asList(ti1, ti2, ti3, ti4));
         }
 
-        JavaRDD<TopClass> topContentPagesRDD = sc.parallelize(topContentPages);
+        JavaRDD<RankingEntryPerHour> topContentPagesRDD = sc.parallelize(topContentPages);
         
         CassandraJavaUtil.javaFunctions(topContentPagesRDD)
-				.writerBuilder("batch_views1", "top_content_pages", mapToRow(TopClass.class))
+				.writerBuilder("batch_views1", "top_content_pages", mapToRow(RankingEntryPerHour.class))
 				.saveToCassandra();
     }
 	

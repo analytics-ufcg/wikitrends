@@ -1,4 +1,4 @@
-package br.edu.ufcg.analytics.wikitrends.storage.serving2;
+package br.edu.ufcg.analytics.wikitrends.storage.batchview;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -7,6 +7,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.datastax.driver.core.Cluster;
@@ -17,8 +18,9 @@ import com.datastax.driver.core.Session;
 /**
  * @author Ricardo Araújo Santos - ricardo@copin.ufcg.edu.br
  * @author Guilherme Gadelha
- *
+ * FIXME I think this test is unnecessary...
  */
+@Ignore
 public class CassandraBatchLayer2ManagerIT {
 	
 	private JavaSparkContext sc;
@@ -32,10 +34,10 @@ public class CassandraBatchLayer2ManagerIT {
 	public void setup() {
 		cluster = Cluster.builder().addContactPoints(SEED_NODE).build();
         session = cluster.newSession();
-        session.execute("USE batch_views2;");
+        session.execute("USE batch_views;");
         
-        new CassandraServingLayer2Manager().dropAll(session);
-        new CassandraServingLayer2Manager().createAll(session);
+        new CassandraBatchViewsManager().dropAll(session);
+        new CassandraBatchViewsManager().createAll(session);
         
         SparkConf conf = new SparkConf();
         conf.setAppName("Testing Serving Layer 2");
@@ -56,13 +58,13 @@ public class CassandraBatchLayer2ManagerIT {
 	
 	@Test
 	public void testEmptyTopEditorsTableCreation() {
-		ResultSet resultSet = session.execute("SELECT * FROM top_editors;");
+		ResultSet resultSet = session.execute("SELECT * FROM editors_partial_rankings;");
 		assertTrue(resultSet.all().isEmpty());
 	}
 
 	@Test
 	public void testEmptyTopPagesTableCreation() {
-		ResultSet resultSet = session.execute("SELECT * FROM top_pages;");
+		ResultSet resultSet = session.execute("SELECT * FROM pages_partial_rankings;");
 		assertTrue(resultSet.all().isEmpty());
 	}
 	
@@ -74,7 +76,7 @@ public class CassandraBatchLayer2ManagerIT {
 	
 	@Test
 	public void testEmptyTopContentPagesTableCreation() {
-		ResultSet resultSet = session.execute("SELECT * FROM top_content_pages;");
+		ResultSet resultSet = session.execute("SELECT * FROM content_pages_partial_rankings;");
 		assertTrue(resultSet.all().isEmpty());
 	}
 	
@@ -97,10 +99,10 @@ public class CassandraBatchLayer2ManagerIT {
 	public void testCreateTopEditors() {
 		dataGen.generateResultingTopEditorsData();
 		
-		ResultSet resultSet0 = session.execute("SELECT * FROM top_editors;");
+		ResultSet resultSet0 = session.execute("SELECT * FROM editors_partial_rankings;");
 		assertEquals(resultSet0.all().size(), 5);
 		
-		ResultSet resultSet1 = session.execute("SELECT * FROM top_editors LIMIT 3;");
+		ResultSet resultSet1 = session.execute("SELECT * FROM editors_partial_rankings LIMIT 3;");
 		assertEquals(resultSet1.all().size(), 3);
 		
 		for(Row r : resultSet1) {	
@@ -118,7 +120,7 @@ public class CassandraBatchLayer2ManagerIT {
 		ResultSet resultSet0 = session.execute("SELECT * FROM top_idioms;");
 		assertEquals(resultSet0.all().size(), 5);
 		
-		ResultSet resultSet1 = session.execute("SELECT * FROM top_idioms LIMIT 3;");
+		ResultSet resultSet1 = session.execute("SELECT * FROM idioms_partial_rankings LIMIT 3;");
 		assertEquals(resultSet1.all().size(), 3);
 		
 		for(Row r : resultSet1) {	
@@ -133,10 +135,10 @@ public class CassandraBatchLayer2ManagerIT {
 	public void testCreateTopPages() {
 		dataGen.generateResultingTopPagesData();
 		
-		ResultSet resultSet0 = session.execute("SELECT * FROM top_pages;");
+		ResultSet resultSet0 = session.execute("SELECT * FROM pages_partial_rankings;");
 		assertEquals(resultSet0.all().size(), 5);
 		
-		ResultSet resultSet1 = session.execute("SELECT * FROM top_pages LIMIT 3;");
+		ResultSet resultSet1 = session.execute("SELECT * FROM pages_partial_rankings LIMIT 3;");
 		assertEquals(resultSet1.all().size(), 3);
 		
 		for(Row r : resultSet1) {	
@@ -151,10 +153,10 @@ public class CassandraBatchLayer2ManagerIT {
 	public void testCreateTopContentPages() {
 		dataGen.generateResultingTopContentPagesData();
 		
-		ResultSet resultSet0 = session.execute("SELECT * FROM top_content_pages;");
+		ResultSet resultSet0 = session.execute("SELECT * FROM content_pages_partial_rankings;");
 		assertEquals(resultSet0.all().size(), 5);
 		
-		ResultSet resultSet1 = session.execute("SELECT * FROM top_content_pages LIMIT 4;");
+		ResultSet resultSet1 = session.execute("SELECT * FROM content_pages_partial_rankings LIMIT 4;");
 		assertEquals(resultSet1.all().size(), 4);
 		
 		for(Row r : resultSet1) {	
