@@ -44,6 +44,7 @@ app.config(function ($translateProvider) {
 	TOP_BTN: "Top",
 	COORDINATOR_TEAM: "Coordinator",
 	DEVELOPER_TEAM: "Big Data Developer",
+	TEAM_CONTACT: "Contact:",
 	PAR_PRESENT: "We have done the following presentation to explain the infrastructure and details of the tools that we have used on our project."
   });
   $translateProvider.translations('pt', {
@@ -55,14 +56,14 @@ app.config(function ($translateProvider) {
 	PAR_1_1: "Nós temos observado como as pessoas ao redor de todo o mundo interagem com a Wikipedia desde ",
 	PAR_1_2: "e obtivemos algumas estatísticas legais para mostrar... ",
 	PAR_2_1: "Até agora, nós vimos um total de ",
-	PAR_2_2: "edições (e este número está ficando cada vez maior no momento em que você ler esse texto! Somente nos últimos 30 segundos, por exemplo, ",
+	PAR_2_2: "edições (e esse número continua crescendo à medida que você lê esse texto! Apenas nos últimos 30 segundos, por exemplo, ",
 	PAR_2_3: "novas edições foram realizadas - ",
 	PAR_2_4: "delas são marcadas como \"edições menores\"). Uma edição significa que alguém mudou alguma página. Algumas dessas edições são \"edições menores\", usadas somente para controle e tarefas administrativas. Em nossos dados, existem ",
 	PAR_2_5: "\"edições maiores\", totalizando ",
 	PAR_2_6: "de todas as edições. ",
 	PAR_3_1: "Todas essas edições foram realizadas por ",
-	PAR_3_2: "diferentes editores/usuários (incluindo bots) com um total de ",
-	PAR_3_3: "diferentes páginas! Isto nos dá uma média de ",
+	PAR_3_2: "diferentes editores/usuários (incluindo bots) em um total de ",
+	PAR_3_3: "diferentes páginas! Isso nos dá uma média de ",
 	PAR_3_4: "edições por usuário.",
 	PAR_4_1: "Qual o tamanho dessas edições? ",
 	PAR_4_2: "Edições da Wikipedia têm ",
